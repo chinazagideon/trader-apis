@@ -1,0 +1,180 @@
+<?php
+
+namespace App\Core\Providers;
+
+use App\Core\Console\Commands\ModuleCreateCommand;
+use App\Core\Console\Commands\ModuleListCommand;
+use App\Core\Console\Commands\ModuleMigrateCommand;
+use App\Core\Console\Commands\ModuleSeedCommand;
+use App\Core\Console\Commands\ListModuleProvidersCommand;
+use App\Core\Console\Commands\CacheModuleProvidersCommand;
+use App\Core\Console\Commands\ProcessScheduledEventsCommand;
+use App\Core\Console\Commands\CleanupScheduledEventsCommand;
+use App\Core\Contracts\RepositoryInterface;
+use App\Core\Database\ModuleMigrationManager;
+use App\Core\Http\Controllers\ApiGatewayController;
+use App\Core\Http\Middleware\ApiGatewayMiddleware;
+use App\Core\ModuleManager;
+use App\Core\Repositories\BaseRepository;
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Database\Eloquent\Relations\Relation;
+
+
+class CoreServiceProvider extends ServiceProvider
+{
+    /**
+     * Register services.
+     */
+    public function register(): void
+    {
+        // Register core services immediately
+        $this->app->singleton(ModuleManager::class);
+        $this->app->singleton(ModuleMigrationManager::class);
+
+        // Register repositories
+        $this->app->bind(RepositoryInterface::class, BaseRepository::class);
+
+        // Register console commands
+        $this->registerConsoleCommands();
+    }
+
+    /**
+     * Bootstrap services.
+     */
+    public function boot(): void
+    {
+
+        // Register morph maps FIRST (before routes that might use them)
+        $this->registerMorphMaps();
+
+        // Load API Gateway routes directly
+        $this->loadApiGatewayRoutes();
+
+        // Register middleware
+        $this->registerMiddleware();
+    }
+
+    /**
+     * Register module service providers
+     */
+    private function registerModuleProviders(ModuleManager $moduleManager): void
+    {
+        // Only discover modules when actually needed
+        if (!$moduleManager->isModulesDiscovered()) {
+            $moduleManager->discoverModules();
+        }
+
+        $providers = $moduleManager->getServiceProviders();
+
+        foreach ($providers as $provider) {
+            if (class_exists($provider)) {
+                $this->app->register($provider);
+            }
+        }
+    }
+
+    /**
+     * Register console commands
+     */
+    private function registerConsoleCommands(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                ModuleListCommand::class,
+                ModuleCreateCommand::class,
+                ModuleMigrateCommand::class,
+                ModuleSeedCommand::class,
+                ListModuleProvidersCommand::class,
+                CacheModuleProvidersCommand::class,
+                ProcessScheduledEventsCommand::class,
+                CleanupScheduledEventsCommand::class,
+            ]);
+        }
+    }
+
+    /**
+     * Load API Gateway routes
+     */
+    private function loadApiGatewayRoutes(): void
+    {
+        Route::prefix('api/gateway')->group(function () {
+            Route::get('/status', [ApiGatewayController::class, 'status'])->name('gateway.status');
+            Route::get('/health', [ApiGatewayController::class, 'health'])->name('gateway.health');
+            Route::get('/modules', [ApiGatewayController::class, 'modulesInfo'])->name('gateway.modules');
+            Route::get('/modules/{module}', [ApiGatewayController::class, 'moduleInfo'])->name('gateway.module.info');
+            Route::post('/modules/{module}/register', [ApiGatewayController::class, 'registerModule'])->name('gateway.module.register');
+        });
+    }
+
+    /**
+     * Register middleware
+     */
+    private function registerMiddleware(): void
+    {
+        $this->app->singleton(ApiGatewayMiddleware::class);
+    }
+
+
+    /**
+     * Register morph maps dynamically based on discovered modules
+     * This allows polymorphic relationships to use clean aliases like 'user', 'transaction'
+     * instead of full class names in the database
+     */
+    protected function registerMorphMaps(): void
+    {
+        // Define base morph map - models that are commonly used in polymorphic relationships
+        $morphMap = [
+
+            // User module
+            'user' => \App\Modules\User\Database\Models\User::class,
+
+            // Transaction module
+            'transaction' => \App\Modules\Transaction\Database\Models\Transaction::class,
+            'transaction_category' => \App\Modules\Transaction\Database\Models\TransactionCategory::class,
+
+            // Investment module
+            'investment' => \App\Modules\Investment\Database\Models\Investment::class,
+
+            // Payment module
+            'payment' => \App\Modules\Payment\Database\Models\Payment::class,
+
+            // Category module
+            'category' => \App\Modules\Category\Database\Models\Category::class,
+
+            // Currency module
+            'currency' => \App\Modules\Currency\Database\Models\Currency::class,
+
+            // Pricing module
+            'pricing' => \App\Modules\Pricing\Database\Models\Pricing::class,
+        ];
+
+        // Register additional morph maps from module configs (for extensibility)
+        $additionalMorphs = $this->discoverModuleMorphMaps();
+        $morphMap = array_merge($morphMap, $additionalMorphs);
+
+        // Use morphMap (not enforceMorphMap) to allow fallback to full class names if needed
+        Relation::morphMap($morphMap);
+    }
+
+    /**
+     * Discover additional morph maps from module configurations
+     * Allows modules to register their own morphable models via config
+     */
+    protected function discoverModuleMorphMaps(): array
+    {
+        $morphs = [];
+
+        // Get all module configs
+        $moduleConfigs = config('modules', []);
+
+        foreach ($moduleConfigs as $moduleName => $config) {
+            // Check if module has morph_map configuration
+            if (isset($config['morph_map']) && is_array($config['morph_map'])) {
+                $morphs = array_merge($morphs, $config['morph_map']);
+            }
+        }
+
+        return $morphs;
+    }
+}
