@@ -27,3 +27,4 @@ Thumbs.db
 .editorconfig
 RELATIONSHIP_LOADING_GUIDE.md
 MICROSERVICE_ARCHITECTURE.md
+/storage/debugbar

@@ -12,7 +12,6 @@ class CategoryController extends CrudController
     public function __construct(
         private CategoryService $categoryService
     ) {
-    {
         parent::__construct($categoryService);
     }
 

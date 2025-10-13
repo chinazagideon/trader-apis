@@ -2,25 +2,36 @@
 
 namespace App\Modules\Transaction\Providers;
 
-use App\Core\Providers\ModuleServiceProviderBase;
+use App\Core\Providers\BaseModuleServiceProvider;
 use App\Modules\Transaction\Services\TransactionService;
 use App\Modules\Transaction\Services\TransactionCategoryService;
 
-class TransactionServiceProvider extends ModuleServiceProviderBase
+class TransactionServiceProvider extends BaseModuleServiceProvider
 {
-    public function register(): void
-    {
-        $this->registerModuleConfig();
-        $this->registerModuleMigrations();
-        $this->registerServices();
-    }
+    /**
+     * Module namespace
+     */
+    protected string $moduleNamespace = 'App\\Modules\\Transaction';
 
-    public function boot(): void
-    {
-        $this->loadModuleRoutes();
-        $this->registerModuleViews();
-        $this->registerModuleTranslations();
-    }
+    /**
+     * Module name
+     */
+    protected string $moduleName = 'Transaction';
+
+    /**
+     * Services
+     */
+    protected array $services = [
+        TransactionService::class,
+        TransactionCategoryService::class,
+    ];
+
+    /**
+     * Config files
+     */
+    protected array $configFiles = [
+        'transaction',
+    ];
 
     protected function registerServices(): void
     {
