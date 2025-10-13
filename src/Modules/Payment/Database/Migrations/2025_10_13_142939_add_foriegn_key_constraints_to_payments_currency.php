@@ -28,13 +28,13 @@ return new class extends Migration
     public function down(): void
     {
         //ADD COLUMN
-        Schema::table('payments', function (Blueprint $table) {
-            $table->string('currency')->nullable();
-        });
+        // Schema::table('payments', function (Blueprint $table) {
+            // $table->string('currency')->nullable();
+        // });
 
         //DROP COLUMN
         Schema::table('payments', function (Blueprint $table) {
-            $table->dropColumn('currency_id');
+            $table->dropConstrainedForeignId('currency_id');
             $table->dropIndex(['method', 'amount']);
         });
     }
