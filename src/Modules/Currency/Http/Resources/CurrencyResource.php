@@ -18,6 +18,7 @@ class CurrencyResource extends JsonResource
             'name' => $this->name,
             'symbol' => $this->symbol,
             'code' => $this->code,
+            'type' => $this->type,
             'is_default' => $this->is_default,
         ];
     }

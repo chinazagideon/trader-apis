@@ -3,21 +3,25 @@
 namespace App\Modules\Currency\Http\Controllers;
 
 use App\Core\Controllers\BaseController;
+use App\Core\Controllers\CrudController;
 use Illuminate\Http\JsonResponse;
+use App\Modules\Currency\Services\CurrencyService;
 
-class CurrencyController extends BaseController
+class CurrencyController extends CrudController
 {
-    public function index(): JsonResponse
-    {
-        return $this->successResponse([], 'Currency module is working');
+
+    public function __construct(
+        CurrencyService $currencyService
+    ) {
+        parent::__construct($currencyService);
     }
 
-    public function health(): JsonResponse
-    {
-        return $this->successResponse([
-            'status' => 'healthy',
-            'module' => 'Currency',
-            'timestamp' => now(),
-        ], 'Currency module health check');
-    }
+    // public function health(): JsonResponse
+    // {
+    //     return $this->successResponse([
+    //         'status' => 'healthy',
+    //         'module' => 'Currency',
+    //         'timestamp' => now(),
+    //     ], 'Currency module health check');
+    // }
 }

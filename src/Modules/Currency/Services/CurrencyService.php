@@ -4,19 +4,16 @@ namespace App\Modules\Currency\Services;
 
 use App\Core\Services\BaseService;
 use App\Core\Http\ServiceResponse;
+use App\Modules\Currency\Repositories\CurrencyRepository;
 
 class CurrencyService extends BaseService
 {
     protected string $serviceName = 'CurrencyService';
 
-    public function getHealth(): ServiceResponse
+    public function __construct(
+        private CurrencyRepository $currencyRepository
+    )
     {
-        return $this->executeServiceOperation(function () {
-            return ServiceResponse::success([
-                'status' => 'healthy',
-                'module' => 'Currency',
-                'timestamp' => now(),
-            ], 'Currency service is healthy');
-        }, 'health check');
+        parent::__construct($currencyRepository);
     }
 }
