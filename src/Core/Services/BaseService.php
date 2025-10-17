@@ -7,6 +7,7 @@ use App\Core\Http\ServiceResponse;
 use App\Core\Traits\ServiceResponseHandler;
 use App\Core\Traits\EnhancedLogging;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Response;
 
 abstract class BaseService implements ServiceInterface
 {
@@ -210,4 +211,28 @@ abstract class BaseService implements ServiceInterface
         return $matches[1] ?? 'Unknown';
     }
 
+    // src/Core/Services/BaseService.php
+
+    /**
+     * create paginated response
+     *
+     * @param \Illuminate\Contracts\Pagination\LengthAwarePaginator $paginator
+     * @param string $message
+     * @return ServiceResponse
+     */
+    protected function createPaginatedResponse(
+        \Illuminate\Contracts\Pagination\LengthAwarePaginator $paginator,
+        string $message = 'Data retrieved successfully'
+    ): ServiceResponse {
+        $pagination = [
+            'current_page' => $paginator->currentPage(),
+            'per_page' => $paginator->perPage(),
+            'total' => $paginator->total(),
+            'last_page' => $paginator->lastPage(),
+            'from' => $paginator->firstItem(),
+            'to' => $paginator->lastItem(),
+        ];
+
+        return ServiceResponse::success($paginator->items(), $message, Response::HTTP_OK, $pagination);
+    }
 }

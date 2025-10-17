@@ -25,9 +25,12 @@ class MorphExistsRule implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        $type = $this->typeField;
-        $morphKey = $this->allowedTypes;
-        $modelClass = $this->allowedTypes[$morphKey] ?? Relation::getMorphedModel($morphKey);
+
+        // Get the actual morph type value from the request
+        $morphKey = request()->input($this->typeField);
+        // Now use the morph key to get the model class
+        $modelClass = $this->allowedTypes[$morphKey];
+
 
         if (!$modelClass || !class_exists($modelClass)) {
             // This case should be handled by a simple 'in' rule on the type field,

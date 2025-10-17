@@ -4,27 +4,21 @@ namespace App\Core\Providers;
 
 use App\Core\Contracts\ModuleServiceProviderInterface;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Gate;
 
-abstract class BaseModuleServiceProvider extends ServiceProvider implements ModuleServiceProviderInterface
+abstract class BaseModuleServiceProvider extends ModuleServiceProviderBase implements ModuleServiceProviderInterface
 {
-    protected ?string $modulePath = null;
-
-    // Override only when you need custom names; by default infer from namespace
-    public function getModuleName(): string
-    {
-        // Expecting: App\Modules\{Module}\Providers\{...}
-        $ns = static::class;
-        if (preg_match('/^App\\\\Modules\\\\([^\\\\]+)/', $ns, $m)) {
-            return $m[1];
-        }
-        throw new \RuntimeException('Cannot infer module name from provider namespace: ' . $ns);
-    }
-
+    /**
+     * Get the module namespace
+     */
     public function getModuleNamespace(): string
     {
         return 'App\\Modules\\' . $this->getModuleName();
     }
 
+    /**
+     * Get the module path
+     */
     public function getModulePath(): string
     {
         if ($this->modulePath === null) {
@@ -33,11 +27,19 @@ abstract class BaseModuleServiceProvider extends ServiceProvider implements Modu
         return $this->modulePath;
     }
 
+    /**
+     * Get the priority for this provider (higher = earlier registration)
+     * Default is 0, negative values register later
+     */
     public function getPriority(): int
     {
         return 0;
     }
 
+    /**
+     * Check if this provider should be registered
+     * Useful for conditional registration based on environment or config
+     */
     public function shouldRegister(): bool
     {
         return true;
@@ -46,14 +48,23 @@ abstract class BaseModuleServiceProvider extends ServiceProvider implements Modu
     // Child modules override to bind concrete services
     protected function registerServices(): void {}
 
+    /**
+     * Register the service provider.
+     */
     public function register(): void
     {
         $this->registerServices();
     }
 
+    /**
+     * Bootstrap the service provider.
+     */
     public function boot(): void
     {
         // Intentionally empty; ModuleServiceProvider handles
         // loading routes/config/views/translations/migrations.
+
+        // Register policies
+        Gate::policy($this->getModuleNamespace(), $this->getModuleNamespace() . '\\Policies\\' . $this->getModuleName() . 'Policy');
     }
 }
