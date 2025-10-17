@@ -115,15 +115,22 @@ return [
         // Investment Events
         'investment_created' => [
             'class' => \App\Modules\Investment\Events\InvestmentCreated::class,
-            'mode' => env('EVENT_INVESTMENT_MODE', null), // null = use default
-            'queue' => env('EVENT_INVESTMENT_QUEUE', 'financial'),
+            'mode' => env('EVENT_INVESTMENT_MODE', 'queue'), // null = use default
+            'queue' => env('EVENT_INVESTMENT_QUEUE', 'default'),
             'priority' => 'high',
             'listeners' => [
                 'create_transaction' => [
                     'class' => \App\Modules\Transaction\Listeners\CreateTransactionForEntity::class,
-                    'mode' => env('EVENT_INVESTMENT_TRANSACTION_MODE', null),
-                    'queue' => env('EVENT_INVESTMENT_TRANSACTION_QUEUE', 'financial'),
+                    'mode' => env('EVENT_INVESTMENT_TRANSACTION_MODE', 'queue'),
+                    'queue' => env('EVENT_INVESTMENT_TRANSACTION_QUEUE', 'default'),
                     'tries' => env('EVENT_INVESTMENT_TRANSACTION_TRIES', 5),
+                    'backoff' => [30, 60, 120],
+                ],
+                'send_notification' => [
+                    'class' => \App\Modules\Notification\Listeners\SendEntityNotification::class,
+                    'mode' => env('EVENT_NOTIFICATION_MODE', 'queue'),
+                    'queue' => env('EVENT_NOTIFICATION_QUEUE', 'notifications-high'),
+                    'tries' => env('EVENT_NOTIFICATION_TRIES', 3),
                     'backoff' => [30, 60, 120],
                 ],
             ],
@@ -141,6 +148,13 @@ return [
                     'mode' => env('EVENT_TRANSACTION_CATEGORY_MODE', 'queue'),
                     'queue' => env('EVENT_TRANSACTION_CATEGORY_QUEUE', 'default'),
                     'tries' => env('EVENT_TRANSACTION_CATEGORY_TRIES', 3),
+                    'backoff' => [30, 60, 120],
+                ],
+                'send_notification' => [
+                    'class' => \App\Modules\Notification\Listeners\SendEntityNotification::class,
+                    'mode' => env('EVENT_NOTIFICATION_MODE', 'queue'),
+                    'queue' => env('EVENT_NOTIFICATION_QUEUE', 'notifications-medium'),
+                    'tries' => env('EVENT_NOTIFICATION_TRIES', 3),
                     'backoff' => [30, 60, 120],
                 ],
             ],

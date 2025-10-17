@@ -6,9 +6,9 @@ use Illuminate\Foundation\Configuration\Middleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        api: __DIR__.'/../routes/api.php',
-        commands: __DIR__.'/../routes/console.php',
+        web: __DIR__ . '/../routes/web.php',
+        api: __DIR__ . '/../routes/api.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -16,6 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             \App\Core\Http\Middleware\RequestIdMiddleware::class,
         ]);
+        // Register your custom middleware
+        // $middleware->alias([
+        //     'enforce.ownership' => \App\Core\Http\Middleware\EnforceOwnership::class,
+        // ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Handle custom application exceptions
