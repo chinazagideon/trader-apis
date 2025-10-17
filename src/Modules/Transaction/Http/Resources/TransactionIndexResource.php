@@ -28,8 +28,8 @@ class TransactionIndexResource extends JsonResource
             // 'formatted_amount' => number_format($this->total_amount, 2),
             // 'status_badge' => $this->getStatusBadge(),
             // 'entry_type_icon' => $this->getEntryTypeIcon(),
-            // 'category' => $this->category,
-            // 'transactable' => $this->transactable,
+            'category' => $this->category,
+            'transactable' => $this->transactable,
         ];
     }
 
