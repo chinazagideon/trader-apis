@@ -3,11 +3,11 @@
 namespace App\Modules\Investment\Http\Controllers;
 
 use App\Core\Controllers\CrudController;
-use App\Modules\Transaction\Database\Models\Transaction;
 use App\Modules\Investment\Services\InvestmentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class InvestmentController extends CrudController
 {
@@ -46,9 +46,19 @@ class InvestmentController extends CrudController
      */
     protected function beforeStore(array $data, Request $request): array
     {
- 
-
         $data['start_date'] = $data['start_date'] ?? Carbon::now();
         return $data;
     }
+
+
+    /**
+     * validate if reference exist in request
+     * @param array $data
+     * @return bool
+     */
+    public function referenceExistInRequest(array $data): bool
+    {
+        return isset($data['reference']);
+    }
+
 }

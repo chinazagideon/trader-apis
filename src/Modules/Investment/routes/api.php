@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Investment\Database\Models\Investment;
 use App\Modules\Investment\Http\Controllers\InvestmentController;
 use Illuminate\Support\Facades\Route;
 

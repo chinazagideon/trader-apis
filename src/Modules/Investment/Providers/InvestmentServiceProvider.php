@@ -4,7 +4,9 @@ namespace App\Modules\Investment\Providers;
 
 use App\Core\Providers\BaseModuleServiceProvider;
 use App\Modules\Investment\Services\InvestmentService;
-use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Gate;
+use App\Modules\Investment\Database\Models\Investment;
+use App\Modules\Investment\Policies\InvestmentPolicy;
 
 class InvestmentServiceProvider extends BaseModuleServiceProvider
 {
@@ -36,4 +38,10 @@ class InvestmentServiceProvider extends BaseModuleServiceProvider
     protected array $configFiles = [
         'investment',
     ];
+
+    public function boot(): void
+    {
+        Gate::policy(Investment::class, InvestmentPolicy::class);
+
+    }
 }

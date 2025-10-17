@@ -3,6 +3,7 @@
 namespace App\Modules\Investment\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Modules\Investment\Database\Models\Investment;
 
 class IndexRequest extends FormRequest
 {
@@ -13,7 +14,7 @@ class IndexRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->canPerformActionOn(Investment::class, 'view');
     }
 
     /**
