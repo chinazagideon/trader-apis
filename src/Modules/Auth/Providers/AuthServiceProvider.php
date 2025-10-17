@@ -4,6 +4,7 @@ namespace App\Modules\Auth\Providers;
 
 use App\Core\Providers\BaseModuleServiceProvider;
 use App\Modules\Auth\Services\AuthService;
+use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends BaseModuleServiceProvider
 {
@@ -36,10 +37,8 @@ class AuthServiceProvider extends BaseModuleServiceProvider
     /**
      * Register services
      */
-    public function register(): void
+    protected function registerServices(): void
     {
-        parent::register();
-
         // Bind the interfaces to their implementations
         $this->app->bind(
             \App\Modules\Auth\Contracts\AuthServiceInterface::class,
@@ -55,5 +54,11 @@ class AuthServiceProvider extends BaseModuleServiceProvider
             \App\Modules\Auth\Contracts\PasswordResetInterface::class,
             \App\Modules\Auth\Services\PasswordResetService::class
         );
+    }
+
+    public function boot(): void
+    {
+        parent::boot();
+        Gate::policy(\App\Modules\Auth\Database\Models\Auth::class, \App\Modules\Auth\Policies\AuthPolicy::class);
     }
 }
