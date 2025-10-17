@@ -38,6 +38,10 @@ class UserServiceProvider extends BaseModuleServiceProvider
     protected function registerServices(): void
     {
         $this->app->bind(UserServiceInterface::class, UserService::class);
+        $this->app->bind(
+            \App\Modules\User\Repositories\UserRepository::class,
+            \App\Modules\User\Repositories\UserRepository::class
+        );
     }
 
     /**
