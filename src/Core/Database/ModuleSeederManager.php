@@ -83,6 +83,13 @@ class ModuleSeederManager
             return;
         }
 
+        // Check if DatabaseSeeder exists and prioritize it
+        $databaseSeederFile = $seederPath . '/DatabaseSeeder.php';
+        if (file_exists($databaseSeederFile)) {
+            // Run only DatabaseSeeder which will handle the order
+            $seeders = [$databaseSeederFile];
+        }
+
         Log::info("[ModuleSeederManager] Found " . count($seeders) . " seeder(s) for {$moduleName}", [
             'module' => $moduleName,
             'seeders_found' => array_map('basename', $seeders),

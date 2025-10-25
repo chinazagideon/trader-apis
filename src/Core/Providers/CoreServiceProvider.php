@@ -4,7 +4,10 @@ namespace App\Core\Providers;
 
 use App\Core\Console\Commands\ModuleCreateCommand;
 use App\Core\Console\Commands\ModuleListCommand;
+use App\Core\Console\Commands\ModuleMakeMigration;
 use App\Core\Console\Commands\ModuleMigrateCommand;
+use App\Core\Console\Commands\ModuleMigrationStatusCommand;
+use App\Core\Console\Commands\ModuleRollbackCommand;
 use App\Core\Console\Commands\ModuleSeedCommand;
 use App\Core\Console\Commands\ListModuleProvidersCommand;
 use App\Core\Console\Commands\CacheModuleProvidersCommand;
@@ -19,7 +22,7 @@ use App\Core\Repositories\BaseRepository;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Database\Eloquent\Relations\Relation;
-
+use Fruitcake\Cors\CorsService;
 
 class CoreServiceProvider extends ServiceProvider
 {
@@ -28,6 +31,9 @@ class CoreServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->singleton(CorsService::class, function ($app) {
+            return new CorsService(config('cors'));
+        });
         // Register core services immediately
         $this->app->singleton(ModuleManager::class);
         $this->app->singleton(ModuleMigrationManager::class);
@@ -83,7 +89,10 @@ class CoreServiceProvider extends ServiceProvider
             $this->commands([
                 ModuleListCommand::class,
                 ModuleCreateCommand::class,
+                ModuleMakeMigration::class,
                 ModuleMigrateCommand::class,
+                ModuleMigrationStatusCommand::class,
+                ModuleRollbackCommand::class,
                 ModuleSeedCommand::class,
                 ListModuleProvidersCommand::class,
                 CacheModuleProvidersCommand::class,

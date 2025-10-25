@@ -9,8 +9,7 @@ trait HasPermissions
      */
     public function hasPermission(string $permission): bool
     {
-        // For now, return true for all permissions
-        // You can implement role-based permissions later
+        
         return true;
     }
 
