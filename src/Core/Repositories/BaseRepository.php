@@ -180,7 +180,7 @@ abstract class BaseRepository implements RepositoryInterface
     /**
      * Get query builder without ownership filtering (for admin operations)
      */
-    protected function queryUnfiltered(): Builder
+    public function queryUnfiltered(): Builder
     {
         return $this->model->newQuery();
     }
@@ -229,6 +229,7 @@ abstract class BaseRepository implements RepositoryInterface
      */
     protected function applyBusinessFilters($query, $filters)
     {
+
         // Apply status filter
         if (isset($filters['status'])) {
             $query->where('status', $filters['status']);
@@ -246,6 +247,7 @@ abstract class BaseRepository implements RepositoryInterface
         // Apply sorting
         $sortBy = $filters['sort_by'] ?? 'created_at';
         $sortDirection = $filters['sort_direction'] ?? 'desc';
+
         $query->orderBy($sortBy, $sortDirection);
     }
 }

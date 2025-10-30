@@ -21,7 +21,6 @@ trait AppliesOwnershipFilters
     {
         $user = auth()->user();
 
-
         if (!$user) {
             throw new UnauthenticatedException('User not authenticated');
         }
