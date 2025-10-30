@@ -15,9 +15,10 @@ use App\Modules\Investment\Policies\InvestmentPolicy;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use App\Modules\Notification\Traits\Notifiable;
 use Illuminate\Database\Eloquent\Attributes\UsePolicy;
+use App\Core\Contracts\OwnershipBased;
 
 #[UsePolicy(InvestmentPolicy::class)]
-class Investment extends Model implements TransactionContextInterface
+class Investment extends Model implements TransactionContextInterface, OwnershipBased
 {
     use HasTimestamps;
     use BelongsToUser;
@@ -31,6 +32,9 @@ class Investment extends Model implements TransactionContextInterface
         'pricing_id',
         'amount',
         'status',
+        'type',
+        'risk',
+        'name',
         'start_date',
         'end_date',
         'notes',
@@ -44,6 +48,9 @@ class Investment extends Model implements TransactionContextInterface
             'end_date' => 'date',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
+            'type' => 'string',
+            'risk' => 'string',
+            'name' => 'string',
         ];
     }
 
@@ -53,7 +60,7 @@ class Investment extends Model implements TransactionContextInterface
     public function getTransactionContext(string $operation = 'create', array $request = []): array
     {
         $config = config('Investment.transaction');
-        // dd($config);
+
 
         return [
             'entity_id' => $this->id,

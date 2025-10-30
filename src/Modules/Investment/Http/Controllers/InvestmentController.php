@@ -3,6 +3,7 @@
 namespace App\Modules\Investment\Http\Controllers;
 
 use App\Core\Controllers\CrudController;
+use App\Modules\Investment\Enums\InvestmentStatus;
 use App\Modules\Investment\Services\InvestmentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -47,6 +48,7 @@ class InvestmentController extends CrudController
     protected function beforeStore(array $data, Request $request): array
     {
         $data['start_date'] = $data['start_date'] ?? Carbon::now();
+        $data['status'] = $data['status'] ?? InvestmentStatus::defaultStatus();
         return $data;
     }
 
