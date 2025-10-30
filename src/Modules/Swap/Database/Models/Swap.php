@@ -9,8 +9,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Modules\User\Database\Models\User;
 use App\Modules\Currency\Database\Models\Currency;
+use App\Core\Contracts\OwnershipBased;
 
-class Swap extends CoreModel
+class Swap extends CoreModel implements OwnershipBased
 {
     use HasTimestamps, HasUuid;
 

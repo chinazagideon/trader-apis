@@ -5,8 +5,9 @@ namespace App\Modules\Swap\Database\Models;
 use App\Core\Models\CoreModel;
 use App\Core\Traits\HasTimestamps;
 use App\Core\Traits\HasUuid;
+use App\Core\Contracts\OwnershipBased;
 
-class SwapRateHistory extends CoreModel
+class SwapRateHistory extends CoreModel implements OwnershipBased
 {
     use HasTimestamps, HasUuid;
 
