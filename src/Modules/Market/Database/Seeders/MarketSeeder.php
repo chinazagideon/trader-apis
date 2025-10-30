@@ -13,6 +13,7 @@ class MarketSeeder extends Seeder
         $markets = [
             [
                 'name' => 'Bitcoin',
+                'symbol' => 'BTC',
                 'description' => 'Bitcoin is a digital currency that is created and distributed through a peer-to-peer network. It is based on the blockchain technology and is not controlled by any central authority.',
                 'image' => 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1696501628',
                 'url' => 'https://bitcoin.org',
@@ -20,10 +21,11 @@ class MarketSeeder extends Seeder
                 'status' => 'active',
                 'type' => 'spot',
                 'category' => 'crypto',
-                'subcategory' => 'bitcoin',
+                'subcategory' => 'BTC',
             ],
             [
                 'name' => 'Ethereum',
+                'symbol' => 'ETH',
                 'description' => 'Ethereum is a digital currency that is created and distributed through a peer-to-peer network. It is based on the blockchain technology and is not controlled by any central authority.',
                 'image' => 'https://assets.coingecko.com/coins/images/279/large/ethereum.png?1696501628',
                 'url' => 'https://ethereum.org',
@@ -31,27 +33,23 @@ class MarketSeeder extends Seeder
                 'status' => 'active',
                 'type' => 'spot',
                 'category' => 'crypto',
-                'subcategory' => 'ethereum',
+                'subcategory' => 'ETH',
             ],
             [
                 'name' => 'Tether',
-                'description' => 'Tether is a digital currency that is created and distributed through a peer-to-peer network. It is based on the blockchain technology and is not controlled by any central authority.',
+                'symbol' => 'USDT',
+                'description' => 'Tether is a stablecoin that is pegged to the US dollar. It is based on the Ethereum blockchain and is not controlled by any central authority.',
                 'image' => 'https://assets.coingecko.com/coins/images/325/large/tether.png?1696501628',
                 'url' => 'https://tether.to',
                 'slug' => 'tether',
                 'status' => 'active',
                 'type' => 'spot',
                 'category' => 'crypto',
-                'subcategory' => 'tether',
+                'subcategory' => 'USDT',
             ],
         ];
-        $seededCount = 0;
         foreach ($markets as $market) {
-            Market::create($market);
-            $seededCount++;
-        }
-        if ($this->command) {
-            $this->command->info('[MarketSeeder] Successfully seeded ' . $seededCount . ' markets');
+            Market::updateOrCreate(['symbol' => $market['symbol']], $market);
         }
     }
 }

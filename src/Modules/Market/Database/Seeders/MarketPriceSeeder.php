@@ -28,7 +28,7 @@ class MarketPriceSeeder extends Seeder
             ],
             [
                 'market_id' => 2,
-                'currency_id' => 2,
+                'currency_id' => 1,
                 'price' => 4500,
                 'market_cap' => 8000000000000.00,
                 'total_supply' => 2000000000.00,
@@ -43,7 +43,7 @@ class MarketPriceSeeder extends Seeder
             ],
             [
                 'market_id' => 3,
-                'currency_id' => 3,
+                'currency_id' => 1,
                 'price' => 1.00,
                 'market_cap' => 1000000000.00,
                 'total_supply' => 1000000000.00,

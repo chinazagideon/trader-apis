@@ -14,16 +14,19 @@ return new class extends Migration
         Schema::create('markets', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
-            $table->string('name');
-            $table->string('description');
-            $table->string('image');
-            $table->string('url');
-            $table->string('slug');
-            $table->string('status');
-            $table->string('type');
-            $table->string('category');
-            $table->string('subcategory');
+            $table->string('name')->unique();
+            $table->string('description')->nullable();
+            $table->string('symbol')->unique();
+            $table->string('image')->nullable();
+            $table->string('url')->nullable();
+            $table->string('slug')->unique();
+            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->enum('type', ['spot', 'future', 'option'])->default('spot');
+            $table->string('category')->default('crypto');
+            $table->string('subcategory')->nullable();
             $table->timestamps();
+
+            $table->index(['name', 'slug', 'status']);
         });
     }
 

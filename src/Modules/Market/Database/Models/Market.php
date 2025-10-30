@@ -22,6 +22,7 @@ class Market extends CoreModel
         'uuid',
         'name',
         'description',
+        'symbol',
         'image',
         'url',
         'slug',

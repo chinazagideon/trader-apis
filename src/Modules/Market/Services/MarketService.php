@@ -17,4 +17,11 @@ class MarketService extends BaseService
         parent::__construct($MarketRepository);
     }
 
+    public function getMarketBySymbol(string $symbol): ServiceResponse
+    {
+        return $this->executeServiceOperation(function () use ($symbol) {
+            return $this->MarketRepository->findBy('symbol', $symbol);
+        }, 'getMarketBySymbol');
+    }
+
 }

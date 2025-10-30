@@ -35,7 +35,23 @@ class MarketPriceRepository extends BaseRepository
     public function getMarketPrices(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         $query = $this->query();
-        // $this->applyBusinessFilters($query, $filters);
+        $this->applyBusinessFilters($query, $filters);
         return $this->withRelationships($query, $this->getDefaultRelationships())->paginate($perPage);
     }
+
+    /**
+     * Get currency price
+     * @param string $currency
+     * @return float
+     */
+    public function getCurrencyPrice(int $marketId): float
+    {
+        $marketPrice = $this->queryUnfiltered()
+            ->where('market_id', $marketId)
+            ->latest()
+            ->first();
+
+        return $marketPrice ? $marketPrice->price : 0.0;
+    }
+
 }
