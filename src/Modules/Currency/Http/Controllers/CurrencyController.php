@@ -16,12 +16,13 @@ class CurrencyController extends CrudController
         parent::__construct($currencyService);
     }
 
-    // public function health(): JsonResponse
-    // {
-    //     return $this->successResponse([
-    //         'status' => 'healthy',
-    //         'module' => 'Currency',
-    //         'timestamp' => now(),
-    //     ], 'Currency module health check');
-    // }
+    /**
+     * Get default currency
+     * @return JsonResponse
+     */
+    public function getDefaultCurrency(): JsonResponse
+    {
+        $response = $this->service->getDefaultCurrency();
+        return $response->toJsonResponse();
+    }
 }

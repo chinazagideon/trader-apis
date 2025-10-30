@@ -48,6 +48,20 @@ class CurrencySeeder extends Seeder
                 'type' => 'crypto',
                 'is_default' => false,
             ],
+            [
+                'name' => 'Ethereum',
+                'symbol' => 'Ξ',
+                'code' => 'ETH',
+                'type' => 'crypto',
+                'is_default' => false,
+            ],
+            [
+                'name' => 'Tether',
+                'symbol' => '₮',
+                'code' => 'USDT',
+                'type' => 'crypto',
+                'is_default' => false,
+            ],
         ];
 
         foreach ($currencies as $currency) {
