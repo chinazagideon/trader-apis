@@ -9,6 +9,14 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class UserRepository extends BaseRepository
 {
+    /**
+     * The key to get the user ID
+     */
+    public string $getUserIdKey = 'user_id';
+
+    /**
+     * Constructor
+     */
     public function __construct(User $model)
     {
         parent::__construct($model);

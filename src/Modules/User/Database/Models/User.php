@@ -2,17 +2,22 @@
 
 namespace App\Modules\User\Database\Models;
 
+use App\Core\Traits\HasPermissions;
 use App\Core\Traits\HasTimestamps;
 use App\Core\Traits\HasUuid;
+use App\Modules\User\Enums\RolesEnum;
 use App\Modules\Transaction\Traits\HasTransactableTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Core\Contracts\OwnershipBased;
 
-class User extends Authenticatable
+class User extends Authenticatable implements OwnershipBased
 {
     use HasApiTokens, HasFactory, Notifiable, HasTimestamps, HasUuid, HasTransactableTrait;
+    use HasPermissions;
+
     /**
      * The attributes that are mass assignable.
      */
@@ -77,8 +82,8 @@ class User extends Authenticatable
     {
         return $query->where(function ($q) use ($search) {
             $q->where('name', 'LIKE', "%{$search}%")
-              ->orWhere('email', 'LIKE', "%{$search}%")
-              ->orWhere('phone', 'LIKE', "%{$search}%");
+                ->orWhere('email', 'LIKE', "%{$search}%")
+                ->orWhere('phone', 'LIKE', "%{$search}%");
         });
     }
 
@@ -88,5 +93,31 @@ class User extends Authenticatable
     public function authTokens()
     {
         return $this->hasMany(\App\Modules\Auth\Database\Models\AuthToken::class);
+    }
+
+    public function hasPermission(string $permission, array $actions = []): bool
+    {
+        if ($this->role_id === RolesEnum::ADMIN->value) { // Admin
+            return true;
+        }
+
+        if ($this->role_id === RolesEnum::MODERATOR->value) { // Moderator
+            return in_array(
+                $permission,
+                array_merge($actions, [
+                    'view',
+                    'create',
+                    'update',
+                    'delete',
+                    'view_any',
+                    'create_any',
+                    'update_any',
+                    'delete_any',
+                ])
+            )
+                ? true : false;
+        }
+
+        return false;
     }
 }
