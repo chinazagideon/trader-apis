@@ -6,16 +6,24 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
-            // Add your table modifications here
-            // $table->string('new_column');
-            // $table->dropColumn('old_column');
-            // $table->renameColumn('old_name', 'new_name');
+        Schema::table('users', function (Blueprint $table) {
+            $table->float('total_balance')->default(0);
+            $table->float('available_balance')->default(0);
+            $table->enum('user_type', ['individual', 'business'])->default('individual');
+            $table->string('avatar')->nullable();
+            $table->float('total_commission')->default(0);
+            $table->string('referral_code')->nullable();
+
+            $table->string('first_name')->nullable();
+            $table->string('last_name')->nullable();
+
+            $table->index(['user_type', 'referral_code', 'first_name', 'last_name']);
         });
     }
 
@@ -24,6 +32,15 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('total_balance');
+            $table->dropColumn('available_balance');
+            $table->dropColumn('user_type');
+            $table->dropColumn('total_commission');
+            $table->dropColumn('referral_code');
+            $table->dropColumn('avatar');
+            $table->dropColumn('first_name');
+            $table->dropColumn('last_name');
+        });
     }
 };
