@@ -3,32 +3,27 @@
 namespace App\Modules\Withdrawal\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Modules\User\Http\Resources\UserResource;
 use App\Modules\Withdrawal\Enums\WithrawalTypes;
-class WithdrawalIndexResource extends JsonResource
+class WithdrawalStoreResource extends JsonResource
 {
     public function toArray($request): array
     {
         return [
-            'id' => $this->id,
             'uuid' => $this->uuid,
             'user_id' => $this->user_id,
-            'withdrawable_id' => $this->withdrawable_id,
-            'withdrawable_type' => $this->withdrawable_type,
             'amount' => $this->amount,
-            'type' => $this->getTypeLabel($this->type),
-            'currency_id' => $this->currency_id,
+            'currency' => $this->currency,
             'status' => $this->status,
             'notes' => $this->notes,
+            'type' => $this->getTypeLabel($this->type),
             'created_at' => $this->created_at_formatted,
             'updated_at' => $this->updated_at_formatted,
+            'time_ago' => $this->time_ago,
             'withdrawable' => $this->whenLoaded('withdrawable'),
             'currency' => $this->whenLoaded('currency'),
             'user' => $this->whenLoaded('user'),
-
         ];
     }
-
 
     /**
      * Get the label for the withdrawal type

@@ -18,4 +18,7 @@ return [
         'prefix' => 'withdrawal',
         'middleware' => ['api', 'auth:sanctum'],
     ],
+    'allowed_types' => [
+        'user' => \App\Modules\User\Database\Models\User::class,
+    ],
 ];

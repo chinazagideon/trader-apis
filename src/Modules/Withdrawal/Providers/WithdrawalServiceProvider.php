@@ -25,4 +25,15 @@ class WithdrawalServiceProvider extends BaseModuleServiceProvider
     protected array $configFiles = [
         'withdrawal',
     ];
+
+    /**
+     * Bootstrap the application services.
+     */
+    public function boot(): void
+    {
+        parent::boot();
+
+        // Register events
+        $this->app->register(WithdrawalEventServiceProvider::class);
+    }
 }

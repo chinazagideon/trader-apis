@@ -11,6 +11,12 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class WithdrawalRepository extends BaseRepository
 {
     use FiltersResponsesByOwnership;
+
+    /**
+     * The name of the module
+     * @var string
+     */
+    public string $moduleName = 'withdrawal';
     /**
      * Constructor
      */
@@ -24,7 +30,7 @@ class WithdrawalRepository extends BaseRepository
      */
     protected function getDefaultRelationships(): array
     {
-        return ['user', 'payment', 'currency'];
+        return ['user', 'withdrawable', 'currency'];
     }
 
     /**

@@ -12,6 +12,7 @@ use App\Core\Contracts\HasStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Core\Contracts\OwnershipBased;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class Withdrawal extends Model implements HasStatus, OwnershipBased
 {
@@ -21,7 +22,8 @@ class Withdrawal extends Model implements HasStatus, OwnershipBased
     protected $fillable = [
         'uuid',
         'user_id',
-        'payment_id',
+        'withdrawable_id',
+        'withdrawable_type',
         'amount',
         'currency_id',
         'status',
@@ -47,11 +49,11 @@ class Withdrawal extends Model implements HasStatus, OwnershipBased
     }
 
     /**
-     * Get the payment that owns the withdrawal.
+     * Get the withdrawable that owns the withdrawal.
      */
-    public function payment(): BelongsTo
+    public function withdrawable(): MorphTo
     {
-        return $this->belongsTo(Payment::class);
+        return $this->morphTo();
     }
 
     /**

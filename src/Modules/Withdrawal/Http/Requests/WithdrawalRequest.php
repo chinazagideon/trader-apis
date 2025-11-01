@@ -3,7 +3,8 @@
 namespace App\Modules\Withdrawal\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-
+use App\Modules\Withdrawal\Rules\IsValidWithdrawalType;
+use App\Core\Rules\MorphExistsRule;
 class WithdrawalRequest extends FormRequest
 {
 
@@ -21,13 +22,21 @@ class WithdrawalRequest extends FormRequest
      */
     public function rules(): array
     {
+        $allowedTypes = config('Withdrawal.allowed_types');
         return [
             'user_id' => 'required|integer|min:1|exists:users,id',
-            'payment_id' => 'required|integer|min:1|exists:payments,id',
             'amount' => 'required|numeric|min:0.01',
+            'withdrawable_id' => [
+                'required',
+                'integer',
+                new MorphExistsRule('withdrawable_type', $allowedTypes)
+            ],
+            "withdrawable_type" => ["required", "string",  'in:' . implode(',', array_keys($allowedTypes))],
+
             'currency_id' => 'required|integer|min:1|exists:currencies,id',
             'status' => 'required|string|in:pending,cancelled,completed',
             'notes' => 'nullable|string|max:500',
+            'type' => ['required', 'string', new IsValidWithdrawalType()],
         ];
     }
 
@@ -39,11 +48,11 @@ class WithdrawalRequest extends FormRequest
         return [
             'user_id.required' => 'The user id is required.',
             'user_id.exists' => 'The selected user does not exist.',
-            'payment_id.required' => 'The payment id is required.',
-            'payment_id.exists' => 'The selected payment does not exist.',
             'amount.required' => 'The amount is required.',
             'amount.numeric' => 'The amount must be a valid number.',
             'amount.min' => 'The amount must be at least 0.01.',
+            'type.required' => 'The type is required.',
+            'type.string' => 'The type must be a string.',
         ];
     }
 }
