@@ -32,7 +32,7 @@ abstract class BaseRepository implements RepositoryInterface
     public function all(array $columns = ['*']): Collection
     {
         $query = $this->query();
-        $query = $this->applyOwnershipFilters($query, 'view');
+        // $query = $this->applyOwnershipFilters($query, 'view');
 
         return $query->get($columns);
     }
@@ -43,7 +43,7 @@ abstract class BaseRepository implements RepositoryInterface
     public function find(int $id, array $columns = ['*']): ?Model
     {
         $query = $this->query();
-        $query = $this->applyOwnershipFilters($query, 'view');
+        // $query = $this->applyOwnershipFilters($query, 'view');
 
         $model = $query->find($id, $columns);
 
@@ -87,7 +87,7 @@ abstract class BaseRepository implements RepositoryInterface
     public function create(array $data): Model
     {
         // Validate ownership
-        $data = $this->validateCreateOwnership($data);
+        // $data = $this->validateCreateOwnership($data);
 
         $model = $this->model->create($data);
 
@@ -111,7 +111,7 @@ abstract class BaseRepository implements RepositoryInterface
             throw NotFoundException::resource($this->model->getTable());
         }
         // Validate ownership
-        $data = $this->validateUpdateOwnership($model, $data);
+        // $data = $this->validateUpdateOwnership($model, $data);
 
         $model->update($data);
         $model = $model->fresh(); // Get fresh instance with updated data
@@ -131,7 +131,7 @@ abstract class BaseRepository implements RepositoryInterface
     {
         $query = $this->query();
         $model = $query->find($id);
-        $query = $this->applyOwnershipFilters($query, 'delete');
+        // $query = $this->applyOwnershipFilters($query, 'delete');
 
         if (!$query->exists() || $model->isDeleted()) {
             return null;
@@ -147,7 +147,7 @@ abstract class BaseRepository implements RepositoryInterface
     {
 
         $query = $this->query();
-        $query = $this->applyOwnershipFilters($query, 'view');
+        // $query = $this->applyOwnershipFilters($query, 'view');
 
         return $query->paginate($perPage, $columns);
     }
@@ -174,7 +174,8 @@ abstract class BaseRepository implements RepositoryInterface
     protected function query(): Builder
     {
         $query = $this->model->newQuery();
-        return $this->applyOwnershipFilters($query, 'view');
+        // return $this->applyOwnershipFilters($query, 'view');
+        return $query;
     }
 
     /**
@@ -207,7 +208,7 @@ abstract class BaseRepository implements RepositoryInterface
         if (empty($search) || empty($searchableFields)) {
             throw new ValidationException('Search and searchable fields are required');
         }
-        $query = $this->applyOwnershipFilters($query, 'view');
+        // $query = $this->applyOwnershipFilters($query, 'view');
 
         return $query->where(function ($q) use ($search, $searchableFields) {
             foreach ($searchableFields as $field) {

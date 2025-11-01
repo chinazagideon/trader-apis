@@ -26,7 +26,9 @@ trait LoadsRelationships
      */
     public function withRelationships(Builder $query, array $relationships = []): Builder
     {
-        $relationshipsToLoad = empty($relationships) ? $this->getDefaultRelationships() : $relationships;
+        $relationshipsToLoad = empty($relationships)
+            ? $this->getDefaultRelationships()
+            : $relationships;
 
         if (!empty($relationshipsToLoad)) {
             $query->with($relationshipsToLoad);

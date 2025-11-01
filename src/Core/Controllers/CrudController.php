@@ -3,6 +3,7 @@
 namespace App\Core\Controllers;
 
 use App\Core\Http\ServiceResponse;
+use App\Core\Exceptions\AppException;
 use App\Core\Services\LoggingService;
 use App\Core\Traits\EnhancedLogging;
 use Illuminate\Http\JsonResponse;
@@ -292,8 +293,6 @@ abstract class CrudController extends BaseController
         $className = $reflection->getShortName();
 
         // Extract sub-resource name from controller class name
-        // Examples: TransactionCategoryController -> TransactionCategory
-        //           TransactionController -> null (no sub-resource)
         if (preg_match('/^(.+)Controller$/', $className, $matches)) {
             $controllerName = $matches[1];
             $module = $this->getModuleName();
@@ -381,8 +380,15 @@ abstract class CrudController extends BaseController
             ]);
 
             return $response;
+        }catch (\App\Core\Exceptions\AppException $e) {
+            $this->logOperationError($operation, $e, $tracking, [
+                'exception_type' => get_class($e),
+                'error_code' => $e->getErrorCode(),
+            ]);
+            return $this->handleAppException($e);
+        }
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+         catch (\Illuminate\Validation\ValidationException $e) {
             $this->logOperationError($operation, $e, $tracking, [
                 'validation_errors' => $e->errors(),
                 'failed_fields' => array_keys($e->errors()),
@@ -395,6 +401,26 @@ abstract class CrudController extends BaseController
             ]);
             return $this->handleException($e, $operation);
         }
+    }
+
+    /**
+     * Handle App-level exceptions uniformly
+     */
+    protected function handleAppException(AppException $e): JsonResponse
+    {
+        $errors = $e instanceof \App\Core\Exceptions\ValidationException ? $e->getErrors() : null;
+
+        $response = [
+            'success' => false,
+            'message' => $e->getMessage(),
+            'error_code' => $e->getErrorCode(),
+        ];
+
+        if (!is_null($errors)) {
+            $response['errors'] = $errors;
+        }
+
+        return response()->json($response, $e->getHttpStatusCode());
     }
 
     /**
@@ -468,7 +494,7 @@ abstract class CrudController extends BaseController
      */
     protected function handleStore(Request $request): JsonResponse
     {
-        // Let Laravel handle Form Request validation automatically
+
         $validatedData = $this->validateFormRequest($request, 'store');
 
         $processedData = $this->beforeStore($validatedData, $request);

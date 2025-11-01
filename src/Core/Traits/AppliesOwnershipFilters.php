@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 
 trait AppliesOwnershipFilters
 {
-    private string $defaultUserIdKey = 'user_id';
+    private string $defaultUserIdKey =  'user_id';
     private array $allowedActions = ['view', 'create', 'update', 'delete'];
     private array $statuses = ['pending', 'cancelled', 'completed'];
 
@@ -19,7 +19,7 @@ trait AppliesOwnershipFilters
      */
     protected function applyOwnershipFilters(Builder $query, string $action = 'view'): Builder
     {
-        $user = auth()->user();
+        $user = $query->user()->first();
 
         if (!$user) {
             throw new UnauthenticatedException('User not authenticated');
@@ -218,5 +218,13 @@ trait AppliesOwnershipFilters
         }
 
         return null;
+    }
+
+    /**
+     * Get the default user ID key
+     */
+    protected function getDefaultUserIdKey(): string
+    {
+        return $this->model->getOwnershipColumn();
     }
 }

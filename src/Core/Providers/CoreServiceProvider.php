@@ -31,6 +31,12 @@ class CoreServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Register core config file
+        $this->mergeConfigFrom(
+            base_path('src/Core/Config/core.php'),
+            'core'
+        );
+
         $this->app->singleton(CorsService::class, function ($app) {
             return new CorsService(config('cors'));
         });
@@ -43,6 +49,7 @@ class CoreServiceProvider extends ServiceProvider
 
         // Register console commands
         $this->registerConsoleCommands();
+
     }
 
     /**
@@ -59,6 +66,8 @@ class CoreServiceProvider extends ServiceProvider
 
         // Register middleware
         $this->registerMiddleware();
+
+
     }
 
     /**
@@ -133,30 +142,7 @@ class CoreServiceProvider extends ServiceProvider
     protected function registerMorphMaps(): void
     {
         // Define base morph map - models that are commonly used in polymorphic relationships
-        $morphMap = [
-
-            // User module
-            'user' => \App\Modules\User\Database\Models\User::class,
-
-            // Transaction module
-            'transaction' => \App\Modules\Transaction\Database\Models\Transaction::class,
-            'transaction_category' => \App\Modules\Transaction\Database\Models\TransactionCategory::class,
-
-            // Investment module
-            'investment' => \App\Modules\Investment\Database\Models\Investment::class,
-
-            // Payment module
-            'payment' => \App\Modules\Payment\Database\Models\Payment::class,
-
-            // Category module
-            'category' => \App\Modules\Category\Database\Models\Category::class,
-
-            // Currency module
-            'currency' => \App\Modules\Currency\Database\Models\Currency::class,
-
-            // Pricing module
-            'pricing' => \App\Modules\Pricing\Database\Models\Pricing::class,
-        ];
+        $morphMap = config('core.morph_maps', []);
 
         // Register additional morph maps from module configs (for extensibility)
         $additionalMorphs = $this->discoverModuleMorphMaps();

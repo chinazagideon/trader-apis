@@ -61,9 +61,6 @@ abstract class BaseModuleServiceProvider extends ModuleServiceProviderBase imple
      */
     public function boot(): void
     {
-        // Intentionally empty; ModuleServiceProvider handles
-        // loading routes/config/views/translations/migrations.
-
         // Register policies
         Gate::policy($this->getModuleNamespace(), $this->getModuleNamespace() . '\\Policies\\' . $this->getModuleName() . 'Policy');
     }
