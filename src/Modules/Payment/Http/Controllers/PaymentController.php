@@ -6,6 +6,7 @@ use App\Core\Controllers\CrudController;
 use App\Modules\Payment\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Core\Http\ServiceResponse;
 
 class PaymentController extends CrudController
 {
@@ -27,7 +28,7 @@ class PaymentController extends CrudController
     public function beforeStore(array $data, Request $request): array
     {
         $data['uuid'] = $this->referenceExistInRequest($data)
-                            ? $data['reference'] : Str::uuid();
+            ? $data['reference'] : Str::uuid();
         return $data;
     }
 

@@ -32,7 +32,6 @@ class PaymentSeeder extends Seeder
 
             $payments = [
                 [
-                    'method' => 'btc',
                     'payable_type' => 'transaction',
                     'payable_id' => $transactions->first()->id,
                     'status' => 'pending',
@@ -44,7 +43,6 @@ class PaymentSeeder extends Seeder
             // Add second payment if we have multiple transactions
             if ($transactions->count() > 1) {
                 $payments[] = [
-                    'method' => 'usd',
                     'payable_type' => 'transaction',
                     'payable_id' => $transactions->last()->id,
                     'status' => 'pending',
@@ -55,8 +53,6 @@ class PaymentSeeder extends Seeder
             $seededCount = 0;
             foreach ($payments as $payment) {
                 Payment::create([
-                    // 'uuid' => $payment['uuid'],
-                    'method' => $payment['method'],
                     'payable_type' => $payment['payable_type'],
                     'payable_id' => $payment['payable_id'],
                     'status' => $payment['status'],

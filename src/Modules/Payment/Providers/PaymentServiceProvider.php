@@ -4,6 +4,7 @@ namespace App\Modules\Payment\Providers;
 
 use App\Core\Providers\BaseModuleServiceProvider;
 use App\Modules\Payment\Services\PaymentService;
+use App\Modules\Payment\Providers\PaymentEventServiceProvider;
 
 /*
  * Payment service provider
@@ -33,4 +34,12 @@ class PaymentServiceProvider extends BaseModuleServiceProvider
     protected array $configFiles = [
         'payment',
     ];
+
+
+    public function boot(): void
+    {
+        parent::boot();
+        //register events
+        $this->app->register(PaymentEventServiceProvider::class);
+    }
 }

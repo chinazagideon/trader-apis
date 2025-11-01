@@ -19,7 +19,6 @@ class PaymentCreateRequest extends FormRequest
         $allowedTypes = config('Payment.allowed_types');
         return [
             'amount' => 'required|numeric|min:0.01',
-            'method' => 'required|string|in:bank,card,crypto',
             'payable_id' => [
                 'required',
                 'integer',
@@ -38,9 +37,6 @@ class PaymentCreateRequest extends FormRequest
             'amount.required' => 'The amount field is required.',
             'amount.numeric' => 'The amount must be a valid number.',
             'amount.min' => 'The amount must be at least 0.01.',
-            'method.required' => 'The method field is required.',
-            'method.string' => 'The method must be a string.',
-            'method.in' => 'The method must be one of: bank, card, mobile_money, paypal, stripe.',
             'payable_id.required' => 'The payable id field is required.',
             'payable_id.integer' => 'The payable id must be an integer.',
             'payable_id.min' => 'The payable id must be at least 1.',
