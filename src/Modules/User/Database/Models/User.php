@@ -11,9 +11,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use App\Core\Contracts\OwnershipBased;
 
-class User extends Authenticatable implements OwnershipBased
+class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, HasTimestamps, HasUuid, HasTransactableTrait;
     use HasPermissions;
@@ -119,5 +118,10 @@ class User extends Authenticatable implements OwnershipBased
         }
 
         return false;
+    }
+
+    public function getOwnershipColumn(): string
+    {
+        return 'id';
     }
 }

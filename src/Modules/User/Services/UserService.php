@@ -5,10 +5,11 @@ namespace App\Modules\User\Services;
 use App\Core\Http\ServiceResponse;
 use App\Core\Services\BaseService;
 use App\Modules\User\Contracts\UserServiceInterface;
-use App\Modules\User\Database\Models\User;
+use App\Modules\User\Contracts\UserBalanceServiceInterface;
 use App\Modules\User\Repositories\UserRepository;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
+use App\Modules\User\Contracts\UserCreditServiceInterface;
 
 /**
  * User Service
@@ -18,9 +19,11 @@ class UserService extends BaseService implements UserServiceInterface
     protected string $serviceName = 'UserService';
 
     public function __construct(
-        private UserRepository $userRepository
+        private UserRepository $userRepository,
+        private UserBalanceServiceInterface $userBalanceService,
+        private UserCreditServiceInterface $userCreditService
     ) {
-        parent::__construct();
+        parent::__construct($userRepository);
     }
 
     /**
@@ -42,8 +45,6 @@ class UserService extends BaseService implements UserServiceInterface
 
             $user = $this->userRepository->create($validated);
 
-            $this->log('User created successfully', ['user_id' => $user->id]);
-
             return ServiceResponse::success($user, 'User created successfully', Response::HTTP_CREATED);
         }, 'create user');
     }
@@ -60,8 +61,6 @@ class UserService extends BaseService implements UserServiceInterface
             $user = $this->userRepository->find($id);
 
             $this->ensureResourceExists($user, 'User');
-
-            $this->log('User found by ID', ['user_id' => $id]);
 
             return ServiceResponse::success($user, 'User retrieved successfully');
         }, 'find user by ID');
@@ -80,8 +79,6 @@ class UserService extends BaseService implements UserServiceInterface
 
             $this->ensureResourceExists($user, 'User');
 
-            $this->log('User found by UUID', ['uuid' => $uuid]);
-
             return ServiceResponse::success($user, 'User retrieved successfully');
         }, 'find user by UUID');
     }
@@ -98,8 +95,6 @@ class UserService extends BaseService implements UserServiceInterface
             $user = $this->userRepository->findByEmail($email);
 
             $this->ensureResourceExists($user, 'User');
-
-            $this->log('User found by email', ['email' => $email]);
 
             return ServiceResponse::success($user, 'User retrieved successfully');
         }, 'find user by email');
@@ -132,8 +127,6 @@ class UserService extends BaseService implements UserServiceInterface
                 throw new \App\Core\Exceptions\ServiceException('Failed to update user');
             }
 
-            $this->log('User updated successfully', ['user_id' => $id]);
-
             // Return the updated user
             $updatedUser = $this->userRepository->find($id);
             return ServiceResponse::success($updatedUser, 'User updated successfully');
@@ -158,8 +151,6 @@ class UserService extends BaseService implements UserServiceInterface
                 throw new \App\Core\Exceptions\ServiceException('Failed to delete user');
             }
 
-            $this->log('User deleted successfully', ['user_id' => $id]);
-
             return ServiceResponse::success(null, 'User deleted successfully');
         }, 'delete user');
     }
@@ -176,13 +167,6 @@ class UserService extends BaseService implements UserServiceInterface
     {
         return $this->executeServiceOperation(function () use ($filters, $page, $perPage) {
             $users = $this->userRepository->getUsersWithFilters($filters, $perPage);
-
-            $this->log('Users retrieved', [
-                'page' => $page,
-                'per_page' => $perPage,
-                'total' => $users->total(),
-                'filters' => $filters
-            ]);
 
             $pagination = [
                 'current_page' => $users->currentPage(),
@@ -210,13 +194,6 @@ class UserService extends BaseService implements UserServiceInterface
         return $this->executeServiceOperation(function () use ($search, $page, $perPage) {
             $users = $this->userRepository->searchUsers($search, $perPage);
 
-            $this->log('Users searched', [
-                'search' => $search,
-                'page' => $page,
-                'per_page' => $perPage,
-                'total' => $users->total()
-            ]);
-
             $pagination = [
                 'current_page' => $users->currentPage(),
                 'per_page' => $users->perPage(),
@@ -239,9 +216,6 @@ class UserService extends BaseService implements UserServiceInterface
     {
         return $this->executeServiceOperation(function () {
             $stats = $this->userRepository->getUserStats();
-
-            $this->log('User statistics retrieved', $stats);
-
             return ServiceResponse::success($stats, 'User statistics retrieved successfully');
         }, 'get user statistics');
     }
@@ -270,5 +244,26 @@ class UserService extends BaseService implements UserServiceInterface
         ];
 
         return $this->validateData($data, $rules);
+    }
+
+    /**
+     * validate user balance
+     *
+     * @param array $data
+     * @return boolean
+     */
+    public function checkBalance(array $data = []): bool
+    {
+        return $this->userBalanceService->checkBalance($data);
+    }
+
+    /**
+     * Add funding to user
+     * @param array $data
+     * @return ServiceResponse
+     */
+    public function addFundingToUser(array $data = []): void
+    {
+        $this->userCreditService->credit($data);
     }
 }

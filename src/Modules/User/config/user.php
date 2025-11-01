@@ -67,4 +67,8 @@ return [
         'ttl' => env('USER_CACHE_TTL', 3600), // 1 hour
         'prefix' => 'user_module',
     ],
+    'min_withdrawal' => 100,
+    'max_deposit' => 1000000,
+    'min_payment' => 0,
+    'allow_auto_credit' => env('ALLOW_AUTO_CREDIT', true),
 ];
