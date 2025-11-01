@@ -160,6 +160,38 @@ return [
             ],
         ],
 
+        // Funding Events
+        'funding_completed' => [
+            'class' => \App\Modules\Funding\Events\FundingWasCompleted::class,
+            'mode' => env('EVENT_FUNDING_MODE', 'queue'), // sync in local, queue in production
+            'priority' => 'high',
+            'listeners' => [
+                'user_balance_updated' => [
+                    'class' => \App\Modules\User\Listeners\FundingWasCompletedListener::class,
+                    'mode' => env('EVENT_FUNDING_BALANCE_MODE', 'queue'),
+                    'queue' => env('EVENT_FUNDING_BALANCE_QUEUE', 'default'),
+                    'tries' => env('EVENT_FUNDING_BALANCE_TRIES', 3),
+                    'backoff' => [30, 60, 120],
+                ],
+            ],
+        ],
+
+        // Withdrawal Events
+        'withdrawal_completed' => [
+            'class' => \App\Modules\Withdrawal\Events\WithdrawalWasCompleted::class,
+            'mode' => env('EVENT_WITHDRAWAL_MODE', 'queue'),
+            'priority' => 'high',
+            'listeners' => [
+                'user_balance_updated' => [
+                    'class' => \App\Modules\User\Listeners\WithdrawalWasCompletedListener::class,
+                    'mode' => env('EVENT_WITHDRAWAL_BALANCE_MODE', 'queue'),
+                    'queue' => env('EVENT_WITHDRAWAL_BALANCE_QUEUE', 'default'),
+                    'tries' => env('EVENT_WITHDRAWAL_BALANCE_TRIES', 3),
+                    'backoff' => [30, 60, 120],
+                ],
+            ],
+
+        ],
         // User Events (example)
         'user_registered' => [
             'mode' => env('EVENT_USER_MODE', 'queue'),
