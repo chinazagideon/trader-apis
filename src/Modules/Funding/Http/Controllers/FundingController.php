@@ -6,6 +6,7 @@ use App\Core\Controllers\CrudController;
 use App\Modules\Funding\Services\FundingService;
 use App\Core\Http\ServiceResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class FundingController extends CrudController
 {
@@ -15,8 +16,14 @@ class FundingController extends CrudController
         parent::__construct($fundingService);
     }
 
-    public function hello(): JsonResponse
+    /**
+     * @inheritDoc
+     */
+    public function beforeStore(array $data, Request $request): array
     {
-        return $this->successResponse([], 'Hello from Funding module');
+        $data['user_id'] = $request->user()->id;
+        $data['amount'] = $request->input('amount');
+        $data['type'] = $request->input('type');
+        return $data;
     }
 }

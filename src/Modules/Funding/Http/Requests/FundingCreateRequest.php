@@ -3,7 +3,7 @@
 namespace App\Modules\Funding\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-
+use App\Modules\Funding\Rules\IsValidFundingType;
 class FundingCreateRequest extends FormRequest
 {
     public function authorize(): bool
@@ -17,7 +17,7 @@ class FundingCreateRequest extends FormRequest
             'fundable_id' => 'required|integer|min:1',
             'fundable_type' => 'required|string',
             'user_id' => 'required|integer|min:1|exists:users,id',
-            'uuid' => 'sometimes|string|max:255',
+            'type' => ['required', 'string', new IsValidFundingType()],
             'amount' => 'required|numeric|min:0.01',
             'currency_id' => 'required|integer|min:1|exists:currencies,id',
             'status' => 'required|string|in:pending,cancelled,completed',
@@ -44,6 +44,7 @@ class FundingCreateRequest extends FormRequest
             'status.required' => 'The status is required.',
             'status.in' => 'The status must be one of: pending, cancelled, completed.',
             'notes.max' => 'The notes may not be greater than 500 characters.',
+            'type.required' => 'The type of funding is required.',
         ];
     }
 }

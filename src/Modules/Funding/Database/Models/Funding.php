@@ -2,6 +2,7 @@
 
 namespace App\Modules\Funding\Database\Models;
 
+use App\Core\Contracts\OwnershipBased;
 use App\Core\Traits\HasTimestamps;
 use App\Core\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
@@ -9,8 +10,9 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Modules\User\Database\Models\User;
 use App\Modules\Currency\Database\Models\Currency;
+use App\Modules\Funding\Enums\FundingType;
 
-class Funding extends Model
+class Funding extends Model implements OwnershipBased
 {
     use HasTimestamps, HasUuid;
 
@@ -26,6 +28,7 @@ class Funding extends Model
         'currency_id',
         'status',
         'notes',
+        'type',
     ];
 
     /**
@@ -39,6 +42,7 @@ class Funding extends Model
             'status' => 'string',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
+            'type' => FundingType::class,
         ];
     }
 

@@ -13,6 +13,7 @@ class FundingResource extends JsonResource
             'uuid' => $this->uuid,
             'fundable_id' => $this->fundable_id,
             'fundable_type' => $this->fundable_type,
+            'type' => $this->type,
             'amount' => $this->amount,
             'user_id' => $this->user_id,
             'currency_id' => $this->currency_id,
@@ -20,6 +21,7 @@ class FundingResource extends JsonResource
             'notes' => $this->notes,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'fundable' => $this->whenLoaded('fundable'),
         ];
     }
 }
