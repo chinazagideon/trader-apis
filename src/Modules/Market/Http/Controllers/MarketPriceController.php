@@ -24,6 +24,6 @@ class MarketPriceController extends CrudController
     {
         $symbol = $request->route('symbol');
         $response = $this->marketPriceService->getCurrencyPriceBySymbol(['symbol' => $symbol]);
-        return $this->successResponse($response->getData(), $response->getMessage(), $response->getHttpStatusCode());
+        return $this->successResponse(["price" => $response->getData()], $response->getMessage(), $response->getHttpStatusCode());
     }
 }

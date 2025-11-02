@@ -47,22 +47,43 @@ class MarketPriceService extends BaseService
 
 
     /**
-     * Get market by symbol
+     * Get currency market data by symbol
      * @param string $symbol
      * @return ServiceResponse
      */
-    private function getMarketBySymbol(string $symbol): ServiceResponse
+    public function getMarketBySymbol(string $symbol): ServiceResponse
     {
         return $this->marketService->getMarketBySymbol($symbol);
     }
 
+    /**
+     * Get currency price by symbol
+     * @param array $data
+     * @return ServiceResponse
+     */
     public function getCurrencyPriceBySymbol(array $data): ServiceResponse
     {
         return $this->executeServiceOperation(function () use ($data) {
-            $market = $this->getMarketBySymbol($data['symbol']);
+            $market = $this->getMarketBySymbol($data['symbol']); //get market data by symbol
             $marketId = $market->getData()->id;
-            $response = $this->marketPriceRepository->getCurrencyPrice($marketId);
+            $response = $this->marketPriceRepository->getCurrencyPrice($marketId); // get currency price
             return ServiceResponse::success($response, 'Currency price retrieved successfully');
         }, 'getCurrencyPriceBySymbol');
     }
+
+    /**
+     * Get currency price raw
+     * @param string $currency
+     * @return ServiceResponse
+     */
+    public function getCurrencyPriceRaw(string $currency): ServiceResponse
+    {
+        return $this->executeServiceOperation(function () use ($currency) {
+            $market = $this->getMarketBySymbol($currency);
+            $marketId = $market->getData()->id;
+            $response = $this->marketPriceRepository->getCurrencyPriceRaw($marketId);
+            return ServiceResponse::success($response, 'Currency price retrieved successfully');
+        }, 'getCurrencyPriceRaw');
+    }
+
 }

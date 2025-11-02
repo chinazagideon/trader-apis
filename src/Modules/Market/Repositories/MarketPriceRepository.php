@@ -54,4 +54,18 @@ class MarketPriceRepository extends BaseRepository
         return $marketPrice ? $marketPrice->price : 0.0;
     }
 
+     /**
+     * Get currency price
+     * @param string $currency
+     * @return MarketPrice
+     */
+    public function getCurrencyPriceRaw(int $marketId): MarketPrice
+    {
+        return $this->queryUnfiltered()
+            ->where('market_id', $marketId)
+            ->with('market', 'currency')
+            ->latest()
+            ->firstOrFail();
+    }
+
 }
