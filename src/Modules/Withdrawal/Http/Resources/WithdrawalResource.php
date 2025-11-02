@@ -17,6 +17,7 @@ class WithdrawalResource extends JsonResource
             'withdrawable_id' => $this->withdrawable_id,
             'withdrawable_type' => $this->withdrawable_type,
             'amount' => $this->amount,
+            'fiat_amount' => $this->fiat_amount,
             'type' => $this->getTypeLabel($this->type),
             'currency_id' => $this->currency_id,
             'status' => $this->status,
@@ -27,6 +28,7 @@ class WithdrawalResource extends JsonResource
             'withdrawable' => $this->whenLoaded('withdrawable'),
             'user' => $this->whenLoaded('user'),
             'currency' => $this->whenLoaded('currency'),
+            'fiat_currency' => $this->whenLoaded('fiatCurrency'),
 
         ];
     }

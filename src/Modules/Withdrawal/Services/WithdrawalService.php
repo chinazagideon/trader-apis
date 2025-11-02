@@ -10,6 +10,7 @@ use App\Core\Exceptions\NotFoundException;
 use Illuminate\Database\Eloquent\Model;
 use App\Modules\Withdrawal\Events\WithdrawalWasCompleted;
 use Illuminate\Support\Facades\Log;
+use App\Modules\Market\Services\MarketFiatService;
 
 class WithdrawalService extends BaseService
 {
@@ -18,6 +19,7 @@ class WithdrawalService extends BaseService
     public function __construct(
         private WithdrawalRepository $withdrawalRepository,
         private WithdrawalWasCompleted $withdrawalWasCompleted,
+        private MarketFiatService $marketFiatService
     ) {
         parent::__construct($withdrawalRepository);
     }
@@ -78,5 +80,16 @@ class WithdrawalService extends BaseService
         /** @var Withdrawal $withdrawal = $model */
         $this->withdrawalWasCompleted->dispatch($model, $moduleName);
         // }
+    }
+
+    /**
+     * Convert amount to fiat
+     * @param float $amount
+     * @param int $currencyId
+     * @return ServiceResponse
+     */
+    public function convertAmountToFiat(float $amount, int $currencyId): ServiceResponse
+    {
+        return $this->marketFiatService->fiatConverter($amount, $currencyId);
     }
 }

@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 class Withdrawal extends Model implements HasStatus, OwnershipBased
 {
     use HasTimestamps, HasUuid;
-    use HasRelationships;
+    // use HasRelationships;
 
     protected $fillable = [
         'uuid',
@@ -26,6 +26,8 @@ class Withdrawal extends Model implements HasStatus, OwnershipBased
         'withdrawable_type',
         'amount',
         'currency_id',
+        'fiat_amount',
+        'fiat_currency_id',
         'status',
         'notes',
     ];
@@ -34,6 +36,7 @@ class Withdrawal extends Model implements HasStatus, OwnershipBased
     {
         return [
             'amount' => 'decimal:2',
+            'fiat_amount' => 'decimal:2',
             'status' => 'string',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
@@ -62,6 +65,14 @@ class Withdrawal extends Model implements HasStatus, OwnershipBased
     public function currency(): BelongsTo
     {
         return $this->belongsTo(Currency::class);
+    }
+
+    /**
+     * Get the fiat currency that owns the withdrawal.
+     */
+    public function fiatCurrency(): BelongsTo
+    {
+        return $this->belongsTo(Currency::class, 'fiat_currency_id');
     }
 
     /**

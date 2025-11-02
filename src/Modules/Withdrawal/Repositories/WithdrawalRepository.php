@@ -30,7 +30,7 @@ class WithdrawalRepository extends BaseRepository
      */
     protected function getDefaultRelationships(): array
     {
-        return ['user', 'withdrawable', 'currency'];
+        return ['user', 'withdrawable', 'currency', 'fiatCurrency'];
     }
 
     /**

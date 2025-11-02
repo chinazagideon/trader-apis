@@ -16,6 +16,7 @@ class WithdrawalIndexResource extends JsonResource
             'withdrawable_id' => $this->withdrawable_id,
             'withdrawable_type' => $this->withdrawable_type,
             'amount' => $this->amount,
+            'fiat_amount' => $this->fiat_amount,
             'type' => $this->getTypeLabel($this->type),
             'currency_id' => $this->currency_id,
             'status' => $this->status,
@@ -24,6 +25,7 @@ class WithdrawalIndexResource extends JsonResource
             'updated_at' => $this->updated_at_formatted,
             'withdrawable' => $this->whenLoaded('withdrawable'),
             'currency' => $this->whenLoaded('currency'),
+            'fiat_currency' => $this->whenLoaded('fiatCurrency'),
             'user' => $this->whenLoaded('user'),
 
         ];

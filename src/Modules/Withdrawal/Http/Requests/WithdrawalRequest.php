@@ -34,7 +34,6 @@ class WithdrawalRequest extends FormRequest
             "withdrawable_type" => ["required", "string",  'in:' . implode(',', array_keys($allowedTypes))],
 
             'currency_id' => 'required|integer|min:1|exists:currencies,id',
-            'status' => 'required|string|in:pending,cancelled,completed',
             'notes' => 'nullable|string|max:500',
             'type' => ['required', 'string', new IsValidWithdrawalType()],
         ];
