@@ -20,7 +20,6 @@ class FundingCreateRequest extends FormRequest
             'type' => ['required', 'string', new IsValidFundingType()],
             'amount' => 'required|numeric|min:0.01',
             'currency_id' => 'required|integer|min:1|exists:currencies,id',
-            'status' => 'required|string|in:pending,cancelled,completed',
             'notes' => 'nullable|string|max:500',
         ];
     }
@@ -41,8 +40,6 @@ class FundingCreateRequest extends FormRequest
             'amount.min' => 'The amount must be at least 0.01.',
             'currency_id.required' => 'The currency id is required.',
             'currency_id.exists' => 'The selected currency does not exist.',
-            'status.required' => 'The status is required.',
-            'status.in' => 'The status must be one of: pending, cancelled, completed.',
             'notes.max' => 'The notes may not be greater than 500 characters.',
             'type.required' => 'The type of funding is required.',
         ];

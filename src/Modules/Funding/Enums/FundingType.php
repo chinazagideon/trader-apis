@@ -26,4 +26,5 @@ enum FundingType: string
             default => 'Unknown',
         };
     }
+
 }

@@ -31,7 +31,7 @@ class FundingRepository extends BaseRepository
      */
     protected function getDefaultRelationships(): array
     {
-        return ['fundable'];
+        return ['fundable', 'currency', 'fiatCurrency'];
     }
 
     /**
@@ -44,8 +44,8 @@ class FundingRepository extends BaseRepository
     {
         $query = $this->queryUnfiltered();
         $query = $this->applyFilters($query, $filters);
-        return $this->withRelationships($query, $this->getDefaultRelationships())->paginate($perPage);
+        return $this->withRelationships($query, $this->getDefaultRelationships())
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
     }
-
-
 }

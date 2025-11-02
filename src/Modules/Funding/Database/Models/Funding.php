@@ -12,6 +12,7 @@ use App\Modules\User\Database\Models\User;
 use App\Modules\Currency\Database\Models\Currency;
 use App\Modules\Funding\Enums\FundingType;
 
+
 class Funding extends Model implements OwnershipBased
 {
     use HasTimestamps, HasUuid;
@@ -26,6 +27,8 @@ class Funding extends Model implements OwnershipBased
         'amount',
         'user_id',
         'currency_id',
+        'fiat_amount',
+        'fiat_currency_id',
         'status',
         'notes',
         'type',
@@ -38,6 +41,8 @@ class Funding extends Model implements OwnershipBased
     {
         return [
             'amount' => 'decimal:2',
+            'fiat_amount' => 'decimal:2',
+            'fiat_currency_id' => 'integer',
             'user_id' => 'integer',
             'status' => 'string',
             'created_at' => 'datetime',
@@ -68,5 +73,10 @@ class Funding extends Model implements OwnershipBased
     public function currency(): BelongsTo
     {
         return $this->belongsTo(Currency::class);
+    }
+
+    public function fiatCurrency(): BelongsTo
+    {
+        return $this->belongsTo(Currency::class, 'fiat_currency_id');
     }
 }
