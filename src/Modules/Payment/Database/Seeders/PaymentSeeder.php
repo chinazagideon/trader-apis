@@ -13,33 +13,46 @@ class PaymentSeeder extends Seeder
     public function run(): void
     {
         try {
+            // Ensure dependencies run first
+            $this->call(\App\Modules\Currency\Database\Seeders\CurrencySeeder::class);
+            $this->call(\App\Modules\Transaction\Database\Seeders\TransactionSeeder::class);
+
             $currencies = Currency::limit(1)->get();
             $transactions = Transaction::limit(2)->get();
+
+            if ($currencies->isEmpty()) {
+                $this->command?->warn('No currencies found. Please run CurrencySeeder first.');
+                return;
+            }
+
+            if ($transactions->isEmpty()) {
+                $this->command?->warn('No transactions found. Please run TransactionSeeder first.');
+                return;
+            }
+
             $payments = [
                 [
-                    'uuid' => $transactions->first()->uuid,
-                    'method' => 'btc',
                     'payable_type' => 'transaction',
                     'payable_id' => $transactions->first()->id,
                     'status' => 'pending',
                     'amount' => 100,
                     'currency_id' => $currencies->first()->id,
-                ],
-                [
-                    'uuid' => $transactions->last()->uuid,
-                    'method' => 'usd',
+                ]
+            ];
+
+            // Add second payment if we have multiple transactions
+            if ($transactions->count() > 1) {
+                $payments[] = [
                     'payable_type' => 'transaction',
                     'payable_id' => $transactions->last()->id,
                     'status' => 'pending',
                     'amount' => 1400,
                     'currency_id' => $currencies->first()->id,
-                ]
-            ];
+                ];
+            }
             $seededCount = 0;
             foreach ($payments as $payment) {
                 Payment::create([
-                    'uuid' => $payment['uuid'],
-                    'method' => $payment['method'],
                     'payable_type' => $payment['payable_type'],
                     'payable_id' => $payment['payable_id'],
                     'status' => $payment['status'],

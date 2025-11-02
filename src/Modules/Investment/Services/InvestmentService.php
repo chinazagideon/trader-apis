@@ -7,8 +7,7 @@ use App\Core\Services\EventDispatcher;
 use App\Core\Http\ServiceResponse;
 use App\Modules\Investment\Repositories\InvestmentRepository;
 use App\Modules\Investment\Events\InvestmentCreated;
-use Carbon\Carbon;
-
+use Illuminate\Support\Facades\Auth;
 class InvestmentService extends BaseService
 {
     protected string $serviceName = 'InvestmentService';
@@ -34,15 +33,15 @@ class InvestmentService extends BaseService
 
                 // Create event instance
                 $event = new InvestmentCreated($investment, [
-                    'created_by' => auth()->id(),
+                    'created_by' => Auth::id(),
                     'source' => 'api',
                     'timestamp' => now()->toISOString(),
                     'request' => $data,
                     'category_id' => $data['category_id'] ?? null,
                 ]);
 
-                // Dispatch using Laravel's native event system
-                event($event);
+                // Dispatch using configurable EventDispatcher to honor env/queue/scheduled modes
+                $this->eventDispatcher->dispatch($event, 'investment_created');
 
                 $this->logBusinessLogic(
                     'InvestmentService',
@@ -51,7 +50,7 @@ class InvestmentService extends BaseService
                         'investment_id' => $investment->id,
                         'investment_uuid' => $investment->uuid ?? null,
                         'event_metadata' => [
-                            'created_by' => auth()->id(),
+                            'created_by' => Auth::id(),
                             'source' => 'api',
                             'request' => $data,
                         ],

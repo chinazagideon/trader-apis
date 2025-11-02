@@ -16,6 +16,8 @@ class UserResource extends JsonResource
             'id' => $this->id,
             'uuid' => $this->uuid,
             'name' => $this->name,
+            'first_name' => $this->first_name,
+            'last_name' => $this->last_name,
             'email' => $this->email,
             'phone' => $this->phone,
             'date_of_birth' => $this->date_of_birth?->format('Y-m-d'),
@@ -29,6 +31,12 @@ class UserResource extends JsonResource
             'created_at' => $this->created_at_formatted,
             'updated_at' => $this->updated_at_formatted,
             'time_ago' => $this->time_ago,
+            'user_type' => $this->user_type,
+            'referral_code' => $this->referral_code,
+            'total_balance' => $this->total_balance,
+            'available_balance' => $this->available_balance,
+            'total_commission' => $this->total_commission,
+            'avatar' => $this->avatar,
         ];
     }
 }

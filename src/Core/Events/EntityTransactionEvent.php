@@ -30,9 +30,10 @@ class EntityTransactionEvent
     /**
      * Get the entity ID
      */
-    public function getEntityId(): int
+    public function getEntityId(): ?string
     {
-        return $this->entity->getTransactionEntityId();
+        // return $this->entity->getTransactionEntityId();
+        return null;
     }
 
     /**

@@ -8,11 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Modules\Currency\Database\Models\Currency;
-
+use App\Modules\Notification\Traits\Notifiable;
 class Payment extends Model
 {
     use HasTimestamps, HasUuid;
-
+    use Notifiable;
     /**
      * The attributes that are mass assignable.
      *

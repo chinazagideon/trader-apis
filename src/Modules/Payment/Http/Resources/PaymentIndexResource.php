@@ -10,14 +10,14 @@ class PaymentIndexResource extends JsonResource
     public function toArray($request): array
     {
         return [
+            'id' => $this->id,
             'uuid' => $this->uuid,
-            'method' => $this->method,
             'payable_type' => $this->payable_type,
             'payable_id' => $this->payable_id,
-            'payable' => $this->payable,
             'status' => $this->status,
             'amount' => $this->amount,
-            'currency' => new CurrencyResource($this->currency),
+            'currency_id' => $this->currency_id,
+            'currency' => $this->currency,
         ];
     }
 }

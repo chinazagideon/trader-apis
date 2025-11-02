@@ -9,8 +9,9 @@ use App\Core\Services\TransactionContextFactory;
 use App\Core\Contracts\ConfigurableListenerInterface;
 use App\Core\Traits\ConfigurableListener;
 use App\Modules\Transaction\Events\TransactionWasCreated;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-class CreateTransactionForEntity implements ConfigurableListenerInterface
+class CreateTransactionForEntity implements ConfigurableListenerInterface, ShouldQueue
 {
     use ConfigurableListener;
 
@@ -149,7 +150,7 @@ class CreateTransactionForEntity implements ConfigurableListenerInterface
                 "Exception occurred while creating transaction",
                 [
                     'event' =>  json_encode($event),
-                    'transaction_data' => $stripCategoryIdData ?? [],
+                    'transaction_data' => $strippedCategoryIdData ?? [],
                     'exception_message' => $e->getMessage(),
                 ]
             );

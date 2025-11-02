@@ -2,6 +2,7 @@
 
 namespace App\Modules\User\Http\Requests;
 
+use App\Modules\User\Database\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -9,10 +10,23 @@ class UpdateUserRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     * Uses the UserPolicy to check if user can update this specific user.
      */
     public function authorize(): bool
     {
-        return true;
+        $userId = $this->route('id');
+
+        if (!$userId) {
+            return false;
+        }
+
+        $user = User::find($userId);
+
+        if (!$user) {
+            return false;
+        }
+
+        return $this->user()->can('update', $user);
     }
 
     /**

@@ -158,7 +158,10 @@ class ModuleMigrationManager
     {
         $migrationName = pathinfo($migrationFile, PATHINFO_FILENAME);
 
-        return $this->repository->hasRun($migrationName);
+        // Get all ran migrations
+        $ranMigrations = $this->repository->getRan();
+
+        return in_array($migrationName, $ranMigrations);
     }
 
     /**
@@ -186,7 +189,7 @@ class ModuleMigrationManager
         $stub = $this->getMigrationStub();
         $content = str_replace(['{{migrationName}}', '{{className}}'], [
             $migrationName,
-            studly_case($migrationName),
+            \Illuminate\Support\Str::studly($migrationName),
         ], $stub);
 
         file_put_contents($filepath, $content);

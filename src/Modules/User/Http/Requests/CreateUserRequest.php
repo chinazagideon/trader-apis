@@ -2,16 +2,18 @@
 
 namespace App\Modules\User\Http\Requests;
 
+use App\Modules\User\Database\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CreateUserRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
+     * Uses the UserPolicy to check if user can create users.
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->can('create', User::class);
     }
 
     /**

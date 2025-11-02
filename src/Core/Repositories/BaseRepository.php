@@ -4,17 +4,23 @@ namespace App\Core\Repositories;
 
 use App\Core\Contracts\RepositoryInterface;
 use App\Core\Traits\LoadsRelationships;
+use App\Core\Traits\AppliesOwnershipFilters;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Core\Exceptions\NotFoundException;
+use Illuminate\Validation\ValidationException;
+
 
 abstract class BaseRepository implements RepositoryInterface
 {
-    use LoadsRelationships;
+    use LoadsRelationships, AppliesOwnershipFilters;
 
     protected Model $model;
-
+    /**
+     * Constructor
+     */
     public function __construct(Model $model)
     {
         $this->model = $model;
@@ -25,7 +31,10 @@ abstract class BaseRepository implements RepositoryInterface
      */
     public function all(array $columns = ['*']): Collection
     {
-        return $this->model->all($columns);
+        $query = $this->query();
+        // $query = $this->applyOwnershipFilters($query, 'view');
+
+        return $query->get($columns);
     }
 
     /**
@@ -33,8 +42,12 @@ abstract class BaseRepository implements RepositoryInterface
      */
     public function find(int $id, array $columns = ['*']): ?Model
     {
-        $model = $this->model->find($id, $columns);
-        if ($this->usesLoadsRelationshipsTrait()) {
+        $query = $this->query();
+        // $query = $this->applyOwnershipFilters($query, 'view');
+
+        $model = $query->find($id, $columns);
+
+        if ($model && $this->usesLoadsRelationshipsTrait()) {
             $model = $this->loadRelationships($model);
         }
 
@@ -73,6 +86,9 @@ abstract class BaseRepository implements RepositoryInterface
      */
     public function create(array $data): Model
     {
+        // Validate ownership
+        // $data = $this->validateCreateOwnership($data);
+
         $model = $this->model->create($data);
 
         // Check if this repository uses LoadsRelationships trait
@@ -92,8 +108,10 @@ abstract class BaseRepository implements RepositoryInterface
         $model = $this->find($id);
 
         if (!$model) {
-            return null;
+            throw NotFoundException::resource($this->model->getTable());
         }
+        // Validate ownership
+        // $data = $this->validateUpdateOwnership($model, $data);
 
         $model->update($data);
         $model = $model->fresh(); // Get fresh instance with updated data
@@ -111,13 +129,15 @@ abstract class BaseRepository implements RepositoryInterface
      */
     public function delete(int $id): ?Model
     {
-        $model = $this->find($id);
+        $query = $this->query();
+        $model = $query->find($id);
+        // $query = $this->applyOwnershipFilters($query, 'delete');
 
-        if (!$model || $model->isDeleted()) {
+        if (!$query->exists() || $model->isDeleted()) {
             return null;
         }
 
-        return $model->delete();
+        return $query->delete();
     }
 
     /**
@@ -125,7 +145,11 @@ abstract class BaseRepository implements RepositoryInterface
      */
     public function paginate(int $perPage = 15, array $columns = ['*']): LengthAwarePaginator
     {
-        return $this->model->paginate($perPage, $columns);
+
+        $query = $this->query();
+        // $query = $this->applyOwnershipFilters($query, 'view');
+
+        return $query->paginate($perPage, $columns);
     }
 
     /**
@@ -148,6 +172,16 @@ abstract class BaseRepository implements RepositoryInterface
      * Get query builder
      */
     protected function query(): Builder
+    {
+        $query = $this->model->newQuery();
+        // return $this->applyOwnershipFilters($query, 'view');
+        return $query;
+    }
+
+    /**
+     * Get query builder without ownership filtering (for admin operations)
+     */
+    public function queryUnfiltered(): Builder
     {
         return $this->model->newQuery();
     }
@@ -172,8 +206,9 @@ abstract class BaseRepository implements RepositoryInterface
     protected function applySearch(Builder $query, string $search, array $searchableFields): Builder
     {
         if (empty($search) || empty($searchableFields)) {
-            return $query;
+            throw new ValidationException('Search and searchable fields are required');
         }
+        // $query = $this->applyOwnershipFilters($query, 'view');
 
         return $query->where(function ($q) use ($search, $searchableFields) {
             foreach ($searchableFields as $field) {
@@ -188,5 +223,32 @@ abstract class BaseRepository implements RepositoryInterface
     protected function usesLoadsRelationshipsTrait(): bool
     {
         return in_array(\App\Core\Traits\LoadsRelationships::class, class_uses_recursive($this));
+    }
+
+      /**
+     * Apply business filters to the query
+     */
+    protected function applyBusinessFilters($query, $filters)
+    {
+
+        // Apply status filter
+        if (isset($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        // Apply date filters
+        if (isset($filters['date_from'])) {
+            $query->where('created_at', '>=', $filters['date_from']);
+        }
+
+        if (isset($filters['date_to'])) {
+            $query->where('created_at', '<=', $filters['date_to']);
+        }
+
+        // Apply sorting
+        $sortBy = $filters['sort_by'] ?? 'created_at';
+        $sortDirection = $filters['sort_direction'] ?? 'desc';
+
+        $query->orderBy($sortBy, $sortDirection);
     }
 }

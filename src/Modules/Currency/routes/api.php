@@ -8,6 +8,7 @@ Route::prefix('currency')->name('currency.')->group(function () {
 
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/', [CurrencyController::class, 'index'])->name('index');
+        Route::get('/default', [CurrencyController::class, 'getDefaultCurrency'])->name('getDefaultCurrency');
         Route::post('/', [CurrencyController::class, 'store'])->name('store');
         Route::get('/{id}', [CurrencyController::class, 'show'])->name('show');
         Route::put('/{id}', [CurrencyController::class, 'update'])->name('update');

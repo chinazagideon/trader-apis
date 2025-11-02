@@ -7,6 +7,7 @@ use App\Modules\Transaction\Services\TransactionCategoryService;
 use App\Core\Traits\ConfigurableListener;
 use App\Core\Contracts\ConfigurableListenerInterface;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Log;
 
 class CreateCategoryForTransaction implements ConfigurableListenerInterface, ShouldQueue
 {
@@ -37,7 +38,7 @@ class CreateCategoryForTransaction implements ConfigurableListenerInterface, Sho
 
             $this->transactionCategoryService->store($categoryData);
         } else {
-            \Log::warning('No category_id found in metadata', [
+            Log::warning('No category_id found in metadata', [
                 'transaction_id' => $transaction->id,
                 'metadata' => $metadata,
             ]);

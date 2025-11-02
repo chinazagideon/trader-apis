@@ -7,22 +7,34 @@ use App\Core\Traits\Relationships\BelongsToUser;
 use App\Core\Traits\Relationships\BelongsToPricing;
 use App\Modules\Transaction\Database\Models\Transaction;
 use App\Core\Contracts\TransactionContextInterface;
+use App\Core\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Modules\Category\Database\Models\Category;
+use App\Modules\Investment\Policies\InvestmentPolicy;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use App\Modules\Notification\Traits\Notifiable;
+use Illuminate\Database\Eloquent\Attributes\UsePolicy;
+use App\Core\Contracts\OwnershipBased;
 
-class Investment extends Model implements TransactionContextInterface
+#[UsePolicy(InvestmentPolicy::class)]
+class Investment extends Model implements TransactionContextInterface, OwnershipBased
 {
     use HasTimestamps;
     use BelongsToUser;
     use BelongsToPricing;
+    use HasUuid;
+    use Notifiable;
 
     protected $fillable = [
+        'uuid',
         'user_id',
         'pricing_id',
         'amount',
         'status',
+        'type',
+        'risk',
+        'name',
         'start_date',
         'end_date',
         'notes',
@@ -36,6 +48,9 @@ class Investment extends Model implements TransactionContextInterface
             'end_date' => 'date',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
+            'type' => 'string',
+            'risk' => 'string',
+            'name' => 'string',
         ];
     }
 
@@ -44,7 +59,8 @@ class Investment extends Model implements TransactionContextInterface
      */
     public function getTransactionContext(string $operation = 'create', array $request = []): array
     {
-        $config = config('investment.transaction');
+        $config = config('Investment.transaction');
+
 
         return [
             'entity_id' => $this->id,

@@ -72,6 +72,43 @@ return [
             'after_commit' => false,
         ],
 
+        // Notification queues with priority
+        'notifications' => [
+            'driver' => 'redis',
+            'connection' => env('NOTIFICATION_QUEUE_CONNECTION', 'default'),
+            'queue' => env('NOTIFICATION_QUEUE', 'notifications'),
+            'retry_after' => (int) env('NOTIFICATION_QUEUE_RETRY_AFTER', 90),
+            'block_for' => null,
+            'after_commit' => false,
+        ],
+
+        'notifications-high' => [
+            'driver' => 'redis',
+            'connection' => env('NOTIFICATION_QUEUE_CONNECTION', 'default'),
+            'queue' => 'notifications-high',
+            'retry_after' => (int) env('NOTIFICATION_QUEUE_RETRY_AFTER', 90),
+            'block_for' => null,
+            'after_commit' => false,
+        ],
+
+        'notifications-medium' => [
+            'driver' => 'redis',
+            'connection' => env('NOTIFICATION_QUEUE_CONNECTION', 'default'),
+            'queue' => 'notifications-medium',
+            'retry_after' => (int) env('NOTIFICATION_QUEUE_RETRY_AFTER', 90),
+            'block_for' => null,
+            'after_commit' => false,
+        ],
+
+        'notifications-low' => [
+            'driver' => 'redis',
+            'connection' => env('NOTIFICATION_QUEUE_CONNECTION', 'default'),
+            'queue' => 'notifications-low',
+            'retry_after' => (int) env('NOTIFICATION_QUEUE_RETRY_AFTER', 90),
+            'block_for' => null,
+            'after_commit' => false,
+        ],
+
     ],
 
     /*

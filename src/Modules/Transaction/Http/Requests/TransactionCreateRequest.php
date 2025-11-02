@@ -4,7 +4,6 @@ namespace App\Modules\Transaction\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Core\Rules\MorphExistsRule;
-use App\Modules\Transaction\Config\Transaction as ConfigTransaction;
 
 class TransactionCreateRequest extends FormRequest
 {
@@ -22,7 +21,7 @@ class TransactionCreateRequest extends FormRequest
     public function rules(): array
     {
         $allowedTypes = config('Transaction.allowed_types');
-        // dd($allowedTypes);
+
         return [
             'transactionable_id' => [
                 'required',

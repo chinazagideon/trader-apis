@@ -9,6 +9,14 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class UserRepository extends BaseRepository
 {
+    /**
+     * The key to get the user ID
+     */
+    public string $getUserIdKey = 'user_id';
+
+    /**
+     * Constructor
+     */
     public function __construct(User $model)
     {
         parent::__construct($model);
@@ -53,31 +61,9 @@ class UserRepository extends BaseRepository
      */
     public function getUsersWithFilters(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
-        $query = $this->query();
-
-        // Apply filters
-        if (isset($filters['is_active'])) {
-            $query->where('is_active', $filters['is_active']);
-        }
-
-        if (isset($filters['email_verified'])) {
-            if ($filters['email_verified']) {
-                $query->whereNotNull('email_verified_at');
-            } else {
-                $query->whereNull('email_verified_at');
-            }
-        }
-
-        if (isset($filters['search'])) {
-            $query->search($filters['search']);
-        }
-
-        // Apply sorting
-        $sortBy = $filters['sort_by'] ?? 'created_at';
-        $sortDirection = $filters['sort_direction'] ?? 'desc';
-        $query->orderBy($sortBy, $sortDirection);
-
-        return $query->paginate($perPage);
+        $query = $this->queryUnfiltered();
+        $this->applyBusinessFilters($query, $filters);
+        return $this->withRelationships($query)->paginate($perPage);
     }
 
     /**

@@ -28,6 +28,9 @@ class CreateRequest extends FormRequest
             'start_date' => 'sometimes|date|after_or_equal:today',
             'end_date' => 'nullable|date|after:start_date',
             'notes' => 'nullable|string|max:500',
+            'type' => 'string|nullable',
+            'risk' => 'string|nullable',
+            'name' => 'string|nullable',
         ];
     }
 
@@ -50,6 +53,9 @@ class CreateRequest extends FormRequest
             'start_date.after_or_equal' => 'The start date must be today or in the future.',
             'end_date.after' => 'The end date must be after the start date.',
             'notes.max' => 'The notes may not be greater than 500 characters.',
+            'type.string' => 'The type must be a string.',
+            'risk.string' => 'The risk must be a string.',
+            'name.string' => 'The name must be a string.',
         ];
     }
 }

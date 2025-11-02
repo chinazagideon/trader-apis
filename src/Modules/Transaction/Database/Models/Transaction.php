@@ -10,14 +10,15 @@ use App\Modules\Transaction\Traits\HasTransactableTrait;
 use App\Core\Models\CoreModel;
 use App\Core\Contracts\TransactionContextInterface;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
 use App\Modules\Payment\Database\Models\Payment;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
-
+use App\Modules\Notification\Traits\Notifiable;
 class Transaction extends CoreModel implements TransactionContextInterface
 {
     use HasTimestamps, HasUuid, HasTransactableTrait;
-
+    use Notifiable;
     /**
      * The attributes that are mass assignable.
      *
@@ -56,15 +57,15 @@ class Transaction extends CoreModel implements TransactionContextInterface
     {
         return $this->morphTo();
     }
+
+    /**
+     * Get the payment that owns the transaction.
+     */
     public function payment(): MorphOne
     {
         return $this->morphOne(Payment::class, 'payable');
     }
 
-    public function category()
-    {
-        return $this->belongsTo(TransactionCategory::class, 'transaction_category_id', 'id');
-    }
 
     /**
      * Get the entity that is triggering the transaction.

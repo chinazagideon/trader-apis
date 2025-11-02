@@ -3,11 +3,14 @@
 namespace App\Core\Controllers;
 
 use App\Core\Http\ServiceResponse;
+use App\Core\Exceptions\AppException;
 use App\Core\Services\LoggingService;
+use App\Core\Resolvers\OperationClassResolver;
 use App\Core\Traits\EnhancedLogging;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -34,6 +37,11 @@ abstract class CrudController extends BaseController
      * Logging service instance
      */
     protected LoggingService $logger;
+
+    /**
+     * Resolver for custom operation classes
+     */
+    protected ?OperationClassResolver $operationClassResolver = null;
 
     /**
      * Constructor - inject service and set up resource name
@@ -205,6 +213,114 @@ abstract class CrudController extends BaseController
     }
 
     /**
+     * Resolve a custom FormRequest class using the OperationClassResolver
+     */
+    protected function resolveCustomRequestClass(string $operation): ?string
+    {
+        $resolver = $this->getOperationClassResolver();
+        return $resolver->resolveRequest($this->getModuleName(), $this->getSubResourceName(), $operation);
+    }
+
+    /**
+     * Resolve a custom JsonResource class using the OperationClassResolver
+     */
+    protected function resolveCustomResourceClass(string $operation): ?string
+    {
+        $resolver = $this->getOperationClassResolver();
+        return $resolver->resolveResource($this->getModuleName(), $this->getSubResourceName(), $operation);
+    }
+
+    /**
+     * Validate request using a custom FormRequest class
+     */
+    protected function validateCustomRequest(Request $request, string $requestClass): array
+    {
+        if ($requestClass && class_exists($requestClass)) {
+            // Instantiate and validate like Laravel FormRequest
+            $formRequest = app($requestClass);
+            $formRequest->replace($request->all());
+            return $formRequest->validated();
+        }
+        return $request->all();
+    }
+
+    /**
+     * Lazy getter for operation class resolver
+     */
+    protected function getOperationClassResolver(): OperationClassResolver
+    {
+        if (!$this->operationClassResolver) {
+            $this->operationClassResolver = app(OperationClassResolver::class);
+        }
+        return $this->operationClassResolver;
+    }
+
+    /**
+     * Derive operation name (StudlyCase) from a controller method name.
+     * Example: getPaymentGatewayBySlug -> BySlug
+     */
+    protected function deriveOperationFromMethod(string $methodName): string
+    {
+        $studly = Str::studly($methodName);
+
+        // Strip common HTTP verb prefixes
+        foreach (['Get','Post','Put','Patch','Delete','Show','Store','Index','Update','Destroy'] as $verb) {
+            if (Str::startsWith($studly, $verb)) {
+                $studly = Str::substr($studly, strlen($verb));
+                break;
+            }
+        }
+
+        // Strip module/sub-resource prefixes
+        $module = $this->getModuleName();
+        $subResource = $this->getSubResourceName();
+        $prefixes = [];
+        if ($module && $subResource) {
+            $prefixes[] = $module . $subResource;
+        }
+        if ($module) {
+            $prefixes[] = $module;
+        }
+        if ($subResource) {
+            $prefixes[] = $subResource;
+        }
+
+        foreach ($prefixes as $prefix) {
+            if ($prefix && Str::startsWith($studly, $prefix)) {
+                $studly = Str::substr($studly, strlen($prefix));
+                break;
+            }
+        }
+
+        return $studly ?: 'Custom';
+    }
+
+    /**
+     * Validate using a custom FormRequest resolved from the method name
+     */
+    protected function validateCustomRequestForMethod(Request $request, string $methodName): array
+    {
+        $operation = $this->deriveOperationFromMethod($methodName);
+        $requestClass = $this->resolveCustomRequestClass($operation);
+        return $this->validateCustomRequest($request, $requestClass);
+    }
+
+    /**
+     * Transform response data using a custom Resource resolved from the method name
+     */
+    protected function transformWithCustomResourceForMethod(ServiceResponse $response, string $methodName): ServiceResponse
+    {
+        if ($response->isSuccess() && $response->getData()) {
+            $operation = $this->deriveOperationFromMethod($methodName);
+            $resourceClass = $this->resolveCustomResourceClass($operation);
+            if ($resourceClass) {
+                $response->setData(new $resourceClass($response->getData()));
+            }
+        }
+        return $response;
+    }
+
+    /**
      * Get resource resolution strategies in order of preference
      * This maintains backward compatibility while adding module-aware and sub-resource resolution
      */
@@ -292,8 +408,6 @@ abstract class CrudController extends BaseController
         $className = $reflection->getShortName();
 
         // Extract sub-resource name from controller class name
-        // Examples: TransactionCategoryController -> TransactionCategory
-        //           TransactionController -> null (no sub-resource)
         if (preg_match('/^(.+)Controller$/', $className, $matches)) {
             $controllerName = $matches[1];
             $module = $this->getModuleName();
@@ -381,8 +495,15 @@ abstract class CrudController extends BaseController
             ]);
 
             return $response;
+        }catch (\App\Core\Exceptions\AppException $e) {
+            $this->logOperationError($operation, $e, $tracking, [
+                'exception_type' => get_class($e),
+                'error_code' => $e->getErrorCode(),
+            ]);
+            return $this->handleAppException($e);
+        }
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+         catch (\Illuminate\Validation\ValidationException $e) {
             $this->logOperationError($operation, $e, $tracking, [
                 'validation_errors' => $e->errors(),
                 'failed_fields' => array_keys($e->errors()),
@@ -395,6 +516,26 @@ abstract class CrudController extends BaseController
             ]);
             return $this->handleException($e, $operation);
         }
+    }
+
+    /**
+     * Handle App-level exceptions uniformly
+     */
+    protected function handleAppException(AppException $e): JsonResponse
+    {
+        $errors = $e instanceof \App\Core\Exceptions\ValidationException ? $e->getErrors() : null;
+
+        $response = [
+            'success' => false,
+            'message' => $e->getMessage(),
+            'error_code' => $e->getErrorCode(),
+        ];
+
+        if (!is_null($errors)) {
+            $response['errors'] = $errors;
+        }
+
+        return response()->json($response, $e->getHttpStatusCode());
     }
 
     /**
@@ -468,7 +609,7 @@ abstract class CrudController extends BaseController
      */
     protected function handleStore(Request $request): JsonResponse
     {
-        // Let Laravel handle Form Request validation automatically
+
         $validatedData = $this->validateFormRequest($request, 'store');
 
         $processedData = $this->beforeStore($validatedData, $request);
@@ -777,5 +918,64 @@ abstract class CrudController extends BaseController
             'module' => $this->getModuleName(),
             'timestamp' => now(),
         ], $this->getModuleName() . ' module health check');
+    }
+
+    /**
+     * Override callAction to support:
+     * - Validated array injection for explicit controller methods via method-name-based FormRequest resolution
+     * - Automatic resource transformation for ServiceResponse results via method-name-based resource resolution
+     */
+    public function callAction($method, $parameters)
+    {
+        $request = request();
+
+        // Resolve FormRequest by method name (e.g., getXByY -> ByY)
+        $operation = $this->deriveOperationFromMethod($method);
+        $requestClass = $this->resolveCustomRequestClass($operation);
+
+        if ($requestClass && class_exists($requestClass)) {
+            // Ensure route params are available to validation/authorization
+            if ($request->route()) {
+                $routeParams = $request->route()->parameters();
+                if (!empty($routeParams)) {
+                    $request->merge($routeParams);
+                }
+            }
+
+            $validated = $this->validateCustomRequest($request, $requestClass);
+
+            // Inject validated array into first array-typed parameter if present
+            try {
+                $rm = new \ReflectionMethod($this, $method);
+                $params = $rm->getParameters();
+                if (count($params) > 0) {
+                    $first = $params[0];
+                    $hasType = $first->hasType() && $first->getType() instanceof \ReflectionNamedType;
+                    $expectsArray = $hasType && $first->getType()->getName() === 'array';
+
+                    if ($expectsArray) {
+                        $parameters = array_values($parameters);
+                        if (!empty($parameters)) {
+                            $parameters[0] = $validated;
+                        } else {
+                            array_unshift($parameters, $validated);
+                        }
+                    }
+                }
+            } catch (\ReflectionException $e) {
+                // If reflection fails, proceed without array injection
+            }
+        }
+
+        // Invoke the controller method directly
+        $result = $this->{$method}(...array_values($parameters));
+
+        // Auto-wrap ServiceResponse with resolved resource and return JSON
+        if ($result instanceof ServiceResponse) {
+            $result = $this->transformWithCustomResourceForMethod($result, $method);
+            return $this->handleServiceResponse($result);
+        }
+
+        return $result;
     }
 }

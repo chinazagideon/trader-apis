@@ -96,12 +96,14 @@ abstract class ModuleServiceProviderBase extends ServiceProvider implements Modu
     {
         $className = class_basename(static::class);
 
-        // Remove 'ServiceProvider' suffix
-        $moduleName = Str::replaceLast('ServiceProvider', '', $className);
+        $moduleName = Str::replaceLast('', '', $className);
 
         // Handle special cases like EventServiceProvider, AuthServiceProvider, etc.
-        if (Str::endsWith($moduleName, ['Event', 'Auth', 'Config', 'Route'])) {
-            $moduleName = Str::replaceLast(['Event', 'Auth', 'Config', 'Route'], '', $moduleName);
+        $specialSuffixes = ['Event', 'Auth', 'Config', 'Route'];
+        foreach ($specialSuffixes as $suffix) {
+            if (Str::endsWith($moduleName, $suffix)) {
+                return Str::replaceLast($suffix, '', $moduleName);
+            }
         }
 
         return $moduleName;
