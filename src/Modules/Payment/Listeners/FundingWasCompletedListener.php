@@ -36,6 +36,7 @@ class FundingWasCompletedListener implements ConfigurableListenerInterface, Shou
     {
         try {
             $data = [
+                'reference' => $event->funding->uuid,
                 'payable_id' => $event->funding->id,
                 'payable_type' => $event->moduleName,
                 'amount' => $event->funding->amount,

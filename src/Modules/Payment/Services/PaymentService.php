@@ -6,6 +6,8 @@ use App\Core\Services\BaseService;
 use App\Core\Http\ServiceResponse;
 use App\Modules\Payment\Repositories\PaymentRepository;
 use App\Modules\Payment\Events\PaymentWasCompleted;
+use Illuminate\Support\Str;
+use App\Modules\Payment\Enums\PaymentStatusEnum;
 
 class PaymentService extends BaseService
 {
@@ -14,15 +16,28 @@ class PaymentService extends BaseService
     public function __construct(
         private PaymentRepository $PaymentRepository,
         private PaymentWasCompleted $PaymentWasCompleted
-    )
-    {
+    ) {
         parent::__construct($PaymentRepository);
     }
 
     public function store(array $data): ServiceResponse
     {
-        $result = parent::store($data);
-        return ServiceResponse::success($result, 'Payment created successfully');
+        // Handle reference UUID: use it as payment UUID if provided, otherwise generate one
+        if (isset($data['reference']) && !empty($data['reference'])) {
+            $data['uuid'] = $data['reference'];
+            unset($data['reference']); // Remove reference from data as it's now stored as uuid
+        } elseif (!isset($data['uuid']) || empty($data['uuid'])) {
+            $data['uuid'] = (string) Str::uuid();
+        }
+
+        $response = parent::store($data);
+
+        // Return response with custom message if successful
+        if ($response->isSuccess()) {
+            return ServiceResponse::success($response->getData(), 'Payment created successfully');
+        }
+
+        return $response;
     }
     /**
      * Make a payment
@@ -37,4 +52,33 @@ class PaymentService extends BaseService
         }, 'make payment');
     }
 
+
+    /**
+     * Get a payment by reference
+     * @param string $reference
+     * @return object|null
+     */
+    public function getReference(string $reference): ?object
+    {
+        $result = $this->PaymentRepository->findBy('uuid', $reference);
+        if (!$result) {
+            return null;
+        }
+        return $result;
+    }
+
+    /**
+     * Update the payment status
+     * @param int $id
+     * @param PaymentStatusEnum $status
+     * @return object
+     */
+    public function updatePaymentStatus(int $id, PaymentStatusEnum $status): object
+    {
+        $payment = $this->PaymentRepository->findOrFail($id);
+        $payment->update([
+            'status' => $status->value,
+        ]);
+        return $payment->refresh();
+    }
 }

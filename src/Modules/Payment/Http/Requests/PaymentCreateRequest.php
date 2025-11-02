@@ -27,7 +27,8 @@ class PaymentCreateRequest extends FormRequest
             "payable_type" => ["required", "string",  'in:' . implode(',', array_keys($allowedTypes))],
             'status' => 'required|string|in:pending,completed,failed',
             'currency_id' => 'required|integer|min:1|exists:currencies,id',
-            'uuid' => 'required|string|max:255',
+            'uuid' => 'sometimes|string|max:255',
+            'reference' => 'sometimes|string|max:255',
         ];
     }
 

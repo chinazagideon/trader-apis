@@ -37,4 +37,14 @@ class PaymentRepository extends BaseRepository
         $this->applyFilters($query, $filters);
         return $this->withRelationships($query, $this->getDefaultRelationships())->paginate($perPage);
     }
+
+    /**
+     * Find a payment by id
+     * @param int $id
+     * @return Payment
+     */
+    public function findOrFail(int $id): Payment
+    {
+        return $this->model->findOrFail($id);
+    }
 }

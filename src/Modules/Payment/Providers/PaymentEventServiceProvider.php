@@ -9,6 +9,7 @@ use App\Modules\Payment\Listeners\FundingWasCompletedListener;
 use Illuminate\Support\Facades\Event;
 use App\Modules\Withdrawal\Events\WithdrawalWasCompleted;
 use App\Modules\Payment\Listeners\WithdrawalWasCompletedListener;
+use App\Modules\Payment\Events\PaymentWasInitialised;
 
 class PaymentEventServiceProvider extends ModuleEventServiceProviderBase
 {
@@ -30,5 +31,6 @@ class PaymentEventServiceProvider extends ModuleEventServiceProviderBase
         parent::boot();
         //register events
         Event::listen(PaymentWasCompleted::class);
+        Event::listen(PaymentWasInitialised::class);
     }
 }

@@ -42,6 +42,7 @@ class WithdrawalWasCompletedListener implements ConfigurableListenerInterface, S
 
         try {
             $data = [
+                'reference' => $event->withdrawal->uuid,
                 'payable_id' => $event->withdrawal->id,
                 'payable_type' => $event->moduleName,
                 'amount' => $event->withdrawal->amount,
