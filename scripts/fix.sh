@@ -11,6 +11,10 @@ touch storage/logs/laravel.log && chmod 666 storage/logs/laravel.log
 # Fix Git safe directory
 docker-compose exec -T app git config --global --add safe.directory /var/www 2>/dev/null || true
 
+docker-compose exec -T app php artisan migrate --force || true
+docker-compose exec -T app php artisan module:seed User && docker-compose exec -T app php artisan module:seed Currency || true
+docker-compose exec -T app php artisan module:seed --all || true
+
 # Clear caches
 docker-compose exec -T app php artisan optimize:clear 2>/dev/null || true
 
