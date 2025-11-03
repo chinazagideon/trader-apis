@@ -6,6 +6,7 @@ use App\Core\ModuleManager;
 use App\Core\Providers\AppServiceProvider;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\ServiceProvider;
 
@@ -144,12 +145,27 @@ class ModuleServiceProvider extends ServiceProvider
             return $this->formatConfigManifest($configManifest);
         }
 
-        // In production with cache enabled, use cache
+        // In production with cache enabled, use cache, but avoid using the
+        // database cache driver before the "cache" table exists
         if (config('modules.cache_discovery', false)) {
-            $cacheTTL = config('modules.cache_ttl', self::CACHE_TTL);
-            return Cache::remember(self::CACHE_KEY, $cacheTTL, function () use ($moduleManager) {
-                return $this->discoverProviders($moduleManager);
-            });
+            $defaultCacheStore = config('cache.default');
+            $isDatabaseCache = $defaultCacheStore === 'database';
+            $hasCacheTable = true;
+
+            if ($isDatabaseCache) {
+                try {
+                    $hasCacheTable = Schema::hasTable('cache');
+                } catch (\Throwable $e) {
+                    $hasCacheTable = false;
+                }
+            }
+
+            if (!$isDatabaseCache || ($isDatabaseCache && $hasCacheTable)) {
+                $cacheTTL = config('modules.cache_ttl', self::CACHE_TTL);
+                return Cache::remember(self::CACHE_KEY, $cacheTTL, function () use ($moduleManager) {
+                    return $this->discoverProviders($moduleManager);
+                });
+            }
         }
 
         // In development without caching, discover on each request
