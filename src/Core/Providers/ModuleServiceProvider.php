@@ -39,12 +39,14 @@ class ModuleServiceProvider extends ServiceProvider
         // Register AppServiceProvider
         $this->app->register(AppServiceProvider::class);
 
-        // Register module providers only once using container binding as guard
-        if (!$this->app->bound('module_providers_registered')) {
-            $this->registerModuleProviders();
-            // Mark as registered to prevent duplicate registration
-            $this->app->instance('module_providers_registered', true);
-        }
+        // Defer module provider registration until after the framework has
+        // fully booted so dependencies like the cache manager are available.
+        $this->app->booted(function () {
+            if (!$this->app->bound('module_providers_registered')) {
+                $this->registerModuleProviders();
+                $this->app->instance('module_providers_registered', true);
+            }
+        });
     }
 
     // /**
