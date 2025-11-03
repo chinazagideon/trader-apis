@@ -69,4 +69,17 @@ class CurrencyService extends BaseService
             return ServiceResponse::success($currency, 'Default currency retrieved successfully');
         }, 'getDefaultCurrency');
     }
+
+    /**
+     * Get currency by id
+     * @param int $id
+     * @return ServiceResponse
+     */
+    public function getCurrency(int $id): ServiceResponse
+    {
+        return $this->executeServiceOperation(function () use ($id) {
+            $result = $this->currencyRepository->find($id, ['id', 'name', 'symbol', 'code', 'type', 'is_default']);
+            return $result ? $result : null;
+        }, 'getCurrency');
+    }
 }

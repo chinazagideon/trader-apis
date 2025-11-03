@@ -3,7 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Modules\Payment\Enums\PaymentProcessorStatus;
+use App\Modules\Payment\Enums\PaymentStatusEnum;
 
 return new class extends Migration
 {
@@ -24,7 +24,7 @@ return new class extends Migration
             $table->decimal('fiat_amount', 20, 2)->nullable();
             $table->string('fiat_currency')->nullable();
             $table->string('currency')->nullable();
-            $table->enum('status', PaymentProcessorStatus::cases())->default(PaymentProcessorStatus::PENDING);
+            $table->enum('status', PaymentStatusEnum::cases())->default(PaymentStatusEnum::PENDING);
             $table->json('processor_data')->nullable();
             $table->timestamps();
 

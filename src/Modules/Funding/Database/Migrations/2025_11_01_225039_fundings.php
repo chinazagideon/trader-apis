@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('fundings', function (Blueprint $table) {
-            $table->decimal('fiat_amount', 10, 2)->nullable()->after('amount');
+            $table->decimal('fiat_amount', 20, 2)->nullable()->after('amount');
             $table->foreignId('fiat_currency_id')->default(0);
             $table->index(['fiat_currency_id']);
         });
