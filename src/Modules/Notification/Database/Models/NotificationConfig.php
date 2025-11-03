@@ -5,8 +5,9 @@ namespace App\Modules\Notification\Database\Models;
 use App\Core\Traits\HasTimestamps;
 use App\Core\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
+use App\Core\Contracts\OwnershipBased;
 
-class NotificationConfig extends Model
+class NotificationConfig extends Model implements OwnershipBased
 {
     use HasTimestamps, HasUuid;
 

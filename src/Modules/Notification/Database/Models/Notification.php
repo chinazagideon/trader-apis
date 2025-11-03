@@ -4,8 +4,9 @@ namespace App\Modules\Notification\Database\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use App\Core\Contracts\OwnershipBased;
 
-class Notification extends Model
+class Notification extends Model implements OwnershipBased
 {
     /**
      * Indicates if the IDs are auto-incrementing.

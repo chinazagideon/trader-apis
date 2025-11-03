@@ -26,6 +26,7 @@ class FundingController extends CrudController
         $convertFiatResponse = $this->fundingService->convertAmountToFiat($data['amount'], $data['currency_id']);
         $convertFiat = $convertFiatResponse->getData();
 
+        $data['currency_id'] = (int) $data['currency_id'];
         $data['fiat_amount'] = $convertFiat->fiat_amount;
         $data['fiat_currency_id'] = $convertFiat->fiat_currency;
         $data['user_id'] = $request->user()->id;
