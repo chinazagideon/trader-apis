@@ -47,8 +47,6 @@ class FundingServiceProvider extends BaseModuleServiceProvider
     public function boot(): void
     {
         parent::boot();
-        //register events
-        Event::listen(FundingWasCompleted::class);
     }
 
 }

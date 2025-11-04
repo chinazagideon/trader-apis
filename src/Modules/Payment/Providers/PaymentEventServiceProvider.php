@@ -29,8 +29,5 @@ class PaymentEventServiceProvider extends ModuleEventServiceProviderBase
     public function boot(): void
     {
         parent::boot();
-        //register events
-        Event::listen(PaymentWasCompleted::class);
-        Event::listen(PaymentWasInitialised::class);
     }
 }
