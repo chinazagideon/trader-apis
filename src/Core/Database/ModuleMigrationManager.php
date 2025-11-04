@@ -42,11 +42,8 @@ class ModuleMigrationManager
             ];
         }
 
-        // Set migration path
-        $this->migrator->path($migrationPath);
-
-        // Run migrations
-        $result = $this->migrator->run($options);
+        // Run migrations for this module path explicitly
+        $result = $this->migrator->run([$migrationPath], $options);
 
         return [
             'status' => 'completed',
@@ -97,11 +94,8 @@ class ModuleMigrationManager
             ];
         }
 
-        // Set migration path
-        $this->migrator->path($migrationPath);
-
-        // Rollback migrations
-        $result = $this->migrator->rollback(['step' => $steps]);
+        // Rollback migrations for this module path explicitly
+        $result = $this->migrator->rollback([$migrationPath], ['step' => $steps]);
 
         return [
             'status' => 'completed',

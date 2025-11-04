@@ -43,10 +43,10 @@ class ModuleServiceProvider extends ServiceProvider
         // Defer module provider registration until after the framework has
         // fully booted so dependencies like the cache manager are available.
         $this->app->booted(function () {
-            if (!$this->app->bound('module_providers_registered')) {
-                $this->registerModuleProviders();
-                $this->app->instance('module_providers_registered', true);
-            }
+        if (!$this->app->bound('module_providers_registered')) {
+            $this->registerModuleProviders();
+            $this->app->instance('module_providers_registered', true);
+        }
         });
     }
 
@@ -161,10 +161,10 @@ class ModuleServiceProvider extends ServiceProvider
             }
 
             if (!$isDatabaseCache || ($isDatabaseCache && $hasCacheTable)) {
-                $cacheTTL = config('modules.cache_ttl', self::CACHE_TTL);
-                return Cache::remember(self::CACHE_KEY, $cacheTTL, function () use ($moduleManager) {
-                    return $this->discoverProviders($moduleManager);
-                });
+            $cacheTTL = config('modules.cache_ttl', self::CACHE_TTL);
+            return Cache::remember(self::CACHE_KEY, $cacheTTL, function () use ($moduleManager) {
+                return $this->discoverProviders($moduleManager);
+            });
             }
         }
 
@@ -315,9 +315,16 @@ class ModuleServiceProvider extends ServiceProvider
         if (!$mm->isModulesDiscovered()) $mm->discoverModules();
 
         foreach ($mm->getModules() as $module) {
-            $migrationPath = $module['path'] . '/database/migrations';
-            if (is_dir($migrationPath)) {
-                $this->loadMigrationsFrom($migrationPath);
+            // Support both common casings
+            $paths = [
+                $module['path'] . '/Database/Migrations',
+                $module['path'] . '/database/migrations',
+            ];
+
+            foreach ($paths as $migrationPath) {
+                if (is_dir($migrationPath)) {
+                    $this->loadMigrationsFrom($migrationPath);
+                }
             }
         }
     }
