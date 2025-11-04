@@ -11,8 +11,16 @@ class AppServiceProvider extends BaseModuleServiceProvider
 {
     public function register(): void
     {
-        // Register the LoggingService as singleton
-        $this->app->singleton(LoggingService::class, function ($app) {
+        $this->registerModuleMigrations();
+
+    }
+    /**
+     * Bootstrap services.
+     */
+    public function boot(): void
+    {
+         // Register the LoggingService as singleton
+         $this->app->singleton(LoggingService::class, function ($app) {
             return new LoggingService();
         });
 
@@ -25,13 +33,6 @@ class AppServiceProvider extends BaseModuleServiceProvider
         $this->app->singleton(TransactionContextFactory::class, function ($app) {
             return new TransactionContextFactory($app->make(LoggingService::class));
         });
-    }
-    /**
-     * Bootstrap services.
-     */
-    public function boot(): void
-    {
-        // Intentionally empty; ModuleServiceProvider handles
     }
 
 }

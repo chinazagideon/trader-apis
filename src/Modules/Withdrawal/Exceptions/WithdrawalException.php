@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Withdrawal\Exception;
+namespace App\Modules\Withdrawal\Exceptions;
 
 use App\Core\Exceptions\BusinessLogicException;
 

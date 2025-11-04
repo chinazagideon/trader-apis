@@ -297,11 +297,15 @@ class ModuleServiceProvider extends ServiceProvider
         if (!$mm->isModulesDiscovered()) $mm->discoverModules();
 
         foreach ($mm->getModules() as $module) {
-            $migrationPath = $module['path'] . '/database/migrations';
-            if (is_dir($migrationPath)) {
-                $this->loadMigrationsFrom($migrationPath);
+            $paths = [
+                $module['path'] . '/Database/Migrations',
+                $module['path'] . '/database/migrations',
+            ];
+            foreach ($paths as $migrationPath) {
+                if (is_dir($migrationPath)) {
+                    $this->loadMigrationsFrom($migrationPath);
+                }
             }
         }
     }
-
 }

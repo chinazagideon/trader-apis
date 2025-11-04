@@ -46,7 +46,11 @@ class ModuleMigrationManager
         $this->migrator->path($migrationPath);
 
         // Run migrations
-        $result = $this->migrator->run($options);
+        // $result = $this->migrator->run($options);
+        $result = $this->migrator->run([$migrationPath], $options);
+
+        // In rollbackModule(...)
+        $result = $this->migrator->rollback([$migrationPath], ['step' => $options['step']]);
 
         return [
             'status' => 'completed',

@@ -14,8 +14,14 @@ return new class extends Migration
         Schema::create('auth_tokens', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
-            // Create user_id column first without FK constraint
+
             $table->unsignedBigInteger('user_id');
+            if (Schema::hasTable('users')) {
+                Schema::table('auth_tokens', function (Blueprint $table) {
+                    $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+                });
+            }
+            
             $table->enum('token_type', ['access', 'refresh', 'api', 'sanctum'])->default('access');
             $table->string('token_hash', 255)->unique();
             $table->timestamp('expires_at')->nullable();
