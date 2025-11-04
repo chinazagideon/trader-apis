@@ -3,7 +3,6 @@
 namespace App\Modules\Swap\Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Faker\Factory as Faker;
 use App\Modules\Swap\Database\Models\SwapRateHistory;
 use Illuminate\Support\Facades\Log;
 
@@ -13,7 +12,7 @@ class SwapRateHistorySeeder extends Seeder
 
     public function run(): void
     {
-        $faker = Faker::create();
+
 
         $data = [
             [
