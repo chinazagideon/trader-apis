@@ -6,7 +6,6 @@ use App\Core\ModuleManager;
 use App\Core\Providers\AppServiceProvider;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\ServiceProvider;
 
@@ -40,14 +39,12 @@ class ModuleServiceProvider extends ServiceProvider
         // Register AppServiceProvider
         $this->app->register(AppServiceProvider::class);
 
-        // Defer module provider registration until after the framework has
-        // fully booted so dependencies like the cache manager are available.
-        $this->app->booted(function () {
+        // Register module providers only once using container binding as guard
         if (!$this->app->bound('module_providers_registered')) {
             $this->registerModuleProviders();
+            // Mark as registered to prevent duplicate registration
             $this->app->instance('module_providers_registered', true);
         }
-        });
     }
 
     // /**
@@ -145,27 +142,12 @@ class ModuleServiceProvider extends ServiceProvider
             return $this->formatConfigManifest($configManifest);
         }
 
-        // In production with cache enabled, use cache, but avoid using the
-        // database cache driver before the "cache" table exists
+        // In production with cache enabled, use cache
         if (config('modules.cache_discovery', false)) {
-            $defaultCacheStore = config('cache.default');
-            $isDatabaseCache = $defaultCacheStore === 'database';
-            $hasCacheTable = true;
-
-            if ($isDatabaseCache) {
-                try {
-                    $hasCacheTable = Schema::hasTable('cache');
-                } catch (\Throwable $e) {
-                    $hasCacheTable = false;
-                }
-            }
-
-            if (!$isDatabaseCache || ($isDatabaseCache && $hasCacheTable)) {
             $cacheTTL = config('modules.cache_ttl', self::CACHE_TTL);
             return Cache::remember(self::CACHE_KEY, $cacheTTL, function () use ($moduleManager) {
                 return $this->discoverProviders($moduleManager);
             });
-            }
         }
 
         // In development without caching, discover on each request
@@ -315,16 +297,9 @@ class ModuleServiceProvider extends ServiceProvider
         if (!$mm->isModulesDiscovered()) $mm->discoverModules();
 
         foreach ($mm->getModules() as $module) {
-            // Support both common casings
-            $paths = [
-                $module['path'] . '/Database/Migrations',
-                $module['path'] . '/database/migrations',
-            ];
-
-            foreach ($paths as $migrationPath) {
-                if (is_dir($migrationPath)) {
-                    $this->loadMigrationsFrom($migrationPath);
-                }
+            $migrationPath = $module['path'] . '/database/migrations';
+            if (is_dir($migrationPath)) {
+                $this->loadMigrationsFrom($migrationPath);
             }
         }
     }

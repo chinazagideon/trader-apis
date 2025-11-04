@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('auth_tokens', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->unique();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            // Create user_id column first without FK constraint
+            $table->unsignedBigInteger('user_id');
             $table->enum('token_type', ['access', 'refresh', 'api', 'sanctum'])->default('access');
             $table->string('token_hash', 255)->unique();
             $table->timestamp('expires_at')->nullable();
@@ -29,6 +30,13 @@ return new class extends Migration
             $table->index(['token_type', 'expires_at']);
             $table->index(['expires_at']);
         });
+
+        // Add foreign key constraint only if users table exists
+        if (Schema::hasTable('users')) {
+            Schema::table('auth_tokens', function (Blueprint $table) {
+                $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            });
+        }
     }
 
     /**
