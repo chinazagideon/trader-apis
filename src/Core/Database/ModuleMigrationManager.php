@@ -46,11 +46,7 @@ class ModuleMigrationManager
         $this->migrator->path($migrationPath);
 
         // Run migrations
-        // $result = $this->migrator->run($options);
         $result = $this->migrator->run([$migrationPath], $options);
-
-        // In rollbackModule(...)
-        $result = $this->migrator->rollback([$migrationPath], ['step' => $options['step']]);
 
         return [
             'status' => 'completed',
@@ -94,10 +90,13 @@ class ModuleMigrationManager
 
         $migrationPath = $module['path'] . '/Database/Migrations';
 
+        $result = $this->migrator->rollback([$migrationPath], ['step' => $steps]);
+
         if (!is_dir($migrationPath)) {
             return [
                 'status' => 'skipped',
                 'message' => "No migrations found for module '{$moduleName}'",
+                'migrations_rolled_back' => $result,
             ];
         }
 
