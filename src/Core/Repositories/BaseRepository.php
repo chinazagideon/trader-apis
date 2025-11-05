@@ -57,7 +57,9 @@ abstract class BaseRepository implements RepositoryInterface
     public function findBy(string $field, mixed $value, array $columns = ['*']): ?Model
     {
         $model = $this->model->where($field, $value)->first($columns);
-        if ($this->usesLoadsRelationshipsTrait()) {
+
+        // Only load relationships if model exists
+        if ($model && $this->usesLoadsRelationshipsTrait()) {
             $model = $this->loadRelationships($model);
         }
 
@@ -69,12 +71,18 @@ abstract class BaseRepository implements RepositoryInterface
      */
     public function findAllBy(string $field, mixed $value, array $columns = ['*']): Collection
     {
-        $model = $this->model->where($field, $value)->get($columns);
-        if ($this->usesLoadsRelationshipsTrait()) {
-            $model = $this->loadRelationships($model);
+        $collection = $this->model->where($field, $value)->get($columns);
+
+        // Load relationships on all models in the collection efficiently
+        if ($this->usesLoadsRelationshipsTrait() && !$collection->isEmpty()) {
+            $relationships = $this->getDefaultRelationships();
+            if (!empty($relationships)) {
+                // Use load() on collection to eager load relationships efficiently
+                $collection->load($relationships);
+            }
         }
 
-        return $model;
+        return $collection;
     }
 
     /**
@@ -196,7 +204,6 @@ abstract class BaseRepository implements RepositoryInterface
         if (empty($search) || empty($searchableFields)) {
             throw new ValidationException('Search and searchable fields are required');
         }
-        // $query = $this->applyOwnershipFilters($query, 'view');
 
         return $query->where(function ($q) use ($search, $searchableFields) {
             foreach ($searchableFields as $field) {

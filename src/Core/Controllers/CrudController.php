@@ -264,7 +264,7 @@ abstract class CrudController extends BaseController
         $studly = Str::studly($methodName);
 
         // Strip common HTTP verb prefixes
-        foreach (['Get','Post','Put','Patch','Delete','Show','Store','Index','Update','Destroy'] as $verb) {
+        foreach (['Get', 'Post', 'Put', 'Patch', 'Delete', 'Show', 'Store', 'Index', 'Update', 'Destroy'] as $verb) {
             if (Str::startsWith($studly, $verb)) {
                 $studly = Str::substr($studly, strlen($verb));
                 break;
@@ -495,15 +495,13 @@ abstract class CrudController extends BaseController
             ]);
 
             return $response;
-        }catch (\App\Core\Exceptions\AppException $e) {
+        } catch (\App\Core\Exceptions\AppException $e) {
             $this->logOperationError($operation, $e, $tracking, [
                 'exception_type' => get_class($e),
                 'error_code' => $e->getErrorCode(),
             ]);
             return $this->handleAppException($e);
-        }
-
-         catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (\Illuminate\Validation\ValidationException $e) {
             $this->logOperationError($operation, $e, $tracking, [
                 'validation_errors' => $e->errors(),
                 'failed_fields' => array_keys($e->errors()),
@@ -571,9 +569,17 @@ abstract class CrudController extends BaseController
      */
     protected function handleIndex(Request $request = null): JsonResponse
     {
-        // For index, we typically don't need strict validation, just extract filters
-        $validatedData = $this->extractFilters($request);
-        $perPage = $this->extractPerPage($request);
+        try {
+            $validatedData = $this->validateFormRequest($request ?? request(), 'index');
+
+            // Extract filters and pagination from validated data
+            $validatedData = $this->extractFilters($request);
+            $perPage = $this->extractPerPage($request);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->handleValidationException($e);
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            return $this->forbiddenResponse($e->getMessage() ?: 'You do not have permission to view this resource.');
+        }
 
         $response = $this->service->index($validatedData, $perPage);
 
@@ -588,12 +594,12 @@ abstract class CrudController extends BaseController
     /**
      * Handle show operation (GET /resource/{id})
      */
-    protected function handleShow($id): JsonResponse
+    protected function handleShow($id, Request $request = null): JsonResponse
     {
         if (!$id) {
             return $this->errorResponse('ID is required', null, Response::HTTP_BAD_REQUEST);
         }
-
+        
         $response = $this->service->show($id);
 
         $resourceClass = $this->resolveResourceClass('show');
@@ -650,7 +656,8 @@ abstract class CrudController extends BaseController
                 // Set the request data
                 $formRequest->replace($request->all());
 
-                // Validate and return validated data
+
+                // If authorize() returns false, Laravel throws AuthorizationException
                 $validatedData = $formRequest->validated();
 
                 $this->logger->logBusinessLogic(
@@ -676,22 +683,21 @@ abstract class CrudController extends BaseController
                     ]
                 );
                 throw $e;
+            } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+                // Re-throw authorization exceptions so they can be handled by handleIndex
+                throw $e;
             }
         }
 
-        // Fallback to manual validation
-        $this->logger->logBusinessLogic(
-            $this->getServiceName(),
-            $operation,
-            "Using fallback validation",
-            [
-                'reason' => 'No Form Request class found',
-                'request_class' => $requestClass,
-            ]
-        );
-
-        return $this->validateStoreData($request);
+        // Fallback for operations without FormRequest
+        return match ($operation) {
+            'store' => $this->validateStoreData($request),
+            'update' => $this->validateUpdateData($request),
+            'index' => $this->extractFilters($request),
+            default => $request->all(),
+        };
     }
+
 
     /**
      * Handle update operation (PUT/PATCH /resource/{id})
@@ -761,7 +767,13 @@ abstract class CrudController extends BaseController
         }
 
         return $request->only([
-            'search', 'sort_by', 'sort_direction', 'status', 'type', 'date_from', 'date_to'
+            'search',
+            'sort_by',
+            'sort_direction',
+            'status',
+            'type',
+            'date_from',
+            'date_to'
         ]);
     }
 
