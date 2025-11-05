@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Modules\Withdrawal\Events\WithdrawalWasCompleted;
 use Illuminate\Support\Facades\Log;
 use App\Modules\Market\Services\MarketFiatService;
+use App\Modules\Withdrawal\Enums\WithdrawalStatus;
 
 class WithdrawalService extends BaseService
 {
@@ -91,5 +92,21 @@ class WithdrawalService extends BaseService
     public function convertAmountToFiat(float $amount, int $currencyId): ServiceResponse
     {
         return $this->marketFiatService->fiatConverter($amount, $currencyId);
+    }
+
+    /**
+     * Prepare data for store
+     * @param array $data
+     * @return array
+     */
+    public function prepareDataForStore(array $data): array
+    {
+        $data['status'] = WithdrawalStatus::defaultStatus();
+        $convertFiatResponse =
+            $this->convertAmountToFiat($data['amount'], $data['currency_id']);
+        $convertFiat = $convertFiatResponse->getData();
+        $data['fiat_amount'] = $convertFiat->fiat_amount;
+        $data['fiat_currency_id'] = $convertFiat->fiat_currency;
+        return $data;
     }
 }

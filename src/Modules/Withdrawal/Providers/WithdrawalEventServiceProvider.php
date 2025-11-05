@@ -20,7 +20,7 @@ class WithdrawalEventServiceProvider extends ModuleEventServiceProviderBase
     {
         parent::boot();
         //register withdrawal completed event
-        Event::listen(WithdrawalWasCompleted::class);
+        // Event::listen(WithdrawalWasCompleted::class);
     }
 
     /**

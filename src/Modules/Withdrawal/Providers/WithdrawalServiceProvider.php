@@ -3,7 +3,9 @@
 namespace App\Modules\Withdrawal\Providers;
 
 use App\Core\Providers\BaseModuleServiceProvider;
-use Illuminate\Support\Facades\Route;
+use App\Modules\Withdrawal\Services\WithdrawalService;
+use App\Modules\Withdrawal\Database\Models\Withdrawal;
+use App\Modules\Withdrawal\Policies\WithdrawalPolicy;
 
 class WithdrawalServiceProvider extends BaseModuleServiceProvider
 {
@@ -16,7 +18,7 @@ class WithdrawalServiceProvider extends BaseModuleServiceProvider
      * Services
      */
     protected array $services = [
-        'WithdrawalService'::class,
+        WithdrawalService::class,
     ];
 
     /**
@@ -26,6 +28,13 @@ class WithdrawalServiceProvider extends BaseModuleServiceProvider
         'withdrawal',
     ];
 
+    /**
+     * Policies
+     */
+    protected array $policies = [
+        Withdrawal::class => WithdrawalPolicy::class,
+    ];
+    
     /**
      * Bootstrap the application services.
      */

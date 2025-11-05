@@ -16,7 +16,7 @@ return new class extends Migration
             $table->uuid('uuid')->unique();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('payment_id')->constrained('payments')->onDelete('cascade');
-            $table->decimal('amount', 10, 2);
+            $table->decimal('amount', 20, 2);
             $table->foreignId('currency_id')->constrained('currencies')->onDelete('cascade');
             $table->enum('status', ['pending', 'cancelled', 'completed']);
             $table->text('notes')->nullable();

@@ -33,18 +33,6 @@ class WithdrawalRepository extends BaseRepository
         return ['user', 'withdrawable', 'currency', 'fiatCurrency'];
     }
 
-    /**
-     * Get withdrawals with pagination and filters
-     */
-    public function getWithdrawals(array $filters = [], int $perPage = 15): LengthAwarePaginator
-    {
-        $query = $this->query(); // Already has ownership filtering applied
-
-        // Apply additional business filters
-        $this->applyBusinessFilters($query, $filters);
-
-        return $this->withRelationships($query, $this->getDefaultRelationships())->paginate($perPage);
-    }
 
 }
 
