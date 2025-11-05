@@ -3,7 +3,7 @@
 namespace App\Modules\Investment\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-
+use App\Core\Rules\AuthUser;
 class CreateRequest extends FormRequest
 {
     /**
@@ -20,7 +20,7 @@ class CreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => 'required|integer|min:1|exists:users,id',
+            'user_id' => ['required', 'integer', 'min:1', 'exists:users,id', new AuthUser()],
             'pricing_id' => 'required|integer|min:1|exists:pricings,id',
             'category_id' => 'required|integer|min:1|exists:categories,id',
             'amount' => 'required|numeric|min:0.01',

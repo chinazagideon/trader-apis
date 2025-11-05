@@ -20,9 +20,6 @@ class InvestmentController extends CrudController
         parent::__construct($investmentService);
     }
 
-    /**
-     * Health check endpoint (custom method, not CRUD)
-     */
     public function health(): JsonResponse
     {
         $response = $this->service->getHealth();

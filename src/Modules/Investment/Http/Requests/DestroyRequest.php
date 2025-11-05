@@ -3,7 +3,7 @@
 namespace App\Modules\Investment\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-
+use App\Modules\Investment\Database\Models\Investment;
 class DestroyRequest extends FormRequest
 {
     /**
@@ -11,7 +11,7 @@ class DestroyRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->can('delete', Investment::class);
     }
 
     /**

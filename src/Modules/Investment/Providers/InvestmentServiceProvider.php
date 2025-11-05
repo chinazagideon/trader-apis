@@ -39,9 +39,10 @@ class InvestmentServiceProvider extends BaseModuleServiceProvider
         'investment',
     ];
 
-    public function boot(): void
-    {
-        Gate::policy(Investment::class, InvestmentPolicy::class);
-
-    }
+    /**
+     * Policies
+     */
+    protected array $policies = [
+        Investment::class => InvestmentPolicy::class,
+    ];
 }
