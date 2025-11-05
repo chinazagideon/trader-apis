@@ -4,13 +4,14 @@ namespace App\Modules\Auth\Contracts;
 
 use App\Core\Http\ServiceResponse;
 use App\Modules\User\Database\Models\User;
+use App\Modules\Auth\Http\Requests\RegisterRequest;
 
 interface AuthServiceInterface
 {
     /**
      * Register a new user
      */
-    public function register(array $data): ServiceResponse;
+    public function register(RegisterRequest $request): ServiceResponse;
 
     /**
      * Login user with credentials

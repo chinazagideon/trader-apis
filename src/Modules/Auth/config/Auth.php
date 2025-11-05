@@ -66,8 +66,10 @@ return [
         'password_require_uppercase' => env('AUTH_PASSWORD_REQUIRE_UPPERCASE', false),
         'max_login_attempts' => env('AUTH_MAX_LOGIN_ATTEMPTS', 5),
         'lockout_duration' => env('AUTH_LOCKOUT_DURATION', 15), // minutes
-    ],
+        'require_lowercase' => env('PASSWORD_REQUIRE_LOWERCASE', true),
 
+    ],
+    
     'features' => [
         'registration' => env('AUTH_REGISTRATION_ENABLED', true),
         'email_verification' => env('AUTH_EMAIL_VERIFICATION_ENABLED', true),

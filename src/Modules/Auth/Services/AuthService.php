@@ -10,6 +10,7 @@ use App\Core\Services\BaseService;
 use App\Modules\Auth\Contracts\AuthServiceInterface;
 use App\Modules\Auth\Contracts\PasswordResetInterface;
 use App\Modules\Auth\Contracts\TokenServiceInterface;
+use App\Modules\Auth\Http\Requests\RegisterRequest;
 use App\Modules\User\Contracts\UserServiceInterface;
 use App\Modules\User\Database\Models\User;
 use Illuminate\Http\Response;
@@ -36,11 +37,11 @@ class AuthService extends BaseService implements AuthServiceInterface
      * @param array $data
      * @return ServiceResponse
      */
-    public function register(array $data): ServiceResponse
+    public function register(RegisterRequest $request): ServiceResponse
     {
-        return $this->executeServiceOperation(function () use ($data) {
+        return $this->executeServiceOperation(function () use ($request) {
             // Validate registration data
-            $validated = $this->validateRegistrationData($data);
+            $validated = $this->validateRegistrationData($request->validated());
 
             // Create user
             $userResponse = $this->userService->create($validated);
@@ -115,9 +116,6 @@ class AuthService extends BaseService implements AuthServiceInterface
         return $this->executeServiceOperation(function () use ($user, $guard) {
             // Revoke all user tokens
             $this->tokenService->revokeAllTokens($user);
-
-            // For Sanctum, we don't need to call logout on the guard
-            // The token revocation is sufficient
 
             $this->log('User logged out successfully', ['user_id' => $user->id, 'guard' => $guard]);
 
@@ -266,19 +264,28 @@ class AuthService extends BaseService implements AuthServiceInterface
     }
 
     /**
-     * Validate registration data
+     * DEPRECATED: Validate registration data
+     * Use Request Validator instead
      *
      * @param array $data
      * @return array
      */
     private function validateRegistrationData(array $data): array
     {
-        return $this->validateData($data, [
-            'name' => 'required|string|max:255',
+        $validated = $this->validateData($data, [
+            'name' => 'nullable|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'referral_code' => 'nullable|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => 'required|string|min:8',
             'phone' => 'nullable|string|max:20',
         ]);
+
+        // Remove password_confirmation as it's only needed for validation
+        unset($validated['password_confirmation']);
+
+        return $validated;
     }
 
     /**

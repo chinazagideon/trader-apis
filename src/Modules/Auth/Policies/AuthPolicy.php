@@ -3,8 +3,9 @@
 namespace App\Modules\Auth\Policies;
 
 use App\Modules\User\Database\Models\User;
+use App\Core\Policies\BasePolicy;
 
-class AuthPolicy
+class AuthPolicy extends BasePolicy
 {
     /**
      * Determine if the user can view any auth resources

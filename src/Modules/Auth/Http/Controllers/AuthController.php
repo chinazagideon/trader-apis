@@ -26,7 +26,7 @@ class AuthController extends BaseController
      */
     public function register(RegisterRequest $request): JsonResponse
     {
-        $response = $this->authService->register($request->validated());
+        $response = $this->authService->register($request);
 
         if ($response->isSuccess()) {
             $response->setData(new RegisterResource($response->getData()));
