@@ -5,6 +5,8 @@ namespace App\Modules\Swap\Providers;
 use App\Core\Providers\BaseModuleServiceProvider;
 use Illuminate\Support\Facades\Route;
 use App\Modules\Swap\Services\SwapService;
+use App\Modules\Swap\Database\Models\Swap;
+use App\Modules\Swap\Policies\SwapPolicy;
 
 class SwapServiceProvider extends BaseModuleServiceProvider
 {
@@ -18,6 +20,13 @@ class SwapServiceProvider extends BaseModuleServiceProvider
      */
     protected array $services = [
         SwapService::class,
+    ];
+
+    /**
+     * Policies
+     */
+    protected array $policies = [
+        Swap::class => SwapPolicy::class,
     ];
 
     /**

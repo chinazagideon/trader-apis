@@ -44,20 +44,20 @@ class SwapRepository extends BaseRepository
             ->rate;
     }
 
-    /**
-     * Get swaps with pagination and filters
-     * @param array $filters
-     * @param int $perPage
-     * @return LengthAwarePaginator
-     */
-    public function getSwaps(array $filters = [], int $perPage = 15): LengthAwarePaginator
-    {
-        $query = $this->query(); // Already has ownership filtering applied
+    // /**
+    //  * Get swaps with pagination and filters
+    //  * @param array $filters
+    //  * @param int $perPage
+    //  * @return LengthAwarePaginator
+    //  */
+    // public function getSwaps(array $filters = [], int $perPage = 15): LengthAwarePaginator
+    // {
+    //     $query = $this->query(); // Already has ownership filtering applied
 
-        // Apply additional business filters
-        $this->applyBusinessFilters($query, $filters);
+    //     // Apply additional business filters
+    //     $this->applyBusinessFilters($query, $filters);
 
-        return $this->withRelationships($query, $this->getDefaultRelationships())
-            ->paginate($perPage);
-    }
+    //     return $this->withRelationships($query, $this->getDefaultRelationships())
+    //         ->paginate($perPage);
+    // }
 }
