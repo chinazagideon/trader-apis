@@ -3,11 +3,11 @@
 namespace App\Modules\Funding\Providers;
 
 use App\Core\Providers\BaseModuleServiceProvider;
-use Illuminate\Support\Facades\Route;
 use App\Modules\Funding\Database\Models\Funding;
 use App\Modules\Funding\Policies\FundingPolicy;
 use App\Modules\Funding\Events\FundingWasCompleted;
-use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
+use App\Modules\Funding\Services\FundingService;
 
 class FundingServiceProvider extends BaseModuleServiceProvider
 {
@@ -20,7 +20,7 @@ class FundingServiceProvider extends BaseModuleServiceProvider
      * Services
      */
     protected array $services = [
-        'FundingService'::class,
+        FundingService::class,
     ];
 
     /**
@@ -47,6 +47,7 @@ class FundingServiceProvider extends BaseModuleServiceProvider
     public function boot(): void
     {
         parent::boot();
+
     }
 
 }

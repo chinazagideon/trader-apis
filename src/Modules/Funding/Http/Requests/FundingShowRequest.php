@@ -5,13 +5,11 @@ namespace App\Modules\Funding\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use App\Modules\Funding\Database\Models\Funding;
 
-class FundingIndexRequest extends FormRequest
+class FundingShowRequest extends FormRequest
 {
     public function authorize(): bool
     {
-
         return $this->user()->can('viewAny', Funding::class);
-
     }
 
     public function rules(): array

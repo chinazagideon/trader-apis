@@ -5,9 +5,11 @@ namespace App\Modules\Funding\Repositories;
 use App\Core\Repositories\BaseRepository;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Modules\Funding\Database\Models\Funding;
+use App\Core\Traits\LoadsRelationships;
 
 class FundingRepository extends BaseRepository
 {
+    // use LoadsRelationships;
     /**
      * Service name
      */
@@ -40,12 +42,12 @@ class FundingRepository extends BaseRepository
      * @param int $perPage
      * @return LengthAwarePaginator
      */
-    public function getFundings(array $filters = [], int $perPage = 15): LengthAwarePaginator
-    {
-        $query = $this->queryUnfiltered();
-        $query = $this->applyFilters($query, $filters);
-        return $this->withRelationships($query, $this->getDefaultRelationships())
-            ->orderBy('created_at', 'desc')
-            ->paginate($perPage);
-    }
+    // public function getFundings(array $filters = [], int $perPage = 15): LengthAwarePaginator
+    // {
+    //     $query = $this->queryUnfiltered();
+    //     $query = $this->applyFilters($query, $filters);
+    //     return $this->withRelationships($query, $this->getDefaultRelationships())
+    //         ->orderBy('created_at', 'desc')
+    //         ->paginate($perPage);
+    // }
 }
