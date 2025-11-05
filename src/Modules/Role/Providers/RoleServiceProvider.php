@@ -4,6 +4,8 @@ namespace App\Modules\Role\Providers;
 
 use App\Core\Providers\BaseModuleServiceProvider;
 use Illuminate\Support\Facades\Route;
+use App\Modules\Role\Contracts\RoleServiceContract;
+use App\Modules\Role\Services\RoleService;
 
 class RoleServiceProvider extends BaseModuleServiceProvider
 {
@@ -16,7 +18,7 @@ class RoleServiceProvider extends BaseModuleServiceProvider
      * Services
      */
     protected array $services = [
-        'RoleService'::class,
+        RoleService::class,
     ];
 
     /**
@@ -25,4 +27,9 @@ class RoleServiceProvider extends BaseModuleServiceProvider
     protected array $configFiles = [
         'role',
     ];
+
+    public function registerServices(): void
+    {
+        $this->app->bind(RoleServiceContract::class, RoleService::class);
+    }
 }
