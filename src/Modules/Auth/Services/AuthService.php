@@ -43,6 +43,11 @@ class AuthService extends BaseService implements AuthServiceInterface
             // Validate registration data
             $validated = $this->validateRegistrationData($request->validated());
 
+            // Store plain password before it gets hashed
+            $plainPassword = $validated['password'];
+            $name = $this->prepareName($validated);
+            $validated['name'] = $name;
+
             // Create user
             $userResponse = $this->userService->create($validated);
 
@@ -56,11 +61,22 @@ class AuthService extends BaseService implements AuthServiceInterface
             $verificationToken = Str::random(64);
             $user->email_verification_token = $verificationToken;
             $user->save();
-
             // Send verification email (placeholder)
             $this->sendVerificationEmail($user, $verificationToken);
 
-            return ServiceResponse::success($user, 'User registered successfully. Please verify your email.', Response::HTTP_CREATED);
+            // Automatically log in the user after registration
+            $loginResponse = $this->login([
+                'email' => $user->email,
+                'password' => $plainPassword
+            ], 'sanctum');
+
+            if (!$loginResponse->isSuccess()) {
+                throw new \App\Core\Exceptions\ServiceException('Failed to login user after registration');
+            }
+
+            // Return the login response (user + token)
+            return $loginResponse;
+
         }, 'register user');
     }
 
@@ -331,5 +347,16 @@ class AuthService extends BaseService implements AuthServiceInterface
             'email' => $user->email,
             'token' => $token,
         ]);
+    }
+
+    /**
+     * Prepare name
+     *
+     * @param array $data
+     * @return string
+     */
+    private function prepareName(array $data): string
+    {
+        return $data['first_name'] . ' ' . $data['last_name'];
     }
 }

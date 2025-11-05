@@ -29,7 +29,9 @@ class AuthController extends BaseController
         $response = $this->authService->register($request);
 
         if ($response->isSuccess()) {
-            $response->setData(new RegisterResource($response->getData()));
+            // Use LoginResource to return the same format as login (user + token)
+            $data = $response->getData();
+            $response->setData(new LoginResource($data));
         }
 
         return $this->handleServiceResponse($response);
