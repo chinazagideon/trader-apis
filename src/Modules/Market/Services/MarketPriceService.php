@@ -7,6 +7,7 @@ use App\Modules\Market\Repositories\MarketPriceRepository;
 use App\Core\Http\ServiceResponse;
 use App\Modules\Market\Services\MarketService;
 use App\Core\Exceptions\NotFoundException;
+use App\Core\Exceptions\AppException;
 
 class MarketPriceService extends BaseService
 {
@@ -79,11 +80,16 @@ class MarketPriceService extends BaseService
     public function getCurrencyPriceRaw(string $currency): ServiceResponse
     {
         return $this->executeServiceOperation(function () use ($currency) {
+
             $market = $this->getMarketBySymbol($currency);
-            $marketId = $market->getData()->id;
+
+            $marketData = $market->getData();
+            if (!$marketData) {
+                throw new AppException('Market not found for currency: ' . $currency);
+            }
+            $marketId = $marketData->id;
             $response = $this->marketPriceRepository->getCurrencyPriceRaw($marketId);
             return ServiceResponse::success($response, 'Currency price retrieved successfully');
         }, 'getCurrencyPriceRaw');
     }
-
 }

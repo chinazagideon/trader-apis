@@ -8,6 +8,7 @@ use App\Modules\Market\Services\MarketPriceService;
 use App\Modules\Currency\Services\CurrencyService;
 use App\Modules\Currency\Enums\CurrencyType;
 use App\Modules\Market\Repositories\MarketRepository;
+use App\Core\Exceptions\AppException;
 
 class MarketFiatService extends BaseService
 {
@@ -31,6 +32,11 @@ class MarketFiatService extends BaseService
     {
         $currency = $this->getCurrencyById($currencyId);
         $marketPrice = $this->marketPriceService->getCurrencyPriceRaw($currency->getData()->code);
+
+        if(!$marketPrice->isSuccess()) {
+            throw new AppException($marketPrice->getMessage());
+        }
+        
         $rawMarketPrice = $marketPrice->getData();
         $data = (object) [
             'market_data' => $rawMarketPrice,
