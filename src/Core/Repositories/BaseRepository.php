@@ -11,11 +11,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Core\Exceptions\NotFoundException;
 use Illuminate\Validation\ValidationException;
+use App\Core\Traits\AppliesPolicyQueryFilters;
 
 
 abstract class BaseRepository implements RepositoryInterface
 {
-    use LoadsRelationships, AppliesOwnershipFilters;
+    use LoadsRelationships, AppliesPolicyQueryFilters;
 
     protected Model $model;
     /**
@@ -31,9 +32,7 @@ abstract class BaseRepository implements RepositoryInterface
      */
     public function all(array $columns = ['*']): Collection
     {
-        $query = $this->query();
-        // $query = $this->applyOwnershipFilters($query, 'view');
-
+        $query = $this->queryWithPolicyFilter();
         return $query->get($columns);
     }
 
@@ -43,8 +42,6 @@ abstract class BaseRepository implements RepositoryInterface
     public function find(int $id, array $columns = ['*']): ?Model
     {
         $query = $this->query();
-        // $query = $this->applyOwnershipFilters($query, 'view');
-
         $model = $query->find($id, $columns);
 
         if ($model && $this->usesLoadsRelationshipsTrait()) {
@@ -86,9 +83,6 @@ abstract class BaseRepository implements RepositoryInterface
      */
     public function create(array $data): Model
     {
-        // Validate ownership
-        // $data = $this->validateCreateOwnership($data);
-
         $model = $this->model->create($data);
 
         // Check if this repository uses LoadsRelationships trait
@@ -110,8 +104,6 @@ abstract class BaseRepository implements RepositoryInterface
         if (!$model) {
             throw NotFoundException::resource($this->model->getTable());
         }
-        // Validate ownership
-        // $data = $this->validateUpdateOwnership($model, $data);
 
         $model->update($data);
         $model = $model->fresh(); // Get fresh instance with updated data
@@ -131,7 +123,6 @@ abstract class BaseRepository implements RepositoryInterface
     {
         $query = $this->query();
         $model = $query->find($id);
-        // $query = $this->applyOwnershipFilters($query, 'delete');
 
         if (!$query->exists() || $model->isDeleted()) {
             return null;
@@ -146,9 +137,7 @@ abstract class BaseRepository implements RepositoryInterface
     public function paginate(int $perPage = 15, array $columns = ['*']): LengthAwarePaginator
     {
 
-        $query = $this->query();
-        // $query = $this->applyOwnershipFilters($query, 'view');
-
+        $query = $this->queryWithPolicyFilter();
         return $query->paginate($perPage, $columns);
     }
 
@@ -174,7 +163,6 @@ abstract class BaseRepository implements RepositoryInterface
     protected function query(): Builder
     {
         $query = $this->model->newQuery();
-        // return $this->applyOwnershipFilters($query, 'view');
         return $query;
     }
 
