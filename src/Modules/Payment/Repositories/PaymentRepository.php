@@ -25,18 +25,18 @@ class PaymentRepository extends BaseRepository
         return ['payable', 'currency'];
     }
 
-    /**
-     * Get the payments
-     * @param array $filters
-     * @param int $perPage
-     * @return LengthAwarePaginator
-     */
-    public function getPayments(array $filters = [], int $perPage = 15): LengthAwarePaginator
-    {
-        $query = $this->query();
-        $this->applyFilters($query, $filters);
-        return $this->withRelationships($query, $this->getDefaultRelationships())->paginate($perPage);
-    }
+    // /**
+    //  * Get the payments
+    //  * @param array $filters
+    //  * @param int $perPage
+    //  * @return LengthAwarePaginator
+    //  */
+    // public function getPayments(array $filters = [], int $perPage = 15): LengthAwarePaginator
+    // {
+    //     $query = $this->query();
+    //     $this->applyFilters($query, $filters);
+    //     return $this->withRelationships($query, $this->getDefaultRelationships())->paginate($perPage);
+    // }
 
     /**
      * Find a payment by id

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('method');
             $table->morphs('payable');
             $table->string('status')->default('pending');
-            $table->decimal('amount', 10, 2);
+            $table->decimal('amount', 20, 2);
             $table->string('currency');
             $table->timestamps();
         });
