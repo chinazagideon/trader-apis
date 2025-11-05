@@ -35,19 +35,4 @@ class FundingRepository extends BaseRepository
     {
         return ['fundable', 'currency', 'fiatCurrency'];
     }
-
-    /**
-     * Get the fundings
-     * @param array $filters
-     * @param int $perPage
-     * @return LengthAwarePaginator
-     */
-    // public function getFundings(array $filters = [], int $perPage = 15): LengthAwarePaginator
-    // {
-    //     $query = $this->queryUnfiltered();
-    //     $query = $this->applyFilters($query, $filters);
-    //     return $this->withRelationships($query, $this->getDefaultRelationships())
-    //         ->orderBy('created_at', 'desc')
-    //         ->paginate($perPage);
-    // }
 }

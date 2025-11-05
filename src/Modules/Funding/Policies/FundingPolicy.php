@@ -28,6 +28,6 @@ class FundingPolicy extends BasePolicy
         return $this->isOwner($user, $model);
     }
 
-    
+
 
 }

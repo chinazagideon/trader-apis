@@ -42,14 +42,6 @@ class FundingService extends BaseService
      */
     protected function completed(array $data, Model $model, string $operation = ''): void
     {
-        $this->logBusinessLogic(
-            'Funding was completed',
-            [
-                'data' => $data,
-                'model' => $model,
-                'operation' => $operation,
-            ]
-        );
         /** @var Funding $model */
         FundingWasCompleted::dispatch($model, $this->FundingRepository->moduleName);
 

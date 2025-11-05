@@ -15,7 +15,7 @@ use App\Modules\Funding\Http\Requests\FundingCreateRequest;
 class FundingController extends CrudController
 {
     public function __construct(
-        private FundingService $fundingService
+        private FundingService $fundingService,
     ) {
         parent::__construct($fundingService);
     }
@@ -25,17 +25,32 @@ class FundingController extends CrudController
      */
     public function beforeStore(array $data, Request $request): array
     {
-        $convertFiatResponse = $this->fundingService->convertAmountToFiat($data['amount'], $data['currency_id']);
+        return $this->prepareData($data);
+    }
+
+    /**
+     * Prepare data for funding creation
+     *
+     * @param array $data
+     * @return array
+     */
+    private function prepareData(array $data): array
+    {
+
+        $convertFiatResponse = $this->fundingService
+            ->convertAmountToFiat($data['amount'], $data['currency_id']);
+            
         $convertFiat = $convertFiatResponse->getData();
 
-        $data['fundable_type'] = 'user';
-        $data['fundable_id'] = $request->user()->id;
+        $data['fundable_type'] = $data['fundable_type'];
+        $data['fundable_id'] = $data['fundable_id'];
         $data['currency_id'] = (int) $data['currency_id'];
         $data['fiat_amount'] = $convertFiat->fiat_amount;
         $data['fiat_currency_id'] = $convertFiat->fiat_currency;
-        $data['user_id'] = $request->user()->id;
-        $data['type'] = $request->input('type');
+        $data['user_id'] = $data['user_id'];
+        $data['type'] = $data['type'];
         $data['status'] = FundingStatus::getDefaultStatus();
+
         return $data;
     }
 }
