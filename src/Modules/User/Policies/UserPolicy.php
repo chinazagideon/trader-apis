@@ -4,6 +4,7 @@ namespace App\Modules\User\Policies;
 
 use App\Core\Policies\BasePolicy;
 use App\Modules\User\Database\Models\User;
+use App\Modules\User\Enums\RolesEnum;
 
 /**
  * User Policy
@@ -44,7 +45,7 @@ class UserPolicy extends BasePolicy
         }
 
         // Regular users can access, but will only see themselves (filtered in query)
-        return true;
+        return false;
     }
 
     /**
@@ -168,7 +169,7 @@ class UserPolicy extends BasePolicy
     {
         // Only admins and users with stats permission can view statistics
         return $user->hasPermission('admin.all') ||
-               $user->hasPermission('user.statistics');
+            $user->hasPermission('user.statistics');
     }
 
     /**
@@ -183,7 +184,18 @@ class UserPolicy extends BasePolicy
 
         // Check if user has search permission or view_any permission
         return $user->hasPermission('user.search') ||
-               $user->hasPermission('user.view_any');
+            $user->hasPermission('user.view_any');
+    }
+
+    /**
+     * Determine if the user can perform the action before the action is executed.
+     */
+    public function before(User $user, string $ability): bool|null
+    {
+        // If user is admin, allow all actions
+        if ($user->role_id === RolesEnum::ADMIN->value) {
+            return true;
+        }
+        return null;
     }
 }
-

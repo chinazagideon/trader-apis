@@ -13,19 +13,19 @@ class ShowRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $userId = $this->route('id');
+        // $userId = $this->route('id');
 
-        if (!$userId) {
-            return false;
-        }
+        // if (!$userId) {
+        //     return false;
+        // }
 
-        $user = User::find($userId);
+        // $user = User::find($userId);
 
-        if (!$user) {
-            return false;
-        }
+        // if (!$user) {
+        //     return false;
+        // }
 
-        return $this->user()->can('view', $user);
+        return $this->user()->can('view', User::class);
     }
 
     /**

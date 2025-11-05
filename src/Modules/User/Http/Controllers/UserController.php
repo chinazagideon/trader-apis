@@ -3,29 +3,30 @@
 namespace App\Modules\User\Http\Controllers;
 
 use App\Core\Controllers\BaseController;
+use App\Core\Controllers\CrudController;
 use App\Modules\User\Contracts\UserServiceInterface;
 use App\Modules\User\Database\Models\User;
 use App\Modules\User\Http\Requests\CreateUserRequest;
 use App\Modules\User\Http\Requests\UpdateUserRequest;
+use App\Modules\User\Http\Requests\UserIndexRequest;
 use App\Modules\User\Http\Resources\UserResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
-class UserController extends BaseController
+class UserController extends CrudController
 {
     public function __construct(
         private UserServiceInterface $userService
-    ) {}
+    ) {
+        parent::__construct($userService);
+    }
 
     /**
      * Display a listing of users
      */
-    public function index(Request $request): JsonResponse
+    public function index(UserIndexRequest $request): JsonResponse
     {
-        // Authorize the action using policy
-        Gate::authorize('viewAny', User::class);
-
         $filters = $this->getSearchParams($request);
         $pagination = $this->getPaginationParams($request);
 
@@ -48,10 +49,6 @@ class UserController extends BaseController
      */
     public function store(CreateUserRequest $request): JsonResponse
     {
-        // Authorization is handled in CreateUserRequest via authorize() method
-        // Additional authorization check here for extra safety
-        Gate::authorize('create', User::class);
-
         $response = $this->userService->create($request->validated());
 
         // Transform the data using UserResource if successful

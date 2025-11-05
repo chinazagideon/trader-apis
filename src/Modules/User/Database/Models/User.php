@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Modules\Role\Database\Models\Role;
 
 class User extends Authenticatable
 {
@@ -23,6 +25,8 @@ class User extends Authenticatable
     protected $fillable = [
         'uuid',
         'name',
+        'first_name',
+        'last_name',
         'email',
         'password',
         'phone',
@@ -33,8 +37,11 @@ class User extends Authenticatable
         'country',
         'postal_code',
         'is_active',
+        'user_type',
+        'referral_code',
         'email_verified_at',
         'email_verification_token',
+        'role_id',
     ];
 
     /**
@@ -55,6 +62,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'date_of_birth' => 'date',
             'is_active' => 'boolean',
+            'role_id' => 'integer',
         ];
     }
 
@@ -94,6 +102,12 @@ class User extends Authenticatable
         return $this->hasMany(\App\Modules\Auth\Database\Models\AuthToken::class);
     }
 
+    /**
+     * Check if the user has a permission.
+     * @param string $permission
+     * @param array $actions
+     * @return bool
+     */
     public function hasPermission(string $permission, array $actions = []): bool
     {
         if ($this->role_id === RolesEnum::ADMIN->value) { // Admin
@@ -120,8 +134,21 @@ class User extends Authenticatable
         return false;
     }
 
+    /**
+     * Get the ownership column.
+     * @return string
+     */
     public function getOwnershipColumn(): string
     {
         return 'id';
+    }
+
+    /**
+     * Get the role that owns the user.
+     * @return BelongsTo
+     */
+    public function role(): BelongsTo
+    {
+        return $this->belongsTo(Role::class);
     }
 }

@@ -10,6 +10,8 @@ use App\Modules\User\Repositories\UserRepository;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
 use App\Modules\User\Contracts\UserCreditServiceInterface;
+use App\Modules\User\Enums\RolesEnum;
+use App\Modules\Role\Contracts\RoleServiceContract;
 
 /**
  * User Service
@@ -21,7 +23,8 @@ class UserService extends BaseService implements UserServiceInterface
     public function __construct(
         private UserRepository $userRepository,
         private UserBalanceServiceInterface $userBalanceService,
-        private UserCreditServiceInterface $userCreditService
+        private UserCreditServiceInterface $userCreditService,
+        private RoleServiceContract $roleService
     ) {
         parent::__construct($userRepository);
     }
@@ -35,18 +38,44 @@ class UserService extends BaseService implements UserServiceInterface
     public function create(array $data): ServiceResponse
     {
         return $this->executeServiceOperation(function () use ($data) {
-            // Validate input data
-            $validated = $this->validateUserData($data);
 
+            $data = $this->prepareData($data);
             // Hash password if provided
-            if (isset($validated['password'])) {
-                $validated['password'] = Hash::make($validated['password']);
+            if (isset($data['password'])) {
+                $data['password'] = Hash::make($data['password']);
             }
 
-            $user = $this->userRepository->create($validated);
+            // $user = parent::create($validated);
+            $user = $this->userRepository->create($data);
 
             return ServiceResponse::success($user, 'User created successfully', Response::HTTP_CREATED);
         }, 'create user');
+    }
+
+    /**
+     * Prepare data for user creation
+     * @param array $data
+     * @return array
+     */
+    private function prepareData(array $data): array
+    {
+        $role_id = $this->assignDefaultRole();
+        $data['role_id'] = $role_id;
+        return $data;
+    }
+
+    /**
+     * Assign default role to user
+     * @return int
+     */
+    private function assignDefaultRole(): int
+    {
+        $roleResponse = $this->roleService->getUserRole();
+
+        if (!$roleResponse->isSuccess()) {
+            throw new \App\Core\Exceptions\ServiceException('Failed to get default role');
+        }
+        return $roleResponse->getData()->id;
     }
 
     /**
@@ -114,14 +143,14 @@ class UserService extends BaseService implements UserServiceInterface
             $this->ensureResourceExists($user, 'User');
 
             // Validate input data
-            $validated = $this->validateUserData($data, $id);
+            // $validated = $this->validateUserData($data, $id);
 
             // Hash password if provided
-            if (isset($validated['password'])) {
-                $validated['password'] = Hash::make($validated['password']);
+            if (isset($data['password'])) {
+                $data['password'] = Hash::make($data['password']);
             }
 
-            $updated = $this->userRepository->update($id, $validated);
+            $updated = $this->userRepository->update($id, $data);
 
             if (!$updated) {
                 throw new \App\Core\Exceptions\ServiceException('Failed to update user');
@@ -230,7 +259,10 @@ class UserService extends BaseService implements UserServiceInterface
     private function validateUserData(array $data, ?int $userId = null): array
     {
         $rules = [
-            'name' => 'required|string|max:255',
+            'name' => 'sometimes|nullable|string|max:255',
+            'first_name' => 'sometimes|required|string|max:255',
+            'last_name' => 'sometimes|required|string|max:255',
+            'referral_code' => 'nullable|string|max:255',
             'email' => 'required|email|max:255|unique:users,email' . ($userId ? ',' . $userId : ''),
             'password' => 'sometimes|string|min:8',
             'phone' => 'nullable|string|max:20',

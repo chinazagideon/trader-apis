@@ -5,7 +5,7 @@ namespace App\Modules\User\Http\Requests;
 use App\Modules\User\Database\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
-class IndexRequest extends FormRequest
+class UserIndexRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -18,7 +18,7 @@ class IndexRequest extends FormRequest
             return false;
         }
 
-        // Check if user has viewAny permission
+
         return $this->user()->can('viewAny', User::class);
     }
 
