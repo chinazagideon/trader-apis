@@ -78,10 +78,41 @@ class ModuleManager
      */
     protected function getModuleConfig(string $modulePath): array
     {
-        $configFile = $modulePath . '/config/' . strtolower(basename($modulePath)) . '.php';
+        return self::loadModuleConfigFile($modulePath);
+    }
+
+    /**
+     * Load module configuration file with case-insensitive lookup
+     *
+     * @param string $modulePath The path to the module directory
+     * @return array The loaded configuration array
+     */
+    public static function loadModuleConfigFile(string $modulePath): array
+    {
+        $moduleName = basename($modulePath);
+        $configDir = $modulePath . '/config';
+
+        // Try lowercase first (common convention)
+        $configFile = $configDir . '/' . strtolower($moduleName) . '.php';
 
         if (File::exists($configFile)) {
             return require $configFile;
+        }
+
+        // Try with actual module name case (case-sensitive filesystems)
+        $configFile = $configDir . '/' . $moduleName . '.php';
+
+        if (File::exists($configFile)) {
+            return require $configFile;
+        }
+
+        // Fallback: scan directory for any PHP config file if directory exists
+        if (File::isDirectory($configDir)) {
+            $files = File::glob($configDir . '/*.php');
+            if (!empty($files)) {
+                // Use the first PHP file found (assuming one config file per module)
+                return require $files[0];
+            }
         }
 
         return [];

@@ -3,6 +3,7 @@
 namespace App\Core\Providers;
 
 use App\Core\Contracts\ModuleServiceProviderInterface;
+use App\Core\ModuleManager;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 
@@ -138,13 +139,7 @@ abstract class ModuleServiceProviderBase extends ServiceProvider implements Modu
      */
     protected function getModuleConfig(): array
     {
-        $configFile = $this->getModuleFilePath("config/" . Str::lower($this->moduleName) . ".php");
-
-        if (file_exists($configFile)) {
-            return require $configFile;
-        }
-
-        return [];
+        return ModuleManager::loadModuleConfigFile($this->modulePath);
     }
 
     /**

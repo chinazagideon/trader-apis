@@ -14,8 +14,17 @@ class RegisterRequest extends FormRequest
 
     protected function getConfig(): array
     {
-        $return = config('Auth');
-        return $return['security'];
+        $return = config('Auth', []);
+        $security = $return['security'] ?? [];
+
+        // Provide defaults if config is missing
+        return array_merge([
+            'password_min_length' => 8,
+            'password_require_uppercase' => false,
+            'require_lowercase' => true,
+            'password_require_numbers' => true,
+            'password_require_special_chars' => false,
+        ], $security);
     }
     /**
      * set validation rules
@@ -33,7 +42,6 @@ class RegisterRequest extends FormRequest
             'referral_code' => 'nullable|string|max:255',
             'phone' => 'required|string|max:20|unique:users,phone',
             'email' => 'required|email|max:255|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
             'password' => [
                 'required',
                 new PasswordRule(
