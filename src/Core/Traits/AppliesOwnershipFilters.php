@@ -8,6 +8,9 @@ use App\Core\Exceptions\UnauthenticatedException;
 use App\Core\Exceptions\UnauthorizedException;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * DEPRECIATED: Use Policies instead of this trait
+ */
 trait AppliesOwnershipFilters
 {
     private string $defaultUserIdKey =  'user_id';
