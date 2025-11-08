@@ -5,10 +5,10 @@ namespace App\Modules\Market\Services;
 use App\Core\Services\BaseService;
 use App\Core\Http\ServiceResponse;
 use App\Modules\Market\Services\MarketPriceService;
-use App\Modules\Currency\Services\CurrencyService;
 use App\Modules\Currency\Enums\CurrencyType;
 use App\Modules\Market\Repositories\MarketRepository;
 use App\Core\Exceptions\AppException;
+use App\Modules\Currency\Contracts\CurrencyServiceContract;
 
 class MarketFiatService extends BaseService
 {
@@ -17,7 +17,7 @@ class MarketFiatService extends BaseService
     public function __construct(
         private MarketRepository $marketRepository,
         private MarketPriceService $marketPriceService,
-        private CurrencyService $currencyService
+        private CurrencyServiceContract $currencyService
     ) {
         parent::__construct($marketRepository);
     }
@@ -30,14 +30,18 @@ class MarketFiatService extends BaseService
      */
     public function fiatConverter(float $amount, int $currencyId): ServiceResponse
     {
-        $currency = $this->getCurrencyById($currencyId);
+        $currency = $this->getCurrency($currencyId);
+        $defaultCurrency = $this->currencyService->getDefaultCurrency();
         $marketPrice = $this->marketPriceService->getCurrencyPriceRaw($currency->getData()->code);
 
-        if(!$marketPrice->isSuccess()) {
+        if (!$marketPrice->isSuccess()) {
             throw new AppException($marketPrice->getMessage());
         }
-        
+
         $rawMarketPrice = $marketPrice->getData();
+        $isStable = $rawMarketPrice->market->is_stable;
+        $cryptoAmount = $this->computeCryptoAmount($amount, $rawMarketPrice->price, $currencyId, $isStable);
+
         $data = (object) [
             'market_data' => $rawMarketPrice,
             'fiat_currency' => $rawMarketPrice->currency_id,
@@ -47,10 +51,14 @@ class MarketFiatService extends BaseService
 
         if ($currency->getData()->type == CurrencyType::Fiat->value) {
             $data->fiat_amount = $amount;
+            $data->crypto_amount = $cryptoAmount;
+
         } else {
             $convertedAmount = $amount * $rawMarketPrice->price;
             $data->fiat_amount = $convertedAmount;
+            $data->crypto_amount = $cryptoAmount;
         }
+        dd($data);
 
         return ServiceResponse::success($data, 'Fiat converted successfully');
     }
@@ -60,8 +68,25 @@ class MarketFiatService extends BaseService
      * @param int $id
      * @return ServiceResponse
      */
-    public function getCurrencyById(int $id): ServiceResponse
+    public function getCurrency(int $id): ServiceResponse
     {
         return $this->currencyService->getCurrency($id);
+    }
+
+    /**
+     * Compute crypto amount
+     * @param float $amount
+     * @param float $price
+     * @param int $currencyId
+     * @param bool $isStable
+     * @return float
+     */
+    public function computeCryptoAmount(float $amount, float $price, int $currencyId, bool $isStable = false): float
+    {
+        $currencyType = $this->currencyService->getCurrencyTypeById($currencyId);
+        if ($currencyType !== CurrencyType::Crypto->value && !$isStable) {
+            throw new AppException('Currency is not a stable currency');
+        }
+        return $isStable ? $amount / $price : $amount * $price;
     }
 }

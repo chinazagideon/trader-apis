@@ -30,6 +30,7 @@ class Market extends CoreModel
         'type',
         'category',
         'subcategory',
+        'is_stable',
     ];
 
     /**
@@ -40,6 +41,7 @@ class Market extends CoreModel
         return [
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
+            'is_stable' => 'boolean',
         ];
     }
 

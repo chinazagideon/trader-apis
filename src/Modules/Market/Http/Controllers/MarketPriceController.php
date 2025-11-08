@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 
 class MarketPriceController extends CrudController
 {
+
     public function __construct(
         private MarketPriceService $marketPriceService
     ) {

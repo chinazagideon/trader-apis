@@ -23,6 +23,9 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Fruitcake\Cors\CorsService;
+use App\Core\Services\SubModuleServiceRegistry;
+use App\Core\Contracts\SubModuleServiceContract;
+use App\Core\Services\ModuleMigrationRegistrar;
 
 class CoreServiceProvider extends ServiceProvider
 {
@@ -50,25 +53,27 @@ class CoreServiceProvider extends ServiceProvider
         // Register console commands
         $this->registerConsoleCommands();
 
+        // Register module migration registrar service
+        $this->app->singleton(ModuleMigrationRegistrar::class, function ($app) {
+            return new ModuleMigrationRegistrar(
+                $app->make(ModuleManager::class)
+            );
+        });
+
+        // Register module migrations via Migrator extension
+        // This ensures paths are registered when Migrator is instantiated
+        $this->app->extend('migrator', function ($migrator, $app) {
+            $registrar = $app->make(ModuleMigrationRegistrar::class);
+            $paths = $registrar->getMigrationPaths();
+
+            foreach ($paths as $path) {
+                $migrator->path($path);
+            }
+
+            return $migrator;
+        });
     }
 
-    /**
-     * Bootstrap services.
-     */
-    public function boot(): void
-    {
-
-        // Register morph maps FIRST (before routes that might use them)
-        $this->registerMorphMaps();
-
-        // Load API Gateway routes directly
-        $this->loadApiGatewayRoutes();
-
-        // Register middleware
-        $this->registerMiddleware();
-
-
-    }
 
     /**
      * Register module service providers
@@ -109,6 +114,25 @@ class CoreServiceProvider extends ServiceProvider
                 CleanupScheduledEventsCommand::class,
             ]);
         }
+    }
+
+    /**
+     * Bootstrap services.
+     */
+    public function boot(): void
+    {
+
+        // Register morph maps FIRST (before routes that might use them)
+        $this->registerMorphMaps();
+
+        // Load API Gateway routes directly
+        $this->loadApiGatewayRoutes();
+
+        // Register middleware
+        $this->registerMiddleware();
+
+        // Register sub module services
+        $this->registerSubModuleServices();
     }
 
     /**
@@ -171,5 +195,22 @@ class CoreServiceProvider extends ServiceProvider
         }
 
         return $morphs;
+    }
+
+    /**
+     * Register sub module services
+     */
+    protected function registerSubModuleServices(): void
+    {
+        // Register registry as singleton (cached across requests in long-lived processes)
+        $this->app->singleton(SubModuleServiceRegistry::class);
+
+        // Auto-register on resolution
+        $this->app->afterResolving(function ($object, $app) {
+            if ($object instanceof SubModuleServiceContract) {
+                $registry = $app->make(SubModuleServiceRegistry::class);
+                $registry->register($object); // Stores class name only
+            }
+        });
     }
 }

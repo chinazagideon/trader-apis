@@ -156,14 +156,21 @@ abstract class ModuleServiceProviderBase extends ServiceProvider implements Modu
     }
 
     /**
-     * Register module migrations
+     * Register module migrations for auto-loading
+     * Note: For native migrate commands, migrations are registered centrally via CoreServiceProvider
      */
     protected function registerModuleMigrations(): void
     {
-        $migrationPath = $this->getModuleFilePath('database/migrations');
+        $paths = [
+            'database/migrations',
+            'Database/Migrations',
+        ];
 
-        if ($this->moduleDirExists('database/migrations')) {
-            $this->loadMigrationsFrom($migrationPath);
+        foreach ($paths as $relativePath) {
+            if ($this->moduleDirExists($relativePath)) {
+                $full = $this->getModuleFilePath($relativePath);
+                $this->loadMigrationsFrom($full);
+            }
         }
     }
 

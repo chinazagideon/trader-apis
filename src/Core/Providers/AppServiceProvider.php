@@ -11,7 +11,6 @@ class AppServiceProvider extends BaseModuleServiceProvider
 {
     public function register(): void
     {
-        $this->registerModuleMigrations();
 
     }
     /**

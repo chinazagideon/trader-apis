@@ -36,8 +36,11 @@ class ModuleServiceProvider extends ServiceProvider
         // Register ModuleManager as singleton
         $this->app->singleton(ModuleManager::class);
 
-        // Register AppServiceProvider
-        $this->app->register(AppServiceProvider::class);
+        // Register AppServiceProvider (but avoid circular dependency)
+        if (!$this->app->bound('app_service_provider_registered')) {
+            $this->app->register(AppServiceProvider::class);
+            $this->app->instance('app_service_provider_registered', true);
+        }
 
         // Register module providers only once using container binding as guard
         if (!$this->app->bound('module_providers_registered')) {
@@ -56,7 +59,7 @@ class ModuleServiceProvider extends ServiceProvider
         $this->registerModuleConfigs();
         $this->registerModuleViews();
         $this->registerModuleTranslations();
-        $this->registerModuleMigrations();
+        // registerModuleMigrations()
     }
 
     /**
@@ -100,12 +103,6 @@ class ModuleServiceProvider extends ServiceProvider
                         $this->app->register($provider);
                         $totalProviders++;
 
-                        if ($shouldLog) {
-                            \Illuminate\Support\Facades\Log::debug("Successfully registered provider: {$provider}", [
-                                'module' => $moduleName,
-                                'provider' => $provider
-                            ]);
-                        }
                     } catch (\Exception $e) {
                         \Illuminate\Support\Facades\Log::error("Failed to register provider: {$provider}", [
                             'module' => $moduleName,
@@ -223,7 +220,7 @@ class ModuleServiceProvider extends ServiceProvider
 
         if (file_exists($routesPath . '/api.php')) {
             // Load API routes with /api/v1 prefix
-            Route::prefix('api/v1')->group(function () use ($routesPath) {
+            Route::prefix('api/v1')->middleware('api')->group(function () use ($routesPath) {
                 $this->loadRoutesFrom($routesPath . '/api.php');
             });
         }
@@ -287,24 +284,6 @@ class ModuleServiceProvider extends ServiceProvider
             $langPath = $module['path'] . '/resources/lang';
             if (is_dir($langPath)) {
                 $this->loadTranslationsFrom($langPath, strtolower($module['name']));
-            }
-        }
-    }
-
-    private function registerModuleMigrations(): void
-    {
-        $mm = $this->app->make(\App\Core\ModuleManager::class);
-        if (!$mm->isModulesDiscovered()) $mm->discoverModules();
-
-        foreach ($mm->getModules() as $module) {
-            $paths = [
-                $module['path'] . '/Database/Migrations',
-                $module['path'] . '/database/migrations',
-            ];
-            foreach ($paths as $migrationPath) {
-                if (is_dir($migrationPath)) {
-                    $this->loadMigrationsFrom($migrationPath);
-                }
             }
         }
     }

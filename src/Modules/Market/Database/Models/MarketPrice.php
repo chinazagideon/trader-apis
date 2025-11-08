@@ -58,7 +58,7 @@ class MarketPrice extends CoreModel
      */
     public function market(): BelongsTo
     {
-        return $this->belongsTo(Market::class, 'market_id');
+        return $this->belongsTo(Market::class);
     }
 
     /**
@@ -66,6 +66,6 @@ class MarketPrice extends CoreModel
      */
     public function currency(): BelongsTo
     {
-        return $this->belongsTo(Currency::class, 'currency_id');
+        return $this->belongsTo(Currency::class);
     }
 }

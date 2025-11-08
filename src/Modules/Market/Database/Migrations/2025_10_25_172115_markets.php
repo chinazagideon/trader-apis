@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('market_prices', function (Blueprint $table) {
-            // Modify existing columns to support larger values
             $table->decimal('price', 20, 2)->change();
             $table->decimal('market_cap', 20, 2)->change();
             $table->decimal('total_supply', 20, 2)->change();

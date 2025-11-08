@@ -8,6 +8,8 @@ use App\Modules\Market\Services\MarketService;
 use App\Modules\Market\Services\MarketFiatService;
 use App\Modules\Market\Facade\MarketFiatServiceFacade;
 use Illuminate\Support\Facades\Facade as Facades;
+use App\Modules\Market\Database\Models\MarketPrice;
+use App\Modules\Market\Policies\MarketPricePolicy;
 
 class MarketServiceProvider extends BaseModuleServiceProvider
 {
@@ -30,5 +32,12 @@ class MarketServiceProvider extends BaseModuleServiceProvider
      */
     protected array $configFiles = [
         'market',
+    ];
+
+    /**
+     * Policies
+     */
+    protected array $policies = [
+        MarketPrice::class => MarketPricePolicy::class,
     ];
 }

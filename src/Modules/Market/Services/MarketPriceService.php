@@ -8,10 +8,12 @@ use App\Core\Http\ServiceResponse;
 use App\Modules\Market\Services\MarketService;
 use App\Core\Exceptions\NotFoundException;
 use App\Core\Exceptions\AppException;
+use App\Core\Contracts\SubModuleServiceContract;
 
-class MarketPriceService extends BaseService
+class MarketPriceService extends BaseService implements SubModuleServiceContract
 {
     protected string $serviceName = 'MarketPriceService';
+    protected string $defaultSubModuleName = 'MarketPrice';
 
     public function __construct(
         private MarketPriceRepository $marketPriceRepository,
@@ -20,6 +22,13 @@ class MarketPriceService extends BaseService
         parent::__construct($marketPriceRepository);
     }
 
+    /**
+     * Get the default module name
+     */
+    public function getDefaultSubModuleName(): string
+    {
+        return $this->defaultSubModuleName;
+    }
     /**
      * Override index method to call the correct repository method
      */

@@ -12,7 +12,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use App\Core\Exceptions\NotFoundException;
 use Illuminate\Validation\ValidationException;
 use App\Core\Traits\AppliesPolicyQueryFilters;
-
+use App\Modules\Client\Contracts\ClientModelContract;
+use App\Modules\Client\Database\Models\Client;
 
 abstract class BaseRepository implements RepositoryInterface
 {
@@ -220,7 +221,7 @@ abstract class BaseRepository implements RepositoryInterface
         return in_array(\App\Core\Traits\LoadsRelationships::class, class_uses_recursive($this));
     }
 
-      /**
+    /**
      * Apply business filters to the query
      */
     protected function applyBusinessFilters($query, $filters)
@@ -245,5 +246,21 @@ abstract class BaseRepository implements RepositoryInterface
         $sortDirection = $filters['sort_direction'] ?? 'desc';
 
         $query->orderBy($sortBy, $sortDirection);
+    }
+
+    public function findByApiKey(string $apiKey): ?Client
+    {
+        return $this->queryUnfiltered()
+            ->where('api_key', $apiKey)
+            ->where('is_active', true)
+            ->first();
+    }
+
+    public function findBySlug(string $slug): ?Client
+    {
+        return $this->queryUnfiltered()
+            ->where('slug', $slug)
+            ->where('is_active', true)
+            ->first();
     }
 }

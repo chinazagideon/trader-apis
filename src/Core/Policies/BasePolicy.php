@@ -7,6 +7,7 @@ use App\Core\Contracts\OwnershipBased;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
+
 /**
  * Base Policy class for ownership-based authorization
  *
@@ -179,6 +180,7 @@ abstract class BasePolicy
         // For ownership-based models, filter by ownership column
         $modelInstance = $query->getModel();
 
+
         if ($modelInstance instanceof OwnershipBased) {
             // Get ownership column (check if model has getOwnershipColumn method)
             $column = method_exists($modelInstance, 'getOwnershipColumn')
@@ -192,6 +194,7 @@ abstract class BasePolicy
         if ($this->permissionPrefix && $user->hasPermission($this->permissionPrefix . '.view_any')) {
             return $query;
         }
+
 
         // Default: return empty query for non-admins without permissions
         return $query->whereRaw('1 = 0');
@@ -235,4 +238,3 @@ abstract class BasePolicy
         return $this->ownershipColumn;
     }
 }
-

@@ -9,6 +9,8 @@ use Illuminate\Http\JsonResponse;
 
 class MarketController extends CrudController
 {
+    public string $moduleName = 'Market';
+
     public function __construct(
         private MarketService $marketService
     ) {

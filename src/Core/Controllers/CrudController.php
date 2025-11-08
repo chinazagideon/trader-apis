@@ -13,6 +13,8 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use App\Core\Contracts\SubModuleServiceContract;
+use App\Core\Services\SubModuleServiceRegistry;
 
 abstract class CrudController extends BaseController
 {
@@ -44,6 +46,11 @@ abstract class CrudController extends BaseController
     protected ?OperationClassResolver $operationClassResolver = null;
 
     /**
+     * Module name from controller
+     */
+    protected string $moduleName;
+
+    /**
      * Constructor - inject service and set up resource name
      */
     public function __construct($service)
@@ -51,6 +58,14 @@ abstract class CrudController extends BaseController
         $this->service = $service;
         $this->resourceName = $this->getResourceName();
         $this->logger = app(LoggingService::class);
+    }
+
+    /**
+     * Get module name from controller
+     */
+    public function getModuleNameFromChild(): ?string
+    {
+        return $this->service->moduleName() ?? null;
     }
 
     /**
@@ -81,31 +96,11 @@ abstract class CrudController extends BaseController
 
         foreach ($resolutionStrategies as $strategy) {
             if (class_exists($strategy)) {
-                $this->logger->logBusinessLogic(
-                    $this->getServiceName(),
-                    'request_resolution',
-                    "Request class resolved using strategy: {$strategy}",
-                    [
-                        'operation' => $operation,
-                        'module' => $module,
-                        'strategy_used' => $strategy,
-                        'resolution_order' => array_search($strategy, $resolutionStrategies),
-                    ]
-                );
                 return $strategy;
             }
         }
 
-        $this->logger->logBusinessLogic(
-            $this->getServiceName(),
-            'request_resolution',
-            "No request class found for operation: {$operation}",
-            [
-                'operation' => $operation,
-                'module' => $module,
-                'attempted_strategies' => $resolutionStrategies,
-            ]
-        );
+
 
         return null;
     }
@@ -382,6 +377,7 @@ abstract class CrudController extends BaseController
      */
     protected function getModuleName(): string
     {
+
         $reflection = new \ReflectionClass($this);
         $namespace = $reflection->getNamespaceName();
 
@@ -399,8 +395,9 @@ abstract class CrudController extends BaseController
     }
 
     /**
-     * Get sub-resource name from controller class
+     * Get sub-resource name from controller class or service
      * Detects sub-resources like TransactionCategory from TransactionCategoryController
+     * Falls back to service's getDefaultSubModuleName() if service implements SubModuleServiceContract
      */
     protected function getSubResourceName(): ?string
     {
@@ -416,14 +413,14 @@ abstract class CrudController extends BaseController
             if (strpos($controllerName, $module) === 0 && strlen($controllerName) > strlen($module)) {
                 $subResource = substr($controllerName, strlen($module));
 
-                \Illuminate\Support\Facades\Log::debug("Sub-resource detected", [
-                    'controller_class' => $className,
-                    'module' => $module,
-                    'sub_resource' => $subResource
-                ]);
-
                 return $subResource;
             }
+        }
+
+        // Fallback: Check if service implements SubModuleServiceContract
+        if (isset($this->service) && $this->service instanceof SubModuleServiceContract) {
+            $subModuleName = $this->service->getDefaultSubModuleName();
+            return $subModuleName;
         }
 
         return null;
@@ -599,7 +596,7 @@ abstract class CrudController extends BaseController
         if (!$id) {
             return $this->errorResponse('ID is required', null, Response::HTTP_BAD_REQUEST);
         }
-        
+
         $response = $this->service->show($id);
 
         $resourceClass = $this->resolveResourceClass('show');
