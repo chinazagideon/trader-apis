@@ -19,7 +19,6 @@ return [
     'allowed_methods' => ['*'],
 
     // 'allowed_origins' => [
-    //     // Replace with your specific domains
     //     'http://localhost:3000',
     //     'http://localhost:8080',
     //     'https://your-frontend-domain.com',
@@ -29,7 +28,6 @@ return [
     'allowed_origins' => explode(',', env('CORS_ALLOWED_ORIGINS', 'http://localhost:3000')),
 
     'allowed_origins_patterns' => [
-        // You can use patterns for subdomains
         // 'https://*.yourdomain.com',
     ],
 
@@ -39,5 +37,5 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => env('CORS_SUPPORTS_CREDENTIALS', true), 
+    'supports_credentials' => env('CORS_SUPPORTS_CREDENTIALS', true),
 ];

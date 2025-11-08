@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->api(prepend: [
             \App\Core\Http\Middleware\HandleCors::class,
+            \App\Modules\Client\Http\Middleware\IdentifyClientMiddleware::class,
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             \App\Core\Http\Middleware\RequestIdMiddleware::class,
         ]);
