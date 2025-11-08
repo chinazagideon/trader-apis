@@ -2,17 +2,21 @@
 
 namespace App\Modules\Pricing\Database\Models;
 
+use App\Core\Traits\HasClientScope;
 use App\Core\Traits\HasTimestamps;
 use App\Core\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 
 class Pricing extends Model
 {
-    use HasTimestamps, HasUuid;
+    use HasTimestamps;
+    use HasUuid;
+    use HasClientScope;
 
     protected $table = 'pricings';
 
     protected $fillable = [
+        'client_id',
         'name',
         'min_amount',
         'max_amount',

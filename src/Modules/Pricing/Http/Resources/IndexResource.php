@@ -17,6 +17,7 @@ class IndexResource extends JsonResource
             'id' => $this->id,
             'uuid' => $this->uuid,
             'name' => $this->name,
+            'client_id' => $this->client_id,
             'min_amount' => $this->min_amount,
             'max_amount' => $this->max_amount,
             'lifespan' => $this->lifespan,

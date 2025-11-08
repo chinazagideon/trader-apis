@@ -2,6 +2,7 @@
 
 namespace App\Modules\User\Services;
 
+use App\Core\Exceptions\AppException;
 use App\Core\Services\BaseService;
 use App\Modules\User\Contracts\UserBalanceServiceInterface;
 use App\Modules\User\Database\Models\User;
@@ -31,18 +32,14 @@ class UserBalanceService extends BaseService implements UserBalanceServiceInterf
         try {
             // Step 1: Validate input data structure
             if (!$this->validateBalanceDataInput($data)) {
-                $this->log('Balance check failed: invalid input data', ['data' => $data]);
+                throw new AppException('invalid input data');
                 return false;
             }
 
             // Step 2: Validate balance based on transaction type
             return $this->validateBalanceData($data);
         } catch (\Exception $e) {
-            $this->log('Balance check error', [
-                'error' => $e->getMessage(),
-                'data' => $data
-            ]);
-            return false;
+            throw new AppException($e->getMessage());
         }
     }
 
@@ -97,17 +94,17 @@ class UserBalanceService extends BaseService implements UserBalanceServiceInterf
     {
         $userId = (int) $data['user_id'];
         $amount = (float) $data['amount'];
+        $type = $data['type'];
 
         // Fetch user with fresh data to avoid stale reads
         $user = $this->userRepository->find($userId);
 
         if (!$user) {
-            $this->log('Balance check failed: user not found', ['user_id' => $userId]);
-            return false;
+            throw new AppException('user not found');
         }
 
         // Route to specific validation based on type
-        return match ($data['type']) {
+        return match ($type) {
             UserBalanceEnum::Commission->value => $this->validateCommissionBalanceData($user, $amount, $data),
             UserBalanceEnum::Withdraw->value => $this->validateWithdrawBalanceData($user, $amount, $data),
             UserBalanceEnum::Deposit->value => $this->validateDepositBalanceData($user, $amount, $data),
@@ -129,17 +126,12 @@ class UserBalanceService extends BaseService implements UserBalanceServiceInterf
         // Commission is typically a credit operation, so always valid
         // But you might want to validate against maximum limits or negative amounts
         if ($amount <= 0) {
-            $this->log('Commission validation failed: invalid amount', [
-                'user_id' => $user->id,
-                'amount' => $amount
-            ]);
-            return false;
+            throw new AppException('invalid amount, amount must be more than 0');
         }
 
         // Optional: Check if user can receive commission (e.g., account must be active)
         if (!$user->is_active) {
-            $this->log('Commission validation failed: user inactive', ['user_id' => $user->id]);
-            return false;
+            throw new AppException('user is inactive');
         }
 
         return true;
@@ -158,29 +150,18 @@ class UserBalanceService extends BaseService implements UserBalanceServiceInterf
         $availableBalance = (float) ($user->available_balance ?? 0);
 
         if ($availableBalance < $amount) {
-            $this->log('Withdrawal validation failed: insufficient balance', [
-                'user_id' => $user->id,
-                'requested' => $amount,
-                'available' => $availableBalance
-            ]);
-            return false;
+            throw new AppException('Sorry we unable to proccess your request at the moment due to insufficient balance');
         }
 
         // Optional: Check minimum withdrawal amount (e.g., from config)
         $minWithdrawal = config('user.min_withdrawal', 0);
         if ($amount < $minWithdrawal) {
-            $this->log('Withdrawal validation failed: below minimum', [
-                'user_id' => $user->id,
-                'amount' => $amount,
-                'minimum' => $minWithdrawal
-            ]);
-            return false;
+            throw new AppException('invalid amount, amount is less than minimum amount');
         }
 
         // Optional: Ensure user account is active
         if (!$user->is_active) {
-            $this->log('Withdrawal validation failed: user inactive', ['user_id' => $user->id]);
-            return false;
+            throw new AppException('user is inactive');
         }
 
         return true;
@@ -198,22 +179,13 @@ class UserBalanceService extends BaseService implements UserBalanceServiceInterf
         // Deposits are typically credits, so usually valid
         // Validate amount constraints
         if ($amount <= 0) {
-            $this->log('Deposit validation failed: invalid amount', [
-                'user_id' => $user->id,
-                'amount' => $amount
-            ]);
-            return false;
+            throw new AppException('invalid amount, amount must be more than 0');
         }
 
         // Optional: Check maximum deposit limit
         $maxDeposit = config('user.max_deposit', null);
         if ($maxDeposit !== null && $amount > $maxDeposit) {
-            $this->log('Deposit validation failed: exceeds maximum', [
-                'user_id' => $user->id,
-                'amount' => $amount,
-                'maximum' => $maxDeposit
-            ]);
-            return false;
+            throw new AppException('invalid amount, amount is more than maximum amount');
         }
 
         return true;
@@ -232,43 +204,28 @@ class UserBalanceService extends BaseService implements UserBalanceServiceInterf
         $availableBalance = (float) ($user->available_balance ?? 0);
 
         if ($availableBalance < $amount) {
-            $this->log('Transfer validation failed: insufficient balance', [
-                'user_id' => $user->id,
-                'requested' => $amount,
-                'available' => $availableBalance
-            ]);
-            return false;
+            throw new AppException('insufficient balance');
         }
 
         // Validate recipient exists and is valid
         $recipientId = (int) ($data['recipient_id'] ?? 0);
         if ($recipientId <= 0) {
-            return false;
+            throw new AppException('invalid recipient id');
         }
 
         $recipient = $this->userRepository->find($recipientId);
         if (!$recipient) {
-            $this->log('Transfer validation failed: recipient not found', [
-                'sender_id' => $user->id,
-                'recipient_id' => $recipientId
-            ]);
-            return false;
+            throw new AppException('recipient not found');
         }
 
         // Validate recipient is not the same as sender
         if ($user->id === $recipient->id) {
-            $this->log('Transfer validation failed: cannot transfer to self', [
-                'user_id' => $user->id
-            ]);
-            return false;
+            throw new AppException('cannot transfer to self');
         }
 
         // Optional: Check if recipient account is active
         if (!$recipient->is_active) {
-            $this->log('Transfer validation failed: recipient inactive', [
-                'recipient_id' => $recipientId
-            ]);
-            return false;
+            throw new AppException('recipient is inactive');
         }
 
         return true;
@@ -287,29 +244,18 @@ class UserBalanceService extends BaseService implements UserBalanceServiceInterf
         $availableBalance = (float) ($user->available_balance ?? 0);
 
         if ($availableBalance < $amount) {
-            $this->log('Payment validation failed: insufficient balance', [
-                'user_id' => $user->id,
-                'requested' => $amount,
-                'available' => $availableBalance
-            ]);
-            return false;
+            throw new AppException('Sorry we unable to proccess your request at the moment due to insufficient balance');
         }
 
         // Optional: Check minimum payment amount
         $minPayment = config('user.min_payment', 0);
         if ($amount < $minPayment) {
-            $this->log('Payment validation failed: below minimum', [
-                'user_id' => $user->id,
-                'amount' => $amount,
-                'minimum' => $minPayment
-            ]);
-            return false;
+            throw new AppException('invalid amount, amount is less than minimum amount');
         }
 
         // Optional: Ensure user account is active
         if (!$user->is_active) {
-            $this->log('Payment validation failed: user inactive', ['user_id' => $user->id]);
-            return false;
+            throw new AppException('user is inactive');
         }
 
         return true;

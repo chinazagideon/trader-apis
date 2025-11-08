@@ -2,6 +2,8 @@
 
 namespace App\Modules\User\Database\Models;
 
+use App\Core\Traits\HasClientApp;
+use App\Core\Traits\HasClientScope;
 use App\Core\Traits\HasPermissions;
 use App\Core\Traits\HasTimestamps;
 use App\Core\Traits\HasUuid;
@@ -13,17 +15,27 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Modules\Role\Database\Models\Role;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
-    use HasApiTokens, HasFactory, Notifiable, HasTimestamps, HasUuid, HasTransactableTrait;
+    use HasApiTokens;
     use HasPermissions;
+    use HasFactory;
+    use Notifiable;
+    use HasTimestamps;
+    use HasUuid;
+    use HasTransactableTrait;
+    use HasClientApp;
+    use HasClientScope;
+
 
     /**
      * The attributes that are mass assignable.
      */
     protected $fillable = [
         'uuid',
+        'client_id',
         'name',
         'first_name',
         'last_name',
@@ -151,4 +163,30 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
+
+    /**
+     * get the jwt identifier
+     *
+     * @return mixed
+     */
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    /**
+     * custom jwt claims
+     *
+     * @return array
+     */
+    public function getJWTCustomClaims(): array
+    {
+        return [
+            'client_id' => $this->getClientId() ?? $this->client_id,
+            'role_id' => $this->role_id,
+            'user_id' => $this->id,
+        ];
+    }
+
+
 }

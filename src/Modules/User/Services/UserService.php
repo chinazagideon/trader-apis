@@ -10,7 +10,6 @@ use App\Modules\User\Repositories\UserRepository;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
 use App\Modules\User\Contracts\UserCreditServiceInterface;
-use App\Modules\User\Enums\RolesEnum;
 use App\Modules\Role\Contracts\RoleServiceContract;
 
 /**
