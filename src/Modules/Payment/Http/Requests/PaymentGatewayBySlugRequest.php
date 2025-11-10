@@ -11,13 +11,37 @@ class PaymentGatewayBySlugRequest extends FormRequest
         return true;
     }
 
+    /**
+     * Get the validation rules for the request.
+     * @return array
+     */
     public function rules(): array
     {
         return [
             'slug' => 'required|string|exists:payment_gateways,slug',
+            'filters' => 'sometimes|array|nullable',
         ];
     }
 
+    /**
+     * Prepare the data for validation.
+     * @return void
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->user() && !$this->user()->can('isAdmin')) {
+            $this->merge([
+                'filters' => [
+                    'is_active' => true,
+                ],
+            ]);
+        }
+    }
+
+    /**
+     * Get the validation messages for the request.
+     * @return array
+     */
     public function messages(): array
     {
         return [
@@ -26,4 +50,3 @@ class PaymentGatewayBySlugRequest extends FormRequest
         ];
     }
 }
-

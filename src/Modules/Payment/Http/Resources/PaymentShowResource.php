@@ -1,14 +1,12 @@
 <?php
-
 namespace App\Modules\Payment\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PaymentIndexResource extends JsonResource
+class PaymentShowResource extends JsonResource
 {
     public function toArray($request): array
     {
-
         return [
             'id' => $this->id,
             'uuid' => $this->uuid,

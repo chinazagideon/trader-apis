@@ -8,11 +8,18 @@ use App\Modules\Payment\Rules\ValidatePaymentHash;
 
 class PaymentProcessorInitiateRequest extends FormRequest
 {
+    /**
+     * Determine if the user is authorized to make this request.
+     */
     public function authorize(): bool
     {
+        // return $this->user()->can('ownerOf', $this->user());
         return true;
     }
 
+    /**
+     * Get the validation rules that apply to the request.
+     */
     public function rules(): array
     {
         return [
@@ -20,11 +27,15 @@ class PaymentProcessorInitiateRequest extends FormRequest
             'amount' => 'required|numeric|min:0.01',
             'currency' => 'required|string|max:255',
             'currency_id' => 'required|integer|min:1|exists:currencies,id',
+            'fiat_currency_id' => 'required|integer|min:1|exists:currencies,id',
             'payment_gateway_id' => 'required|integer|min:1|exists:payment_gateways,id',
             'payment_hash' => ['required', 'string', 'max:255', new ValidatePaymentHash()],
         ];
     }
 
+    /**
+     * Get the validation messages that apply to the request.
+     */
     public function messages(): array
     {
         return [
@@ -38,6 +49,8 @@ class PaymentProcessorInitiateRequest extends FormRequest
             'currency.required' => 'The currency is required.',
             'currency.string' => 'The currency must be a string.',
             'currency.max' => 'The currency may not be greater than 255 characters.',
+            'fiat_currency_id.required' => 'The fiat currency id is required.',
+            'fiat_currency_id.exists' => 'The selected fiat currency does not exist.',
             'payment_hash.required' => 'The payment hash is required.',
             'payment_hash.string' => 'The payment hash must be a string.',
             'payment_hash.exists' => 'The payment hash is invalid.',

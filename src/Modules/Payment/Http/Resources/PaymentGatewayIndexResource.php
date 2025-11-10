@@ -22,6 +22,8 @@ class PaymentGatewayIndexResource extends JsonResource
             'supported_currencies' => json_decode($this->supported_currencies),
             'credentials' => json_decode($this->credentials),
             'is_active' => $this->is_active,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

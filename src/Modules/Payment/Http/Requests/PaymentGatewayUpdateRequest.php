@@ -2,16 +2,23 @@
 
 namespace App\Modules\Payment\Http\Requests;
 
+use App\Modules\Payment\Database\Models\PaymentGateway;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class PaymentGatewayUpdateRequest extends FormRequest
 {
+    /**
+     * Determine if the user is authorized to make this request.
+     */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->can('isAdmin', $this->user());
     }
 
+    /**
+     * Get the validation rules that apply to the request.
+     */
     public function rules(): array
     {
         $gatewayId = $this->route('id');
@@ -22,7 +29,7 @@ class PaymentGatewayUpdateRequest extends FormRequest
                 'sometimes',
                 'string',
                 'max:255',
-                Rule::unique('payment_gateways', 'slug')->ignore($gatewayId)
+                'exists:payment_gateways,slug',
             ],
             'description' => 'sometimes|string|nullable',
             'mode' => 'sometimes|string|in:live,test',
@@ -35,6 +42,9 @@ class PaymentGatewayUpdateRequest extends FormRequest
         ];
     }
 
+    /**
+     * Get the validation messages that apply to the request.
+     */
     public function messages(): array
     {
         return [

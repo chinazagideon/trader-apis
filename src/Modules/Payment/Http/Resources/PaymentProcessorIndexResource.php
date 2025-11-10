@@ -8,13 +8,14 @@ class PaymentProcessorIndexResource extends JsonResource
 {
     public function toArray($request): array
     {
+
         return [
             'id' => $this->id,
             'uuid' => $this->uuid,
             'payment_gateway_id' => $this->payment_gateway_id,
             // 'payment_gateway' => new PaymentGatewayIndexResource($this->paymentGateway),
-            'payable_id' => $this->payable_id,
-            // 'payable' => new PaymentIndexResource($this->payment),
+            'payment' => $this->whenLoaded('payment'),
+            'payment_id' => $this->payment_id,
             'amount' => $this->amount,
             'fee' => $this->fee,
             'total_amount' => $this->total_amount,

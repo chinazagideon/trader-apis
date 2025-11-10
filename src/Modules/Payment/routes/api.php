@@ -12,6 +12,7 @@ Route::prefix('payment')->name('payment.')->group(function () {
 
         Route::prefix('processor')->name('processor.')->group(function() {
             Route::post('/initiate', [PaymentProcessorController::class, 'Initiate'])->name('postInitiate');
+            Route::get('/', [PaymentProcessorController::class, 'index'])->name('show');
         });
 
         Route::prefix('gateway')->name('gateway.')->group(function () {

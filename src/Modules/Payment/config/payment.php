@@ -25,4 +25,9 @@ return [
         'transaction' => \App\Modules\Transaction\Database\Models\Transaction::class,
         'funding' => \App\Modules\Funding\Database\Models\Funding::class,
     ],
+    'payment_gateway' => [
+        'instructions' => [
+            'title' => 'Please send your payment to the following address: <address>',
+        ]
+    ]
 ];

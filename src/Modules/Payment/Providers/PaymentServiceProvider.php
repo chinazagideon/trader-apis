@@ -9,6 +9,8 @@ use App\Modules\Payment\Services\PaymentGatewayService;
 use App\Modules\Payment\Contracts\PaymentGatewayServiceContract;
 use App\Modules\Payment\Contracts\PaymentProcessorServiceContract;
 use App\Modules\Payment\Services\PaymentProcessorService;
+use App\Modules\Payment\Database\Models\PaymentGateway;
+use App\Modules\Payment\Policies\PaymentGatewayPolicy;;
 
 
 /*
@@ -49,9 +51,15 @@ class PaymentServiceProvider extends BaseModuleServiceProvider
     {
         parent::boot();
         //register events
-        $this->app->register(PaymentEventServiceProvider::class);
+        // $this->app->register(PaymentEventServiceProvider::class);
     }
 
+    /**
+     * Policies
+     */
+    protected array $policies = [
+        PaymentGateway::class => PaymentGatewayPolicy::class,
+    ];
     /**
      * Register services
      */
@@ -59,5 +67,6 @@ class PaymentServiceProvider extends BaseModuleServiceProvider
     {
         $this->app->bind(PaymentGatewayServiceContract::class, PaymentGatewayService::class);
         $this->app->bind(PaymentProcessorServiceContract::class, PaymentProcessorService::class);
+
     }
 }

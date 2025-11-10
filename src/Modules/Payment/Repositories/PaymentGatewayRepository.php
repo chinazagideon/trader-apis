@@ -4,6 +4,7 @@ namespace App\Modules\Payment\Repositories;
 
 use App\Core\Repositories\BaseRepository;
 use App\Modules\Payment\Database\Models\PaymentGateway;
+use App\Core\Exceptions\AppException;
 
 class PaymentGatewayRepository extends BaseRepository
 {
@@ -22,11 +23,20 @@ class PaymentGatewayRepository extends BaseRepository
      * Find payment gateway by slug
      * @param string $slug
      * @param array $columns
+     * @param array $filters
      * @return PaymentGateway|null
      */
-    public function findBySlug(string $slug, array $columns = ['*']): ?PaymentGateway
+    public function findBySlug(string $slug, array $columns = ['*'], array $filters = []): ?PaymentGateway
     {
-        return $this->findBy('slug', $slug, $columns);
+        return $this->model->where('slug', $slug)
+            ->when(!empty($filters), function ($query) use ($filters) {
+                foreach ($filters as $key => $value) {
+                    if ($value !== null && $value !== '') {
+                        $query->where($key, $value);
+                    }
+                }
+            })
+            ->first($columns);
     }
 
     /**
@@ -38,5 +48,34 @@ class PaymentGatewayRepository extends BaseRepository
     public function findById(int $id, array $columns = ['*']): ?PaymentGateway
     {
         return $this->find($id, $columns);
+    }
+
+    /**
+     * Get default relationships for the payment gateway model
+     */
+    protected function getDefaultRelationships(): array
+    {
+        return [];
+    }
+
+    /**
+     * Disable payment gateways with the same slug (excluding current record if provided)
+     * @param string $slug
+     * @param int|null $excludeId ID to exclude from disabling (for update operations)
+     * @return int Number of records updated
+     */
+    public function disablePaymentGateway(string $slug, ?int $excludeId = null): int
+    {
+        $query = $this->queryWithPolicyFilter()
+            ->where('slug', $slug)
+            ->where('is_active', true);
+
+        // Exclude current record during update operations
+        if ($excludeId !== null) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        // Use bulk update for better performance
+        return $query->update(['is_active' => false]);
     }
 }

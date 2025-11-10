@@ -16,6 +16,8 @@ class PaymentProcessorService extends BaseService implements PaymentProcessorSer
 {
     protected string $serviceName = 'PaymentProcessorService';
 
+    protected float $fee = 0.012;
+
     public function __construct(
         private PaymentProcessorRepository $paymentProcessorRepository,
         private PaymentService $paymentService,
@@ -97,7 +99,7 @@ class PaymentProcessorService extends BaseService implements PaymentProcessorSer
             'amount' => $data['amount'],
             'currency' => $data['currency'],
             'payment_gateway_id' => $data['payment_gateway_id'],
-            'fee' => 0.012, // TODO: calculate fee from payment gateway
+            'fee' => $this->fee,
             'market_rate' => $convertFiat['market_rate'],
             'total_amount' => $convertFiat['total_amount'],
             'fiat_amount' => $convertFiat['fiat_amount'],
@@ -115,7 +117,12 @@ class PaymentProcessorService extends BaseService implements PaymentProcessorSer
      */
     protected function convertAmountToFiat(array $data): array
     {
-        $convertFiat = $this->marketFiatService->fiatConverter($data['amount'], $data['currency_id']);
+        $data = [
+            'amount' => $data['amount'],
+            'currency_id' => $data['currency_id'],
+            'fiat_currency_id' => $data['fiat_currency_id'],
+        ];
+        $convertFiat = $this->marketFiatService->fiatConverter($data);
         $convertFiat = $convertFiat->getData();
         return [
             'fiat_amount' => $convertFiat->fiat_amount,

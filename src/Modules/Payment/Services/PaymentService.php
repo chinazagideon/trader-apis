@@ -81,4 +81,21 @@ class PaymentService extends BaseService
         ]);
         return $payment->refresh();
     }
+
+    /**
+     * Show a payment
+     * @param int $id
+     * @return ServiceResponse
+     */
+    public function show(int $id): ServiceResponse
+    {
+        return $this->executeServiceOperation(function () use ($id) {
+            $payment = $this->PaymentRepository->getPayment($id);
+            if (!$payment) {
+                throw new \Exception('Payment not found');
+            }
+            return ServiceResponse::success($payment, 'Payment retrieved successfully');
+        }, 'show payment');
+    }
+
 }
