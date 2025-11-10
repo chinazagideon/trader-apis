@@ -38,6 +38,18 @@ class ClientSeeder extends Seeder
                 'features' => json_encode([]),
                 'is_active' => true,
             ],
+            [
+                'name' => 'X Client 4 Trader',
+                'slug' => 'x-client-4-trader',
+                'api_key' => Str::uuid(),
+                'api_secret' => Str::uuid(),
+                'config' => json_encode([
+                    'guest_view_enabled' => false,
+                    'auth_view_enabled' => true,
+                ]),
+                'features' => json_encode([]),
+                'is_active' => true,
+            ],
         ];
         foreach ($clients as $client) {
             Client::create($client);

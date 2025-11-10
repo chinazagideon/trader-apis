@@ -85,12 +85,10 @@ abstract class BaseService implements ServiceInterface
             }
             // Fallback to standard repository methods
             elseif (method_exists($this->repository, 'paginate')) {
-                $result = $this->repository->paginate($perPage);
-            }
-            elseif (method_exists($this->repository, 'all')) {
+                $result = $this->repository->paginate($perPage, ['*'], $filters);
+            } elseif (method_exists($this->repository, 'all')) {
                 $result = $this->repository->all();
-            }
-            else {
+            } else {
                 throw new \BadMethodCallException(
                     'No suitable repository method found for index operation in ' . static::class
                 );
@@ -348,5 +346,20 @@ abstract class BaseService implements ServiceInterface
     protected function completed(array $data, Model $model, string $operation = 'store|update|destroy'): void
     {
         // Empty implementation - override in child classes
+    }
+
+    /**
+     * Count records by field
+     *
+     * @param string $field
+     * @param mixed $value
+     * @return ServiceResponse
+     */
+    public function countBy(string $field, mixed $value): ServiceResponse
+    {
+        return $this->executeServiceOperation(function () use ($field, $value) {
+            $result = $this->repository->countBy($field, $value);
+            return ServiceResponse::success($result, 'Records counted successfully');
+        }, 'countBy');
     }
 }

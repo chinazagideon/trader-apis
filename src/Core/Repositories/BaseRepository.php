@@ -12,8 +12,10 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use App\Core\Exceptions\NotFoundException;
 use Illuminate\Validation\ValidationException;
 use App\Core\Traits\AppliesPolicyQueryFilters;
-use App\Modules\Client\Contracts\ClientModelContract;
 use App\Modules\Client\Database\Models\Client;
+use App\Core\Traits\LoadsMorphRelations;
+use Illuminate\Database\Eloquent\Concerns\HasRelationships;
+use App\Core\Contracts\MorphRepositoryInterface;
 
 abstract class BaseRepository implements RepositoryInterface
 {
@@ -74,11 +76,10 @@ abstract class BaseRepository implements RepositoryInterface
     {
         $collection = $this->model->where($field, $value)->get($columns);
 
-        // Load relationships on all models in the collection efficiently
         if ($this->usesLoadsRelationshipsTrait() && !$collection->isEmpty()) {
             $relationships = $this->getDefaultRelationships();
             if (!empty($relationships)) {
-                // Use load() on collection to eager load relationships efficiently
+
                 $collection->load($relationships);
             }
         }
@@ -133,20 +134,23 @@ abstract class BaseRepository implements RepositoryInterface
         $query = $this->query();
         $model = $query->find($id);
 
-        if (!$query->exists() || $model->isDeleted()) {
-            return null;
+        if (!$model->exists()) {
+            throw new NotFoundException('Resource not found');
         }
 
-        return $query->delete();
+        $model->delete();
+        return $model->fresh();
     }
+
 
     /**
      * Get paginated records
      */
-    public function paginate(int $perPage = 15, array $columns = ['*']): LengthAwarePaginator
+    public function paginate(int $perPage = 15, array $columns = ['*'], array $filters = []): LengthAwarePaginator
     {
 
-        $query = $this->queryWithPolicyFilter();
+        $query = $this->queryWithPolicyFilter($filters);
+
         return $query->paginate($perPage, $columns);
     }
 
@@ -248,19 +252,37 @@ abstract class BaseRepository implements RepositoryInterface
         $query->orderBy($sortBy, $sortDirection);
     }
 
-    public function findByApiKey(string $apiKey): ?Client
+
+
+    /**
+     * Count records by data
+     * @param array $data
+     * @return int
+     */
+    public function countBy(array $data): int
     {
-        return $this->queryUnfiltered()
-            ->where('api_key', $apiKey)
-            ->where('is_active', true)
-            ->first();
+        return $this->model->where($data)->count();
     }
 
-    public function findBySlug(string $slug): ?Client
+    /**
+     * Get paginated records with morph relations (if applicable)
+     */
+    public function paginateWithMorphRelations(int $perPage = 15, array $columns = ['*'], array $filters = []): LengthAwarePaginator
     {
-        return $this->queryUnfiltered()
-            ->where('slug', $slug)
-            ->where('is_active', true)
-            ->first();
+        $query = $this->queryWithPolicyFilter($filters);
+
+        // Load morph relations if repository supports it
+        if ($this instanceof \App\Core\Contracts\MorphRepositoryInterface) {
+            if (method_exists($this, 'withMorphRelations')) {
+                $query = $this->withMorphRelations($query);
+            }
+        }
+
+        // Load regular relationships
+        if ($this->usesLoadsRelationshipsTrait()) {
+            $query = $this->withRelationships($query);
+        }
+
+        return $query->paginate($perPage, $columns);
     }
 }

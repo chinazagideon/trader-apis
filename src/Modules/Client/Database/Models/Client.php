@@ -45,7 +45,7 @@ class Client extends CoreModel
      */
     public function getConfig()
     {
-        return $this->config ? json_decode($this->config) : null;
+        return $this->config;
     }
 
     /**
@@ -55,7 +55,7 @@ class Client extends CoreModel
      */
     public function getFeatures()
     {
-        return $this->features ? json_decode($this->features) : null;
+        return $this->features;
     }
 
 }

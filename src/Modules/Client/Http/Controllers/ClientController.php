@@ -17,8 +17,9 @@ class ClientController extends CrudController
     public function getClientScope(array $request): ServiceResponse
     {
 
+        $requestApiKey = $request['api_key'];
         // $request->validated();
-        $getClientFromHeader = $this->clientService->getClientByApiKey($request['api_key']);
+        $getClientFromHeader = $this->clientService->getClientByApiKey($requestApiKey);
         if (!$getClientFromHeader->isSuccess()) {
             return $getClientFromHeader;
         }

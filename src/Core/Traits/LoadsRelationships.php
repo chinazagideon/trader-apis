@@ -23,6 +23,7 @@ trait LoadsRelationships
 
     /**
      * Create a query builder with relationships pre-loaded
+     * Supports nested relationships using dot notation
      */
     public function withRelationships(Builder $query, array $relationships = []): Builder
     {
@@ -185,4 +186,5 @@ trait LoadsRelationships
 
         return $query->paginate($perPage);
     }
+
 }

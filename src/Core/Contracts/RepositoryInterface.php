@@ -5,6 +5,7 @@ namespace App\Core\Contracts;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Modules\Client\Database\Models\Client;
 
 interface RepositoryInterface
 {

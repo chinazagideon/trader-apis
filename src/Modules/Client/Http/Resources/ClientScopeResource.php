@@ -10,6 +10,7 @@ class ClientScopeResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'id' => $this->id,
             'api_key' => $this->api_key,
             'name' => $this->name,
             'slug' => $this->slug,
