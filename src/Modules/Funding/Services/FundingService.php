@@ -24,13 +24,16 @@ class FundingService extends BaseService
     }
     /**
      * Convert amount to fiat
-     * @param float $amount
-     * @param int $currencyId
+     * @param array $data
      * @return ServiceResponse
      */
-    public function convertAmountToFiat(float $amount, int $currencyId): ServiceResponse
+    public function convertAmountToFiat(array $data): ServiceResponse
     {
-        return $this->marketFiatService->fiatConverter($amount, $currencyId);
+        return $this->marketFiatService->fiatConverter([
+            'amount' => $data['amount'],
+            'currency_id' => $data['currency_id'],
+            'fiat_currency_id' => $data['fiat_currency_id'],
+        ]);
     }
     /**
      * Override the completed method to emit the FundingWasCompleted event

@@ -37,13 +37,19 @@ class FundingController extends CrudController
     private function prepareData(array $data): array
     {
 
-        $convertFiatResponse = $this->fundingService
-            ->convertAmountToFiat($data['amount'], $data['currency_id']);
-            
+        $convertFiatResponse = $this->fundingService->convertAmountToFiat(
+            [
+                'amount' => $data['amount'],
+                'currency_id' => $data['currency_id'],
+                'fiat_currency_id' => $data['fiat_currency_id'],
+            ]
+        );
+
         $convertFiat = $convertFiatResponse->getData();
 
         $data['fundable_type'] = $data['fundable_type'];
         $data['fundable_id'] = $data['fundable_id'];
+        $data['amount'] = $convertFiat->crypto_amount;
         $data['currency_id'] = (int) $data['currency_id'];
         $data['fiat_amount'] = $convertFiat->fiat_amount;
         $data['fiat_currency_id'] = $convertFiat->fiat_currency;

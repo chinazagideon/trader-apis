@@ -9,7 +9,7 @@ use App\Core\Traits\LoadsRelationships;
 
 class FundingRepository extends BaseRepository
 {
-    // use LoadsRelationships;
+    use LoadsRelationships;
     /**
      * Service name
      */
@@ -33,6 +33,6 @@ class FundingRepository extends BaseRepository
      */
     protected function getDefaultRelationships(): array
     {
-        return ['fundable', 'currency', 'fiatCurrency'];
+        return ['fundable', 'currency', 'fiatCurrency', 'payments'];
     }
 }

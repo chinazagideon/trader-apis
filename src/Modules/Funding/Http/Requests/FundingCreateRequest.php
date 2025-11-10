@@ -23,6 +23,7 @@ class FundingCreateRequest extends FormRequest
             'amount' => 'required|numeric|min:0.01',
             'user_id' => ['required', 'integer', 'min:1', 'exists:users,id', new AuthUser()],
             'currency_id' => 'required|integer|min:1|exists:currencies,id',
+            'fiat_currency_id' => 'required|integer|min:1|exists:currencies,id',
             'notes' => 'nullable|string|max:500',
         ];
     }
@@ -52,6 +53,8 @@ class FundingCreateRequest extends FormRequest
             'amount.min' => 'The amount must be at least 0.01.',
             'currency_id.required' => 'The currency id is required.',
             'currency_id.exists' => 'The selected currency does not exist.',
+            'fiat_currency_id.required' => 'The fiat currency id is required.',
+            'fiat_currency_id.exists' => 'The selected fiat currency does not exist.',
             'notes.max' => 'The notes may not be greater than 500 characters.',
             'type.required' => 'The type of funding is required.',
             'fundable_type.required' => 'The fundable type is required.',

@@ -11,11 +11,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Modules\User\Database\Models\User;
 use App\Modules\Currency\Database\Models\Currency;
 use App\Modules\Funding\Enums\FundingType;
-
+use App\Modules\Payment\Traits\HasPayments;
 
 class Funding extends Model implements OwnershipBased
 {
     use HasTimestamps, HasUuid;
+    use HasPayments;
 
     /**
      * The attributes that are mass assignable.
@@ -40,7 +41,7 @@ class Funding extends Model implements OwnershipBased
     protected function casts(): array
     {
         return [
-            'amount' => 'decimal:2',
+            'amount' => 'decimal:8',
             'fiat_amount' => 'decimal:2',
             'fiat_currency_id' => 'integer',
             'user_id' => 'integer',
@@ -75,8 +76,11 @@ class Funding extends Model implements OwnershipBased
         return $this->belongsTo(Currency::class);
     }
 
+    /**
+     * Get the fiat currency that owns the funding.
+     */
     public function fiatCurrency(): BelongsTo
     {
-        return $this->belongsTo(Currency::class, 'fiat_currency_id');
+        return $this->belongsTo(Currency::class);
     }
 }
