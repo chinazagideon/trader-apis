@@ -56,6 +56,33 @@ class MarketPriceSeeder extends Seeder
                 'total_volume_90d' => 1000000000.00,
                 'total_volume_180d' => 1000000000.00,
             ],
+            [
+                'market_id' => 4,
+                'currency_id' => 1,
+                'price' => 1.00,
+                'market_cap' => 1000000000.00,
+                'total_supply' => 1000000000.00,
+                'max_supply' => 1000000000.00,
+                'circulating_supply' => 1000000000.00,
+            ],
+            [
+                'market_id' => 5,
+                'currency_id' => 1,
+                'price' => 1.00,
+                'market_cap' => 1000000000.00,
+                'total_supply' => 1000000000.00,
+                'max_supply' => 1000000000.00,
+                'circulating_supply' => 1000000000.00,
+            ],
+            [
+                'market_id' => 6,
+                'currency_id' => 1,
+                'price' => 1.00,
+                'market_cap' => 1000000000.00,
+                'total_supply' => 1000000000.00,
+                'max_supply' => 1000000000.00,
+                'circulating_supply' => 1000000000.00,
+            ],
         ];
 
         $seededCount = 0;

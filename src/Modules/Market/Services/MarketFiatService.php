@@ -9,10 +9,15 @@ use App\Modules\Currency\Enums\CurrencyType;
 use App\Modules\Market\Repositories\MarketRepository;
 use App\Core\Exceptions\AppException;
 use App\Modules\Currency\Contracts\CurrencyServiceContract;
+use Brick\Math\BigDecimal;
+use Brick\Math\RoundingMode;
 
 class MarketFiatService extends BaseService
 {
     protected string $serviceName = 'MarketFiatService';
+    private const CRYPTO_SCALE = 8;
+    private const FIAT_SCALE = 2;
+
 
     public function __construct(
         private MarketRepository $marketRepository,
@@ -28,37 +33,47 @@ class MarketFiatService extends BaseService
      * @param int $currencyId
      * @return ServiceResponse
      */
-    public function fiatConverter(float $amount, int $currencyId): ServiceResponse
+    public function fiatConverter(array $data): ServiceResponse
     {
-        $currency = $this->getCurrency($currencyId);
-        $defaultCurrency = $this->currencyService->getDefaultCurrency();
-        $marketPrice = $this->marketPriceService->getCurrencyPriceRaw($currency->getData()->code);
+        $amount = (float) $data['amount'];
+        $currencyId = (int) $data['currency_id'];
+        $fiatCurrencyId = (int) $data['fiat_currency_id'];
 
-        if (!$marketPrice->isSuccess()) {
-            throw new AppException($marketPrice->getMessage());
-        }
+
+        $cryptoCurrency = $this->currencyService->getCurrency($currencyId);
+        $fiatCurrency = $this->currencyService->getCurrency($fiatCurrencyId);
+
+        $getCryptoCurrencyType = $cryptoCurrency->getData()->type;
+        $getFiatCurrencyType = $fiatCurrency->getData()->type;
+
+        $this->validateCurrencyType($getCryptoCurrencyType, $getFiatCurrencyType);
+
+        $marketPrice = $this->marketPriceService->getCurrencyPriceRaw($cryptoCurrency->getData()->code);
+
 
         $rawMarketPrice = $marketPrice->getData();
-        $isStable = $rawMarketPrice->market->is_stable;
-        $cryptoAmount = $this->computeCryptoAmount($amount, $rawMarketPrice->price, $currencyId, $isStable);
+        $price = $rawMarketPrice->price;
+        $cryptoCurrencyData = $cryptoCurrency->getData()->toArray();
 
-        $data = (object) [
-            'market_data' => $rawMarketPrice,
-            'fiat_currency' => $rawMarketPrice->currency_id,
-            'amount' => $amount,
-            'price' => $rawMarketPrice->price,
-        ];
+        $rawFiatMarketPrice = $this->marketPriceService->getCurrencyPriceRaw($fiatCurrency->getData()->code);
 
-        if ($currency->getData()->type == CurrencyType::Fiat->value) {
-            $data->fiat_amount = $amount;
-            $data->crypto_amount = $cryptoAmount;
+        $fiatPrice = $rawFiatMarketPrice->getData()->price;
+        $fiatCurrencyData = $fiatCurrency->getData()->toArray();
 
-        } else {
-            $convertedAmount = $amount * $rawMarketPrice->price;
-            $data->fiat_amount = $convertedAmount;
-            $data->crypto_amount = $cryptoAmount;
-        }
-        dd($data);
+        // dd($price, $cryptoCurrencyData, $amount);
+
+
+        $fiatAmount = $this->computeFiatAmount($amount, $fiatPrice, $fiatCurrencyData);
+        $cryptoAmount = $this->computeCryptoAmount($amount, $price, $cryptoCurrencyData);
+
+
+        $data = (object) [];
+        $data->market_data = $rawMarketPrice->toArray();
+        $data->fiat_currency = $rawMarketPrice->currency_id;
+        $data->amount = $amount;
+        $data->price = $rawMarketPrice->price;
+        $data->fiat_amount = $fiatAmount;
+        $data->crypto_amount = $cryptoAmount;
 
         return ServiceResponse::success($data, 'Fiat converted successfully');
     }
@@ -81,12 +96,64 @@ class MarketFiatService extends BaseService
      * @param bool $isStable
      * @return float
      */
-    public function computeCryptoAmount(float $amount, float $price, int $currencyId, bool $isStable = false): float
+    /**
+     * Convert a fiat amount to crypto using a fiat-per-crypto price.
+     * Returns string to preserve precision.
+     */
+    public function computeCryptoAmount(float|string $fiatAmount, float|string $fiatPerCryptoPrice, array $currency): string
     {
-        $currencyType = $this->currencyService->getCurrencyTypeById($currencyId);
-        if ($currencyType !== CurrencyType::Crypto->value && !$isStable) {
-            throw new AppException('Currency is not a stable currency');
+        $price = BigDecimal::of((string) $fiatPerCryptoPrice);
+
+        if ($price->isLessThanOrEqualTo('0')) {
+            throw new AppException('Invalid market price');
         }
-        return $isStable ? $amount / $price : $amount * $price;
+
+        $fiat = BigDecimal::of((string) $fiatAmount);
+
+        // crypto = fiat / price
+        $result = (string) $fiat
+            ->dividedBy($price, self::CRYPTO_SCALE, RoundingMode::DOWN)
+            ->toScale(self::CRYPTO_SCALE, RoundingMode::DOWN);
+
+
+
+        return $result;
+    }
+    /**
+     * Validate currency type
+     * @param string $currencyType
+     * @return void
+     */
+    private function validateCurrencyType(string $currencyType, string $fiatCurrencyType): void
+    {
+        if ($currencyType !== CurrencyType::Crypto->value && $fiatCurrencyType !== CurrencyType::Fiat->value) {
+            throw new AppException('Currency or fiat currency is not a cryptocurrency or fiat');
+        }
+    }
+
+
+    /**
+     * Compute fiat amount.
+     * - If input currency is crypto: fiat = crypto * fiatPerCryptoPrice
+     * - If input currency is fiat: return amount (scaled)
+     */
+    public function computeFiatAmount(float|string $amount, float|string $fiatPerCryptoPrice, array $currency): string
+    {
+        $price = BigDecimal::of((string) $fiatPerCryptoPrice);
+        if ($price->isLessThanOrEqualTo('0')) {
+            throw new AppException('Invalid market price');
+        }
+
+        $amt = BigDecimal::of((string) $amount);
+
+        // If the provided currency is fiat, no conversion is needed; just scale.
+        if (($currency['type'] ?? null) === CurrencyType::Fiat->value) {
+            return (string) $amt->toScale(self::FIAT_SCALE, RoundingMode::HALF_UP);
+        }
+
+        // Otherwise, treat amount as crypto and convert to fiat.
+        return (string) $amt
+            ->multipliedBy($price)
+            ->toScale(self::FIAT_SCALE, RoundingMode::HALF_UP);
     }
 }

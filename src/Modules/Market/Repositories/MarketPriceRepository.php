@@ -5,6 +5,7 @@ namespace App\Modules\Market\Repositories;
 use App\Core\Repositories\BaseRepository;
 use App\Modules\Market\Database\Models\MarketPrice;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Core\Exceptions\AppException;
 
 class MarketPriceRepository extends BaseRepository
 {
@@ -54,18 +55,18 @@ class MarketPriceRepository extends BaseRepository
         return $marketPrice ? $marketPrice->price : 0.0;
     }
 
-     /**
+    /**
      * Get currency price
      * @param string $currency
      * @return MarketPrice
      */
     public function getCurrencyPriceRaw(int $marketId): MarketPrice
     {
-        return $this->queryUnfiltered()
+        $marketPrice = $this->queryUnfiltered()
             ->where('market_id', $marketId)
             ->with('market', 'currency')
             ->latest()
             ->firstOrFail();
+        return $marketPrice;
     }
-
 }

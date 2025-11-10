@@ -9,6 +9,7 @@ use App\Modules\Market\Services\MarketService;
 use App\Core\Exceptions\NotFoundException;
 use App\Core\Exceptions\AppException;
 use App\Core\Contracts\SubModuleServiceContract;
+use App\Modules\Market\Database\Models\MarketPrice;
 
 class MarketPriceService extends BaseService implements SubModuleServiceContract
 {
@@ -88,17 +89,42 @@ class MarketPriceService extends BaseService implements SubModuleServiceContract
      */
     public function getCurrencyPriceRaw(string $currency): ServiceResponse
     {
-        return $this->executeServiceOperation(function () use ($currency) {
 
             $market = $this->getMarketBySymbol($currency);
 
-            $marketData = $market->getData();
-            if (!$marketData) {
-                throw new AppException('Market not found for currency: ' . $currency);
+            $marketDataId = $market->getData()?->id ?? null;
+
+            if (!$marketDataId) {
+                throw new AppException('Market not found with symbol: ' . $currency);
             }
-            $marketId = $marketData->id;
-            $response = $this->marketPriceRepository->getCurrencyPriceRaw($marketId);
-            return ServiceResponse::success($response, 'Currency price retrieved successfully');
-        }, 'getCurrencyPriceRaw');
+
+            $marketPrice = $this->marketPriceRepository->getCurrencyPriceRaw($marketDataId);
+
+            $marketPriceResponse = $this->marketPriceResponse($marketPrice);
+
+            if (!$marketPriceResponse->isSuccess()) {
+                return $marketPriceResponse;
+            }
+            return $marketPriceResponse;
+
+    }
+
+    /**
+     * Market price response
+     * @param mixed $marketPrice
+     * @return ServiceResponse
+     */
+    private function marketPriceResponse(mixed $marketPrice): ServiceResponse
+    {
+        if ($marketPrice instanceof ServiceResponse) {
+            return $marketPrice;
+        }
+        if ($marketPrice instanceof MarketPrice) {
+            return ServiceResponse::success($marketPrice, 'Currency price retrieved successfully');
+        }
+        if (is_array($marketPrice)) {
+            return ServiceResponse::success($marketPrice, 'Currency price retrieved successfully');
+        }
+        return ServiceResponse::error('Invalid market price');
     }
 }
