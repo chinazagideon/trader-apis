@@ -12,6 +12,7 @@ use App\Modules\Withdrawal\Events\WithdrawalWasCompleted;
 use Illuminate\Support\Facades\Log;
 use App\Modules\Market\Services\MarketFiatService;
 use App\Modules\Withdrawal\Enums\WithdrawalStatus;
+use App\Modules\User\Contracts\UserBalanceServiceInterface;
 
 class WithdrawalService extends BaseService
 {
@@ -20,7 +21,8 @@ class WithdrawalService extends BaseService
     public function __construct(
         private WithdrawalRepository $withdrawalRepository,
         private WithdrawalWasCompleted $withdrawalWasCompleted,
-        private MarketFiatService $marketFiatService
+        private MarketFiatService $marketFiatService,
+        private UserBalanceServiceInterface $userBalanceService
     ) {
         parent::__construct($withdrawalRepository);
     }
@@ -76,11 +78,10 @@ class WithdrawalService extends BaseService
             'model' => $model,
             'operation' => $operation,
         ]);
-        // if (str_contains($operation, "store")) {
         $moduleName = strtolower($this->withdrawalRepository->moduleName);
         /** @var Withdrawal $withdrawal = $model */
         $this->withdrawalWasCompleted->dispatch($model, $moduleName);
-        // }
+
     }
 
     /**
@@ -89,9 +90,13 @@ class WithdrawalService extends BaseService
      * @param int $currencyId
      * @return ServiceResponse
      */
-    public function convertAmountToFiat(float $amount, int $currencyId): ServiceResponse
+    public function convertAmountToFiat(array $data): ServiceResponse
     {
-        return $this->marketFiatService->fiatConverter($amount, $currencyId);
+        return $this->marketFiatService->fiatConverter([
+            'amount' => $data['amount'],
+            'currency_id' => $data['currency_id'],
+            'fiat_currency_id' => $data['fiat_currency_id'],
+        ]);
     }
 
     /**
@@ -101,12 +106,32 @@ class WithdrawalService extends BaseService
      */
     public function prepareDataForStore(array $data): array
     {
+
         $data['status'] = WithdrawalStatus::defaultStatus();
-        $convertFiatResponse =
-            $this->convertAmountToFiat($data['amount'], $data['currency_id']);
+        $convertFiatResponse = $this->convertAmountToFiat(
+            [
+                'amount' => $data['amount'],
+                'currency_id' => $data['currency_id'],
+                'fiat_currency_id' => $data['fiat_currency_id'],
+            ]
+        );
+
         $convertFiat = $convertFiatResponse->getData();
+
+        $data['amount'] = $convertFiat->crypto_amount;
         $data['fiat_amount'] = $convertFiat->fiat_amount;
-        $data['fiat_currency_id'] = $convertFiat->fiat_currency;
+        $data['fiat_currency_id'] = $data['fiat_currency_id'];
         return $data;
     }
+
+    /**
+     * Validate user balance
+     * @param array $data
+     * @return void
+     */
+    public function validateUserBalance(array $data): ?bool
+    {
+        return $this->userBalanceService->checkBalance($data);
+    }
+
 }

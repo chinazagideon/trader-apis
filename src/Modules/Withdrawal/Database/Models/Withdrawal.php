@@ -13,11 +13,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Core\Contracts\OwnershipBased;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-
+use App\Modules\Withdrawal\Enums\WithdrawalTypes;
+use App\Modules\Payment\Traits\HasPayments;
 class Withdrawal extends Model implements HasStatus, OwnershipBased
 {
-    use HasTimestamps, HasUuid;
-    // use HasRelationships;
+    use HasTimestamps, HasUuid, HasPayments;
+
 
     protected $fillable = [
         'uuid',
@@ -28,6 +29,7 @@ class Withdrawal extends Model implements HasStatus, OwnershipBased
         'currency_id',
         'fiat_amount',
         'fiat_currency_id',
+        'type',
         'status',
         'notes',
     ];
@@ -35,9 +37,10 @@ class Withdrawal extends Model implements HasStatus, OwnershipBased
     protected function casts(): array
     {
         return [
-            'amount' => 'decimal:2',
+            'amount' => 'decimal:8',
             'fiat_amount' => 'decimal:2',
             'status' => 'string',
+            'type' => WithdrawalTypes::class,
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
@@ -89,5 +92,14 @@ class Withdrawal extends Model implements HasStatus, OwnershipBased
     public function getModeratorAllowedStatuses(): array
     {
         return ['pending', 'cancelled', 'completed'];
+    }
+
+    /**
+     * Get the label for the withdrawal type
+     * @return string
+     */
+    public function getTypeLabel(): string
+    {
+        return $this->type ? WithdrawalTypes::from($this->type)->label() : $this->type;
     }
 }

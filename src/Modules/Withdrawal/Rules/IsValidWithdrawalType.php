@@ -2,7 +2,7 @@
 
 namespace App\Modules\Withdrawal\Rules;
 
-use App\Modules\Withdrawal\Enums\WithrawalTypes;
+use App\Modules\Withdrawal\Enums\WithdrawalTypes;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Closure;
 
@@ -16,9 +16,9 @@ class IsValidWithdrawalType implements ValidationRule {
 
     public function __construct()
     {
-        $this->allowedTypes = array_map(static function (WithrawalTypes $type): string {
+        $this->allowedTypes = array_map(static function (WithdrawalTypes $type): string {
             return $type->value;
-        }, WithrawalTypes::cases());
+        }, WithdrawalTypes::cases());
     }
 
     /**

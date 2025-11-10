@@ -32,6 +32,7 @@ class WithdrawalCreateRequest extends FormRequest
             'withdrawable_id' => ['required', 'integer', new MorphExistsRule('withdrawable_type', $allowedTypes)],
             "withdrawable_type" => ["required", "string",  'in:' . implode(',', array_keys($allowedTypes))],
             'currency_id' => ['required', 'integer', 'min:1', 'exists:currencies,id'],
+            'fiat_currency_id' => ['required', 'integer', 'min:1', 'exists:currencies,id'],
             'notes' => ['nullable', 'string', 'max:500'],
             'type' => ['required', 'string', new IsValidWithdrawalType()],
         ];
@@ -65,6 +66,8 @@ class WithdrawalCreateRequest extends FormRequest
             'amount.min' => 'The amount must be at least 0.01.',
             'type.required' => 'The type is required.',
             'type.string' => 'The type must be a string.',
+            'fiat_currency_id.required' => 'The fiat currency id is required.',
+            'fiat_currency_id.exists' => 'The selected fiat currency does not exist.',
         ];
     }
 }

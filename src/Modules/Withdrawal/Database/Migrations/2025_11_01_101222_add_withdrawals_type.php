@@ -3,7 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Modules\Withdrawal\Enums\WithrawalTypes;
+use App\Modules\Withdrawal\Enums\WithdrawalTypes;
 
 return new class extends Migration
 {
@@ -13,7 +13,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('withdrawals', function (Blueprint $table) {
-            $table->enum('type', WithrawalTypes::cases())->after('uuid')->default(WithrawalTypes::CashOut->value);
+            $table->enum('type', WithdrawalTypes::cases())->after('uuid')->default(WithdrawalTypes::CashOut->value);
             $table->index(['type']);
         });
     }

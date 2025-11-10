@@ -5,7 +5,7 @@ namespace App\Modules\Withdrawal\Enums;
 /**
  * Withdrawal types enum
  */
-enum WithrawalTypes: string
+enum WithdrawalTypes: string
 {
     case Fee = 'fee';
     case Tax = 'tax';

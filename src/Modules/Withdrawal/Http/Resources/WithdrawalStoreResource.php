@@ -3,7 +3,6 @@
 namespace App\Modules\Withdrawal\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Modules\Withdrawal\Enums\WithrawalTypes;
 class WithdrawalStoreResource extends JsonResource
 {
     public function toArray($request): array
@@ -16,7 +15,7 @@ class WithdrawalStoreResource extends JsonResource
             'fiat_amount' => $this->fiat_amount,
             'status' => $this->status,
             'notes' => $this->notes,
-            'type' => $this->getTypeLabel($this->type),
+            'type' => $this->type,
             'created_at' => $this->created_at_formatted,
             'updated_at' => $this->updated_at_formatted,
             'time_ago' => $this->time_ago,
@@ -27,13 +26,5 @@ class WithdrawalStoreResource extends JsonResource
         ];
     }
 
-    /**
-     * Get the label for the withdrawal type
-     * @param string|null $type
-     * @return string
-     */
-    private function getTypeLabel(?string $type): string
-    {
-        return $type ? WithrawalTypes::from($type)->label() : 'Unknown';
-    }
+
 }

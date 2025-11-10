@@ -6,6 +6,7 @@ use App\Core\Controllers\CrudController;
 use App\Modules\Withdrawal\Services\WithdrawalService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Modules\User\Enums\UserBalanceEnum;
 
 class WithdrawalController extends CrudController
 {
@@ -23,6 +24,7 @@ class WithdrawalController extends CrudController
      */
     public function beforeStore(array $data, Request $request): array
     {
+        $this->withdrawalService->validateUserBalance($this->prepareCheckBalanceData($data));
         $data = $this->withdrawalService->prepareDataForStore($data);
         return $data;
     }
@@ -42,5 +44,20 @@ class WithdrawalController extends CrudController
     {
         $response = $this->withdrawalService->completeWithdrawal($id);
         return $this->handleServiceResponse($response);
+    }
+
+    /**
+     * Prepare data for checking user balance
+     * @param array $data
+     * @return array
+     */
+    private function prepareCheckBalanceData(array $data): array
+    {
+
+        return [
+            'user_id' => $data['user_id'],
+            'amount' => $data['amount'],
+            'type' => UserBalanceEnum::Withdraw->value,
+        ];
     }
 }
