@@ -151,11 +151,6 @@ class UserController extends CrudController
      */
     public function search(Request $request): JsonResponse
     {
-        // Authorize search action using policy
-        $user = auth()->user();
-        if (!$user || !Gate::forUser($user)->allows('search', User::class)) {
-            return $this->forbiddenResponse('You do not have permission to search users');
-        }
 
         $search = $request->get('q', '');
         $pagination = $this->getPaginationParams($request);
@@ -183,14 +178,22 @@ class UserController extends CrudController
      */
     public function stats(): JsonResponse
     {
-        // Authorize statistics action using policy
-        $user = auth()->user();
-        if (!$user || !Gate::forUser($user)->allows('viewStatistics', User::class)) {
-            return $this->forbiddenResponse('You do not have permission to view user statistics');
-        }
 
         $response = $this->userService->getUserStats();
 
+        return $this->handleServiceResponse($response);
+    }
+
+    public function creditAvailableBalance(array $data = []): JsonResponse
+    {
+        $response = $this->userService->creditAvailableBalance($data);
+
+        return $this->handleServiceResponse($response);
+    }
+
+    public function creditCommissionBalance(array $data = []): JsonResponse
+    {
+        $response = $this->userService->creditCommissionBalance($data);
         return $this->handleServiceResponse($response);
     }
 }

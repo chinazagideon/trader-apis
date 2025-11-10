@@ -9,16 +9,13 @@ class IndexRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     * Uses the UserPolicy to check if user can view any users.
      */
     public function authorize(): bool
     {
-        // Ensure user is authenticated
         if (!$this->user()) {
             return false;
         }
 
-        // Check if user has viewAny permission
         return $this->user()->can('viewAny', User::class);
     }
 

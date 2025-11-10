@@ -297,4 +297,66 @@ class UserService extends BaseService implements UserServiceInterface
     {
         $this->userCreditService->credit($data);
     }
+
+    /**
+     * Update available balance
+     * @param array $data
+     * @return void
+     */
+    public function updateAvailableBalance(array $data = []): void
+    {
+        $this->userCreditService->updateAvailableBalance($data);
+    }
+
+    /**
+     * Update commission balance
+     * @param array $data
+     * @return void
+     */
+    public function updateCommissionBalance(array $data = []): void
+    {
+        $this->userCreditService->updateCommissionBalance($data);
+    }
+
+    /**
+     * Prepare balance data
+     * @param array $data
+     * @return array
+     */
+    public function prepareBalanceData(array $data = []): array
+    {
+        $user = $this->userRepository->find($data['user_id']);
+        $this->ensureResourceExists($user, 'User');
+
+        return [
+            'user_id' => $user->id,
+            'amount' => $data['amount'],
+        ];
+    }
+
+    /**
+     * Credit user
+     * @param array $data
+     * @return ServiceResponse
+     */
+    public function creditAvailableBalance(array $data = []): ServiceResponse
+    {
+        return $this->executeServiceOperation(function () use ($data) {
+            $this->updateAvailableBalance($data);
+            return ServiceResponse::success(null, 'Credit available balance successful');
+        }, 'credit available balance');
+    }
+
+    /**
+     * Credit commission balance
+     * @param array $data
+     * @return ServiceResponse
+     */
+    public function creditCommissionBalance(array $data = []): ServiceResponse
+    {
+        return $this->executeServiceOperation(function () use ($data) {
+            $this->updateCommissionBalance($data);
+            return ServiceResponse::success(null, 'Credit commission balance successful');
+        }, 'credit commission balance');
+    }
 }

@@ -22,6 +22,8 @@ class UserRepository extends BaseRepository
         parent::__construct($model);
     }
 
+
+
     /**
      * Find user by email
      */
@@ -78,5 +80,13 @@ class UserRepository extends BaseRepository
             'inactive' => $this->query()->where('is_active', false)->count(),
             'unverified' => $this->query()->whereNull('email_verified_at')->count(),
         ];
+    }
+
+    /**
+     * Get default relationships for the user model
+     */
+    protected function getDefaultRelationships(): array
+    {
+        return ['role', 'payments'];
     }
 }

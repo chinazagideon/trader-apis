@@ -51,4 +51,14 @@ interface UserServiceInterface extends ServiceInterface
      * Get user statistics
      */
     public function getUserStats(): ServiceResponse;
+
+    /**
+     * Credit available balance
+     */
+    public function creditAvailableBalance(array $data = []): ServiceResponse;
+
+    /**
+     * Credit commission balance
+     */
+    public function creditCommissionBalance(array $data = []): ServiceResponse;
 }

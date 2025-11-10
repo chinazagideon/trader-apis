@@ -16,7 +16,7 @@ use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Modules\Role\Database\Models\Role;
 use Tymon\JWTAuth\Contracts\JWTSubject;
-
+use App\Modules\Payment\Traits\HasPayments;
 class User extends Authenticatable implements JWTSubject
 {
     use HasApiTokens;
@@ -28,7 +28,7 @@ class User extends Authenticatable implements JWTSubject
     use HasTransactableTrait;
     use HasClientApp;
     use HasClientScope;
-
+    use HasPayments;
 
     /**
      * The attributes that are mass assignable.

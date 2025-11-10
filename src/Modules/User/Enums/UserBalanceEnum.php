@@ -10,6 +10,7 @@ enum UserBalanceEnum: string
     case Transfer = 'transfer';
     case Payment = 'payment';
 
+
     /**
      * Get the label for the user balance type
      * @return string
