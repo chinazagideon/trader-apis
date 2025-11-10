@@ -27,7 +27,7 @@ return new class extends Migration
 
             $table->index(['name']);
             $table->index(['type', 'status']);
-            // Remove JSON index as it's not supported in MySQL
+            
         });
     }
 
