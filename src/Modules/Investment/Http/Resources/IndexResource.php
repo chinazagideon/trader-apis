@@ -30,8 +30,9 @@ class IndexResource extends JsonResource
             'name' => $this->name ?? null,
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
-            'user' => new UserResource($this->user),
-            'pricing' => new PricingIndexResource($this->pricing),
+            'user' => $this->whenLoaded('user'),
+            'pricing' => $this->whenLoaded('pricing'),
+            'currency' => $this->whenLoaded('currency')
         ];
     }
 

@@ -16,13 +16,15 @@ use Illuminate\Database\Eloquent\Relations\MorphOne;
 use App\Modules\Notification\Traits\Notifiable;
 use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use App\Core\Contracts\OwnershipBased;
+use App\Core\Traits\LoadsRelationships;
+use App\Modules\Currency\Database\Models\Currency;
+use App\Modules\Pricing\Database\Models\Pricing;
 
 #[UsePolicy(InvestmentPolicy::class)]
 class Investment extends Model implements TransactionContextInterface, OwnershipBased
 {
     use HasTimestamps;
     use BelongsToUser;
-    use BelongsToPricing;
     use HasUuid;
     use Notifiable;
 
@@ -35,6 +37,7 @@ class Investment extends Model implements TransactionContextInterface, Ownership
         'type',
         'risk',
         'name',
+        'curreny_id',
         'start_date',
         'end_date',
         'notes',
@@ -61,12 +64,11 @@ class Investment extends Model implements TransactionContextInterface, Ownership
     {
         $config = config('Investment.transaction');
 
-
         return [
             'entity_id' => $this->id,
             'amount' => $this->amount,
             'investment_type' => $this->pricing->name ?? 'unknown',
-            'category_id' => $this->category_id, // For category resolution
+            'category_id' => $this->category_id, 
             'entry_type' => $config['entry_type'],
             'status' => $config['status'],
             'narration' => $this->notes ?? 'N/A',
@@ -107,13 +109,43 @@ class Investment extends Model implements TransactionContextInterface, Ownership
         return $this->notes ?? 'N/A';
     }
 
+    /**
+     * get transaction category
+     *
+     * @return BelongsTo
+     */
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
 
+    /**
+     * get currency relations
+     *
+     * @return BelongsTo
+     */
+    public function currency(): BelongsTo
+    {
+        return $this->belongsTo(Currency::class);
+    }
+
+    /**
+     * transactions model
+     *
+     * @return MorphOne
+     */
     public function transaction(): MorphOne
     {
         return $this->morphOne(Transaction::class, 'transactable');
+    }
+
+    /**
+     * get pricing relations
+     *
+     * @return BelongsTo
+     */
+    public function pricing(): BelongsTo
+    {
+        return $this->belongsTo(Pricing::class);
     }
 }
