@@ -17,11 +17,11 @@ return new class extends Migration
             $table->uuid('uuid')->unique();
             $table->string('name');
             $table->decimal('min_amount', 10, 2);
-            $table->enum('contract', ['monthly', 'yearly', 'lifetime']);
+            $table->enum('contract', ['daily', 'weekly', 'monthly', 'yearly', 'lifetime']);
             $table->decimal('max_amount', 10, 2);
             $table->foreignId('currency_id')->constrained('currencies')->onDelete('cascade');
             $table->integer('lifespan')->nullable();
-            $table->enum('type', ['trade', 'mining']);
+            $table->enum('type', ['trade', 'mining', 'staking']);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 

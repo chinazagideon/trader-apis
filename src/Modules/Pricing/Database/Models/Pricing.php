@@ -2,12 +2,13 @@
 
 namespace App\Modules\Pricing\Database\Models;
 
+use App\Core\Models\CoreModel;
 use App\Core\Traits\HasClientScope;
 use App\Core\Traits\HasTimestamps;
 use App\Core\Traits\HasUuid;
-use Illuminate\Database\Eloquent\Model;
 
-class Pricing extends Model
+
+class Pricing extends CoreModel
 {
     use HasTimestamps;
     use HasUuid;
@@ -25,6 +26,8 @@ class Pricing extends Model
         'contract',
         'type',
         'is_active',
+        'benefits',
+        'roi',
     ];
 
     protected function casts(): array
@@ -33,6 +36,8 @@ class Pricing extends Model
             'min_amount' => 'decimal:2',
             'max_amount' => 'decimal:2',
             'is_active' => 'boolean',
+            'benefits' => 'array',
+            'roi' => 'decimal:2',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];

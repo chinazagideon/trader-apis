@@ -2,7 +2,6 @@
 
 namespace App\Modules\Pricing\Http\Resources;
 
-use App\Modules\Currency\Http\Resources\CurrencyResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -26,7 +25,9 @@ class IndexResource extends JsonResource
             'is_active' => $this->is_active,
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
-            'currency' => new CurrencyResource($this->currency),
+            'currency' => $this->whenLoaded('currency'),
+            'benefits' => $this->benefits,
+            'roi' => $this->roi,
         ];
     }
 }

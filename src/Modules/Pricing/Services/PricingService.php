@@ -5,6 +5,7 @@ namespace App\Modules\Pricing\Services;
 use App\Core\Services\BaseService;
 use App\Core\Http\ServiceResponse;
 use App\Modules\Pricing\Database\Models\Pricing;
+use App\Modules\Pricing\Repositories\PricingRepository;
 use App\Modules\Pricing\Http\Resources\IndexResource;
 
 class PricingService extends BaseService
@@ -12,39 +13,35 @@ class PricingService extends BaseService
     protected string $serviceName = 'PricingService';
 
     /**
-     * Get health check
+     * Constructor
      *
-     * @return ServiceResponse
+     * @param PricingRepository $pricingRepository
      */
-    public function getHealth(): ServiceResponse
-    {
-        return $this->executeServiceOperation(function () {
-            return ServiceResponse::success([
-                'status' => 'healthy',
-                'module' => 'Pricing',
-                'timestamp' => now(),
-            ], 'Pricing service is healthy');
-        }, 'health check');
+    public function __construct(
+        private PricingRepository $pricingRepository
+    ) {
+        parent::__construct($pricingRepository);
     }
 
-    /**
-     * Get all pricings
-     *
-     * @return ServiceResponse
-     */
-    public function getPricing(): ServiceResponse
-    {
-        return $this->executeServiceOperation(function () {
-            $pricings = Pricing::with('currency')->get();
+    // /**
+    //  * Get all pricings
+    //  *
+    //  * @return ServiceResponse
+    //  */
+    // public function getPricing(): ServiceResponse
+    // {
 
-            $this->log('Pricings retrieved', [
-                'count' => $pricings->count(),
-            ]);
+    //     return $this->executeServiceOperation(function () {
+    //         $pricings = Pricing::with('currency')->get();
 
-            // Transform data using IndexResource
-            $transformedData = IndexResource::collection($pricings);
+    //         $this->log('Pricings retrieved', [
+    //             'count' => $pricings->count(),
+    //         ]);
 
-            return ServiceResponse::success($transformedData, 'Pricings retrieved successfully');
-        }, 'get all pricings');
-    }
+    //         // Transform data using IndexResource
+    //         $transformedData = IndexResource::collection($pricings);
+
+    //         return ServiceResponse::success($transformedData, 'Pricings retrieved successfully');
+    //     }, 'get all pricings');
+    // }
 }

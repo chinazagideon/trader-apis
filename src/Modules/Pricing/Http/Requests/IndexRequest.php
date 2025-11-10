@@ -20,6 +20,7 @@ class IndexRequest extends FormRequest
     public function rules(): array
     {
         return [
+            "type" => 'sometimes|string|in:staking,trade,mining',
             'page' => 'sometimes|integer|min:1',
             'per_page' => 'sometimes|integer|min:1',
         ];
