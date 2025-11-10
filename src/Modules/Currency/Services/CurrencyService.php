@@ -5,8 +5,9 @@ namespace App\Modules\Currency\Services;
 use App\Core\Services\BaseService;
 use App\Core\Http\ServiceResponse;
 use App\Modules\Currency\Repositories\CurrencyRepository;
+use App\Modules\Currency\Contracts\CurrencyServiceContract;
 
-class CurrencyService extends BaseService
+class CurrencyService extends BaseService implements CurrencyServiceContract
 {
     protected string $serviceName = 'CurrencyService';
 
@@ -20,13 +21,14 @@ class CurrencyService extends BaseService
     /**
      * get currency by code
      * @param string $code
+     * @param ?array $columns
      * @return ServiceResponse
      */
-    public function getCurrencyByCode(string $code): ServiceResponse
+    public function getCurrencyByCode(string $code, ?array $columns = null): ServiceResponse
     {
-        return $this->executeServiceOperation(function () use ($code) {
-            $result = $this->currencyRepository->findBy('code', $code, ['id']);
-            return $result ? $result->id : null;
+        return $this->executeServiceOperation(function () use ($code, $columns) {
+            $result = $this->currencyRepository->findBy('code', $code, $columns ?? ['*']);
+            return empty($columns) ? $result->id : $result;
         }, 'getCurrencyByCode');
     }
 
@@ -82,4 +84,32 @@ class CurrencyService extends BaseService
             return $result ? $result : null;
         }, 'getCurrency');
     }
+
+    /**
+     * Get currency by type
+     * @param string $type
+     * @return ServiceResponse
+     */
+    public function getCurrencyByType(string $type): ServiceResponse
+    {
+        return $this->executeServiceOperation(function () use ($type) {
+            $result = $this->currencyRepository->findBy('type', $type, ['id', 'name', 'symbol', 'code', 'type', 'is_default']);
+            return $result ? $result : null;
+        }, 'getCurrencyByType');
+    }
+
+    /**
+     * Get currency type by id
+     * @param int $id
+     * @return ServiceResponse
+     */
+    public function getCurrencyTypeById(int $id): ServiceResponse
+    {
+        return $this->executeServiceOperation(function () use ($id) {
+            $result = $this->currencyRepository->find($id, ['type']);
+            return $result ? $result->type : null;
+        }, 'getCurrencyTypeById');
+    }
+
+
 }

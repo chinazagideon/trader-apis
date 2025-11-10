@@ -4,6 +4,7 @@ namespace App\Modules\Currency\Providers;
 
 use App\Core\Providers\BaseModuleServiceProvider;
 use App\Modules\Currency\Services\CurrencyService;
+use App\Modules\Currency\Contracts\CurrencyServiceContract;
 
 class CurrencyServiceProvider extends BaseModuleServiceProvider
 {
@@ -30,4 +31,9 @@ class CurrencyServiceProvider extends BaseModuleServiceProvider
     protected array $configFiles = [
         'currency',
     ];
+
+    public function registerServices(): void
+    {
+        $this->app->bind(CurrencyServiceContract::class, CurrencyService::class);
+    }
 }
