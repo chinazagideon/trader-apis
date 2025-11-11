@@ -37,7 +37,7 @@ class Investment extends Model implements TransactionContextInterface, Ownership
         'type',
         'risk',
         'name',
-        'curreny_id',
+        'currency_id',
         'start_date',
         'end_date',
         'notes',
@@ -54,6 +54,7 @@ class Investment extends Model implements TransactionContextInterface, Ownership
             'type' => 'string',
             'risk' => 'string',
             'name' => 'string',
+            'currency_id' => 'integer',
         ];
     }
 
@@ -68,7 +69,7 @@ class Investment extends Model implements TransactionContextInterface, Ownership
             'entity_id' => $this->id,
             'amount' => $this->amount,
             'investment_type' => $this->pricing->name ?? 'unknown',
-            'category_id' => $this->category_id, 
+            'category_id' => $this->category_id,
             'entry_type' => $config['entry_type'],
             'status' => $config['status'],
             'narration' => $this->notes ?? 'N/A',
