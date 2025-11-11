@@ -32,6 +32,7 @@ class InvestmentSeeder extends Seeder
         $investments = [
             [
                 'notes' => 'Investment',
+                'currency_id' => 1,
                 'user_id' => $users->first()->id,
                 'pricing_id' => $pricing->id,
                 'amount' => 1000,
@@ -45,6 +46,7 @@ class InvestmentSeeder extends Seeder
         if ($users->count() > 1) {
             $investments[] = [
                 'notes' => 'Investment',
+                'currency_id' => 1,
                 'user_id' => $users->last()->id,
                 'pricing_id' => $pricing->id,
                 'amount' => 1000,
