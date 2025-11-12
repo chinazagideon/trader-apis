@@ -28,7 +28,7 @@ class ClientServiceProvider extends BaseModuleServiceProvider
             ClientServiceContract::class,
             ClientService::class
         );
-        
+
         $this->app->bind(
             ClientRepositoryContract::class,
             ClientRepository::class

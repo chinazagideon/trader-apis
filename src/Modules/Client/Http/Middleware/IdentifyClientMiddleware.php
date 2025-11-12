@@ -171,8 +171,8 @@ class IdentifyClientMiddleware
         $path = rtrim($path, '/');
 
         // Define the routes to check
-        $activateRoute = config('Client.activate_route');
-        $deactivateRoute = config('Client.deactivate_route');
+        $activateRoute = '/api/v1/client/activate';
+        $deactivateRoute = '/api/v1/client/deactivate';
 
         // Check if path matches either route
         return $path === $activateRoute || $path === $deactivateRoute;
