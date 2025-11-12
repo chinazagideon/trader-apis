@@ -40,34 +40,34 @@ class ClientSeeder extends Seeder
     private function createClients(): void
     {
         $clients = [
-            // [
-            //     'name' => 'Synchrony Expert Financials',
-            //     'slug' => 'synchronyexpertfinancials',
-            //     'api_key' => Str::uuid(),
-            //     'api_secret' => Str::uuid(),
-            //     'config' => json_encode([
-            //         'guest_view_enabled' => false,
-            //         'auth_view_enabled' => true,
-            //         'app_url' => 'https://synchronyexpertfinancials.com',
-            //         'app_name' => 'Synchrony Expert Financials',
-            //     ]),
-            //     'features' => json_encode([]),
-            //     'is_active' => true,
-            // ],
-            // [
-            //     'name' => 'X4 Trader',
-            //     'slug' => 'x4trader',
-            //     'api_key' => Str::uuid(),
-            //     'api_secret' => Str::uuid(),
-            //     'config' => json_encode([
-            //         'guest_view_enabled' => false,
-            //         'auth_view_enabled' => true,
-            //         'app_url' => 'https://app.x4trader.com',
-            //         'app_name' => 'X4 Trader',
-            //     ]),
-            //     'features' => json_encode([]),
-            //     'is_active' => true,
-            // ],
+            [
+                'name' => 'sample client',
+                'slug' => 'sample-client',
+                'api_key' => Str::uuid(),
+                'api_secret' => Str::uuid(),
+                'config' => json_encode([
+                    'guest_view_enabled' => false,
+                    'auth_view_enabled' => true,
+                    'app_url' => 'https://sample-client.com',
+                    'app_name' => 'Sample Client',
+                ]),
+                'features' => json_encode([]),
+                'is_active' => true,
+            ],
+            [
+                'name' => 'X4 Trader',
+                'slug' => 'x4trader',
+                'api_key' => Str::uuid(),
+                'api_secret' => Str::uuid(),
+                'config' => json_encode([
+                    'guest_view_enabled' => false,
+                    'auth_view_enabled' => true,
+                    'app_url' => 'https://app.x4trader.com',
+                    'app_name' => 'X4 Trader',
+                ]),
+                'features' => json_encode([]),
+                'is_active' => true,
+            ],
             [
                 'name' => 'Wordpress blog Auto Publisher Bot',
                 'slug' => 'wordpress-blog-auto-publisher-bot',
@@ -87,7 +87,7 @@ class ClientSeeder extends Seeder
             ]
         ];
         foreach ($clients as $client) {
-            Client::updateOrCreate($client);
+            Client::updateOrCreate(['slug' => $client['slug']],$client);
         }
     }
 }
