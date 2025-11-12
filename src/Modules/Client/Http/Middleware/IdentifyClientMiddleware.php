@@ -86,8 +86,13 @@ class IdentifyClientMiddleware
                 ? $repo->findByApiKey($apiKey)
                 : $repo->findBySlug($slug);
 
+            // Check if this is an activate/deactivate route
+            $isActivateDeactivateRoute = $this->isActivateOrDeactivateRoute(
+                $request->getPathInfo() // or $request->getRequestUri()
+            );
+
             // Check if client exists before accessing properties
-            if ($client && $client->is_active) {
+            if ($client && ($client->is_active || $isActivateDeactivateRoute)) {
                 return $client->id;
             }
         }
@@ -149,5 +154,27 @@ class IdentifyClientMiddleware
         }
 
         return $parts[0] ?? null;
+    }
+
+    /**
+     * Validate if the request path is for activate or deactivate routes
+     *
+     * @param string $path The request path (e.g., from $request->getPathInfo() or $request->getRequestUri())
+     * @return bool
+     */
+    private function isActivateOrDeactivateRoute(string $path): bool
+    {
+        // Remove query string if present
+        $path = parse_url($path, PHP_URL_PATH);
+
+        // Normalize path (remove trailing slash, ensure consistent format)
+        $path = rtrim($path, '/');
+
+        // Define the routes to check
+        $activateRoute = config('Client.activate_route');
+        $deactivateRoute = config('Client.deactivate_route');
+
+        // Check if path matches either route
+        return $path === $activateRoute || $path === $deactivateRoute;
     }
 }

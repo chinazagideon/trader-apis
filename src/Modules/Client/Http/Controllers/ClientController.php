@@ -18,12 +18,31 @@ class ClientController extends CrudController
     {
 
         $requestApiKey = $request['api_key'];
-        // $request->validated();
         $getClientFromHeader = $this->clientService->getClientByApiKey($requestApiKey);
         if (!$getClientFromHeader->isSuccess()) {
             return $getClientFromHeader;
         }
 
         return $getClientFromHeader;
+    }
+
+    /**
+     * Activate a client
+     * @param array $request
+     * @return ServiceResponse
+     */
+    public function activateClient(array $request): ServiceResponse
+    {
+        return $this->clientService->activateClient($request);
+    }
+
+    /**
+     * Deactivate a client
+     * @param array $request
+     * @return ServiceResponse
+     */
+    public function deactivateClient(array $request): ServiceResponse
+    {
+        return $this->clientService->deactivateClient($request);
     }
 }

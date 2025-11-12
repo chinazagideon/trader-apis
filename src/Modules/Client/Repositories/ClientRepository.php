@@ -25,7 +25,6 @@ class ClientRepository extends BaseRepository implements ClientRepositoryContrac
     {
         return $this->queryUnfiltered()
             ->where('api_key', $apiKey)
-            ->where('is_active', true)
             ->first();
     }
 
@@ -39,7 +38,6 @@ class ClientRepository extends BaseRepository implements ClientRepositoryContrac
     {
         return $this->queryUnfiltered()
             ->where('slug', $slug)
-            ->where('is_active', true)
             ->first();
     }
 }

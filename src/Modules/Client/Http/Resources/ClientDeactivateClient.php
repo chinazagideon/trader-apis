@@ -5,7 +5,7 @@ namespace App\Modules\Client\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ClientScopeResource extends JsonResource
+class ClientDeactivateClientResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
