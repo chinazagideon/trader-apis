@@ -2,6 +2,7 @@
 
 namespace App\Modules\Client\Services;
 
+use App\Core\Exceptions\AppException;
 use App\Core\Services\BaseService;
 use App\Modules\Client\Repositories\ClientRepository;
 use App\Modules\Client\Contracts\ClientServiceContract;
@@ -81,7 +82,7 @@ class ClientService extends BaseService implements ClientServiceContract
         return $this->executeServiceOperation(function () use ($data) {
             $client = $this->clientRepository->findByApiKey($data['api_key']);
             if ($client && $client->is_active) {
-                throw new ClientException('Client is already activated');
+                throw new AppException('Client is already activated');
             }
             $client->update(['is_active' => true]);
             $client = $this->clientRepository->refresh($client);
@@ -98,8 +99,8 @@ class ClientService extends BaseService implements ClientServiceContract
     {
         return $this->executeServiceOperation(function () use ($data) {
             $client = $this->clientRepository->findByApiKey($data['api_key']);
-            if ($client && !$client->is_active) {
-                throw new ClientException('Client is already deactivated');
+            if (!$client->is_active) {
+                throw new AppException('Client is already deactivated');
             }
             $client->update(['is_active' => false]);
             $client = $this->clientRepository->refresh($client);
