@@ -285,4 +285,15 @@ abstract class BaseRepository implements RepositoryInterface
 
         return $query->paginate($perPage, $columns);
     }
+
+
+    /**
+     * Refresh a model
+     * @param Model $model
+     * @return Model
+     */
+    public function refresh(Model $model): Model
+    {
+        return $model->fresh();
+    }
 }
