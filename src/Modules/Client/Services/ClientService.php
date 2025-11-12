@@ -80,9 +80,6 @@ class ClientService extends BaseService implements ClientServiceContract
     {
         return $this->executeServiceOperation(function () use ($data) {
             $client = $this->clientRepository->findByApiKey($data['api_key']);
-            if ($client && $client->is_active) {
-                throw new ClientException('Client is already activated');
-            }
             $client->update(['is_active' => true]);
             $client = $this->clientRepository->refresh($client);
             return ServiceResponse::success($client, 'Client activated successfully');
@@ -98,9 +95,6 @@ class ClientService extends BaseService implements ClientServiceContract
     {
         return $this->executeServiceOperation(function () use ($data) {
             $client = $this->clientRepository->findByApiKey($data['api_key']);
-            if ($client && !$client->is_active) {
-                throw new ClientException('Client is already deactivated');
-            }
             $client->update(['is_active' => false]);
             $client = $this->clientRepository->refresh($client);
             return ServiceResponse::success($client, 'Client deactivated successfully');
