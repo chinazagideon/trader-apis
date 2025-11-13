@@ -32,7 +32,6 @@ class EntityTransactionEvent
      */
     public function getEntityId(): ?string
     {
-        // return $this->entity->getTransactionEntityId();
         return null;
     }
 

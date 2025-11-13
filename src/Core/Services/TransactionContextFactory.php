@@ -122,7 +122,7 @@ class TransactionContextFactory
             'total_amount' => $context['amount'] ?? 0,
             'status' => $context['status'],
             'metadata' => array_merge($baseData['metadata'], [
-                'source' => 'user_created_event',
+                'source' => 'user_was_created_event',
                 'user_action' => $context['action'] ?? 'unknown',
             ]),
         ]);
