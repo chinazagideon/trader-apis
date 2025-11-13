@@ -46,7 +46,7 @@ class FundingService extends BaseService
     protected function completed(array $data, Model $model, string $operation = ''): void
     {
         /** @var Funding $model */
-        FundingWasCompleted::dispatch($model, $this->FundingRepository->moduleName);
+        FundingWasCompleted::dispatch($model, $this->FundingRepository->moduleName, $operation);
 
     }
 }
