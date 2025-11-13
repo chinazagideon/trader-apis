@@ -4,11 +4,14 @@ namespace App\Modules\User\Repositories;
 
 use App\Core\Repositories\BaseRepository;
 use App\Modules\User\Database\Models\User;
+use App\Modules\User\Contracts\UserRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-class UserRepository extends BaseRepository
+class UserRepository extends BaseRepository implements UserRepositoryInterface
 {
+    protected string $serviceName = 'UserRepository';
+
     /**
      * The key to get the user ID
      */

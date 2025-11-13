@@ -24,7 +24,6 @@ Route::prefix('users')->name('users.')->group(function () {
         Route::post('/credit/balance', [UserController::class, 'creditAvailableBalance'])->name('credit.available');
         // Credit commission balance
         Route::post('/credit/commission', [UserController::class, 'creditCommissionBalance'])->name('credit.commission');
-        // Protected routes
         // CRUD operations
         Route::get('/', [UserController::class, 'index'])->name('index');
         Route::post('/', [UserController::class, 'store'])->name('store');

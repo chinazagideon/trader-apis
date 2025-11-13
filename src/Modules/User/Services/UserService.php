@@ -11,6 +11,10 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
 use App\Modules\User\Contracts\UserCreditServiceInterface;
 use App\Modules\Role\Contracts\RoleServiceContract;
+use App\Modules\User\Events\UserWasCreatedEvent;
+use Illuminate\Contracts\Events\Dispatcher as EventDispatcher;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 /**
  * User Service
@@ -23,7 +27,8 @@ class UserService extends BaseService implements UserServiceInterface
         private UserRepository $userRepository,
         private UserBalanceServiceInterface $userBalanceService,
         private UserCreditServiceInterface $userCreditService,
-        private RoleServiceContract $roleService
+        private RoleServiceContract $roleService,
+        private EventDispatcher $eventDispatcher
     ) {
         parent::__construct($userRepository);
     }
@@ -46,6 +51,9 @@ class UserService extends BaseService implements UserServiceInterface
 
             // $user = parent::create($validated);
             $user = $this->userRepository->create($data);
+
+            // Dispatch UserWasCreatedEvent to trigger notifications
+            $this->eventDispatcher->dispatch(new UserWasCreatedEvent($user));
 
             return ServiceResponse::success($user, 'User created successfully', Response::HTTP_CREATED);
         }, 'create user');
@@ -303,9 +311,9 @@ class UserService extends BaseService implements UserServiceInterface
      * @param array $data
      * @return void
      */
-    public function updateAvailableBalance(array $data = []): void
+    public function updateAvailableBalance(array $data = [], string $operation = 'credit'): void
     {
-        $this->userCreditService->updateAvailableBalance($data);
+        $this->userCreditService->updateAvailableBalance($data, $operation);
     }
 
     /**
@@ -313,9 +321,9 @@ class UserService extends BaseService implements UserServiceInterface
      * @param array $data
      * @return void
      */
-    public function updateCommissionBalance(array $data = []): void
+    public function updateCommissionBalance(array $data = [], string $operation = 'credit'): void
     {
-        $this->userCreditService->updateCommissionBalance($data);
+        $this->userCreditService->updateCommissionBalance($data, $operation);
     }
 
     /**
@@ -342,7 +350,7 @@ class UserService extends BaseService implements UserServiceInterface
     public function creditAvailableBalance(array $data = []): ServiceResponse
     {
         return $this->executeServiceOperation(function () use ($data) {
-            $this->updateAvailableBalance($data);
+            $this->updateAvailableBalance($data, 'credit');
             return ServiceResponse::success(null, 'Credit available balance successful');
         }, 'credit available balance');
     }
@@ -355,7 +363,7 @@ class UserService extends BaseService implements UserServiceInterface
     public function creditCommissionBalance(array $data = []): ServiceResponse
     {
         return $this->executeServiceOperation(function () use ($data) {
-            $this->updateCommissionBalance($data);
+            $this->updateCommissionBalance($data, 'credit');
             return ServiceResponse::success(null, 'Credit commission balance successful');
         }, 'credit commission balance');
     }

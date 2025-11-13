@@ -49,7 +49,7 @@ class UserCreditService extends BaseService implements UserCreditServiceInterfac
             ]);
         }
 
-        if($creditType === UserBalanceEnum::Commission->value) {
+        if ($creditType === UserBalanceEnum::Commission->value) {
             $this->updateCommissionBalance([
                 'user_id' => $userId,
                 'amount' => $amount,
@@ -65,37 +65,20 @@ class UserCreditService extends BaseService implements UserCreditServiceInterfac
      * @param array $data
      * @return void
      */
-    public function updateTotalBalance(array $data = []): void
+    public function updateTotalBalance(array $data = [], string $operation = 'credit'): void
     {
         $amount = $data['amount'];
         $userId = $data['user_id'];
-
-        Log::info('UserCreditService: before update total balance', [
-            'user_id' => $userId,
-            'amount' => $amount,
-        ]);
-
         $user = $this->userRepository->find($userId);
-        Log::info('UserCreditService: after find user', [
-            'user_id' => $userId,
-            'user' => $user,
-        ]);
-        $user->total_balance += $amount;
-        Log::info('UserCreditService: after update total balance', [
-            'user_id' => $userId,
-            'user' => $user,
-        ]);
+        if ($operation === 'credit') {
+            $user->total_balance += $amount;
+        } else {
+            $user->total_balance -= $amount;
+        }
         $user->saveOrFail();
-
-        Log::info('UserCreditService: update total balance', [
-            'user_id' => $userId,
-            'amount' => $amount,
-            'user' => $user,
-        ]);
 
         //emit balance was updated
         $this->eventDispatcher->dispatch(new UserBalanceWasUpdated($user));
-
     }
 
     /**
@@ -104,24 +87,22 @@ class UserCreditService extends BaseService implements UserCreditServiceInterfac
      * @param array $data
      * @return void
      */
-    public function updateAvailableBalance(array $data = []): void
+    public function updateAvailableBalance(array $data = [], string $operation = 'credit'): void
     {
         $amount = $data['amount'];
         $userId = $data['user_id'];
 
         $user = $this->userRepository->find($userId);
-        $user->available_balance += $amount;
-        $user->saveOrFail();
 
-        Log::info('UserCreditService: update available balance', [
-            'user_id' => $userId,
-            'amount' => $amount,
-            'user' => $user,
-        ]);
+        if ($operation === 'credit') {
+            $user->available_balance += $amount;
+        } else {
+            $user->available_balance -= $amount;
+        }
+        $user->saveOrFail();
 
         //emit balance was updated
         $this->eventDispatcher->dispatch(new UserBalanceWasUpdated($user));
-
     }
 
     /**
@@ -130,23 +111,20 @@ class UserCreditService extends BaseService implements UserCreditServiceInterfac
      * @param array $data
      * @return void
      */
-    public function updateCommissionBalance(array $data = []): void
+    public function updateCommissionBalance(array $data = [], string $operation = 'credit'): void
     {
         $amount = $data['amount'];
         $userId = $data['user_id'];
 
         $user = $this->userRepository->find($userId);
-        $user->total_commission += $amount;
+
+        if ($operation === 'credit') {
+            $user->total_commission += $amount;
+        } else {
+            $user->total_commission -= $amount;
+        }
         $user->saveOrFail();
-
-        Log::info('UserCreditService: update commission balance', [
-            'user_id' => $userId,
-            'amount' => $amount,
-            'user' => $user,
-        ]);
-
         //emit balance was updated
         $this->eventDispatcher->dispatch(new UserBalanceWasUpdated($user));
     }
-
 }

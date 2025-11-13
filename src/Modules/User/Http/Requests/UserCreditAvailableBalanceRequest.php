@@ -6,6 +6,10 @@ use App\Modules\User\Enums\RolesEnum;
 
 class UserCreditAvailableBalanceRequest extends FormRequest
 {
+    /**
+     * Determine if the user is authorized to make this request.
+     * @return bool
+     */
     public function authorize(): bool
     {
         if($this->user()->role_id === RolesEnum::ADMIN->value){
@@ -14,11 +18,15 @@ class UserCreditAvailableBalanceRequest extends FormRequest
         return false;
     }
 
+    /**
+     * Get the validation rules.
+     * @return array
+     */
     public function rules(): array
     {
         return [
             'user_id' => 'required|exists:users,id',
-            'amount' => 'required|numeric|min:0',
+            'amount' => 'required|numeric',
             'currency_id' => 'required|exists:currencies,id',
         ];
     }

@@ -5,6 +5,7 @@ namespace App\Modules\User\Providers;
 use App\Modules\User\Contracts\UserServiceInterface;
 use App\Modules\User\Contracts\UserBalanceServiceInterface;
 use App\Modules\User\Contracts\UserCreditServiceInterface;
+use App\Modules\User\Contracts\UserRepositoryInterface;
 use App\Modules\User\Database\Models\User;
 use App\Modules\User\Policies\UserPolicy;
 use App\Modules\User\Repositories\UserRepository;
@@ -64,6 +65,8 @@ class UserServiceProvider extends BaseModuleServiceProvider
         $this->app->bind(UserBalanceServiceInterface::class, UserBalanceService::class);
 
         $this->app->bind(UserCreditServiceInterface::class, UserCreditService::class);
+
+        $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
     }
 
     /**

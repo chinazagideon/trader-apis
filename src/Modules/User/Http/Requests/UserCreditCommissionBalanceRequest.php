@@ -8,6 +8,10 @@ use App\Modules\User\Enums\RolesEnum;
 
 class UserCreditCommissionBalanceRequest extends FormRequest
 {
+    /**
+     * Determine if the user is authorized to make this request.
+     * @return bool
+     */
     public function authorize(): bool
     {
         if ($this->user()->role_id === RolesEnum::ADMIN->value) {
@@ -16,11 +20,15 @@ class UserCreditCommissionBalanceRequest extends FormRequest
         return false;
     }
 
+    /**
+     * Get the validation rules.
+     * @return array
+     */
     public function rules(): array
     {
         return [
             'user_id' => 'required|exists:users,id',
-            'amount' => 'required|numeric|min:0',
+            'amount' => 'required|numeric',
             'currency_id' => 'required|exists:currencies,id',
         ];
     }
@@ -36,7 +44,6 @@ class UserCreditCommissionBalanceRequest extends FormRequest
             'user_id.exists' => 'The user does not exist',
             'amount.required' => 'The amount is required',
             'amount.numeric' => 'The amount must be a number',
-            'amount.min' => 'The amount must be greater than 0',
             'currency_id.required' => 'The currency is required',
             'currency_id.exists' => 'The currency does not exist',
         ];
