@@ -55,9 +55,9 @@ return [
     |
     */
     'queue' => [
-        'enabled' => env('NOTIFICATION_QUEUE_ENABLED', true),
+        'enabled' => filter_var(env('NOTIFICATION_QUEUE_ENABLED', true), FILTER_VALIDATE_BOOLEAN),
         'connection' => env('NOTIFICATION_QUEUE_CONNECTION', 'redis'),
-        'name' => env('NOTIFICATION_QUEUE_NAME', 'notifications'),
+        'name' => env('NOTIFICATION_QUEUE', env('NOTIFICATION_QUEUE_NAME', 'notifications')),
         'tries' => env('NOTIFICATION_QUEUE_TRIES', 3),
         'timeout' => env('NOTIFICATION_QUEUE_TIMEOUT', 60),
         'backoff' => env('NOTIFICATION_QUEUE_BACKOFF', '30,60,120'),
@@ -212,17 +212,31 @@ return [
     |
     */
     'templates' => [
-        'investment_created' => [
+        'investment_was_created' => [
             'subject' => 'Investment Created Successfully',
+            'title' => 'Investment Created',
             'body' => 'Your investment #:id has been created successfully.',
+            'view' => 'notification::emails.investment_created', // Optional: override default view
+            'greeting' => 'Hello :name,', // Optional greeting
         ],
         'transaction_completed' => [
             'subject' => 'Transaction Completed',
+            'title' => 'Transaction Completed',
             'body' => 'Your transaction #:id has been completed.',
+            'view' => 'notification::emails.transaction_completed',
         ],
         'payment_received' => [
             'subject' => 'Payment Received',
+            'title' => 'Payment Received',
             'body' => 'We have received your payment of :amount.',
+            'view' => 'notification::emails.payment_received',
+        ],
+        'user_was_created' => [
+            'subject' => 'Welcome!',
+            'title' => 'Welcome',
+            'body' => 'Welcome to our platform!',
+            'view' => 'notification::emails.user_was_created',
+            'greeting' => 'Hello :name,',
         ],
     ],
 

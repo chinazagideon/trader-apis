@@ -25,29 +25,89 @@ class EntityEventNotification extends BaseNotification
      */
     public function toMail($notifiable): MailMessage
     {
-        $template = $this->getTemplate($this->eventType);
+        $template = $this->getTemplate($this->eventType, 'mail');
 
-        $subject = $template['subject'] ?? $this->data['subject'] ?? 'Notification';
-        $body = $template['body'] ?? $this->data['message'] ?? '';
+        // Prepare template data (objects for view, strings for placeholders)
+        $templateData = $this->getTemplateData([
+            'entity' => $this->entity,
+            'entityId' => $this->entity->id ?? 'N/A',
+            'entityType' => class_basename(get_class($this->entity)),
+            'notifiable' => $notifiable,
+            'eventType' => $this->eventType,
+            'subject' => $template['subject'] ?? $this->data['subject'] ?? $this->getDefaultSubject(),
+            'title' => $template['title'] ?? $this->data['title'] ?? $this->getDefaultTitle(),
+            'action_url' => $this->data['action_url'] ?? null,
+            'action_text' => $this->data['action_text'] ?? 'View Details',
+            // Add string versions for placeholder replacement
+            'name' => $this->data['name'] ?? ($notifiable->name ?? ($notifiable->email ?? 'User')),
+            'email' => $this->data['email'] ?? ($notifiable->email ?? ''),
+        ]);
 
-        // Replace placeholders
-        $replacements = array_merge(
-            ['id' => $this->entity->id ?? 'N/A'],
-            $this->data
-        );
+        // Replace placeholders in subject (only string values)
+        $subject = $this->replacePlaceholders($templateData['subject'], $this->getStringReplacements($templateData));
 
-        $subject = $this->replacePlaceholders($subject, $replacements);
-        $body = $this->replacePlaceholders($body, $replacements);
+        // Get HTML view path
+        $view = $this->getEmailView($this->eventType);
 
-        return (new MailMessage)
+        // Build MailMessage with HTML view
+        $mailMessage = (new MailMessage)
             ->subject($subject)
-            ->line($body)
-            ->when(isset($this->data['action_url']), function ($mail) {
-                return $mail->action(
-                    $this->data['action_text'] ?? 'View Details',
-                    $this->data['action_url']
-                );
-            });
+            ->view($view, $templateData);
+
+        // Add action button if provided
+        if (isset($this->data['action_url'])) {
+            $mailMessage->action(
+                $this->data['action_text'] ?? 'View Details',
+                $this->data['action_url']
+            );
+        }
+
+        // Add greeting if in template
+        if (isset($template['greeting'])) {
+            $greeting = $this->replacePlaceholders($template['greeting'], $this->getStringReplacements($templateData));
+            $mailMessage->greeting($greeting);
+        }
+
+        return $mailMessage;
+    }
+
+    /**
+     * Get default subject based on event type
+     */
+    protected function getDefaultSubject(): string
+    {
+        return ucwords(str_replace('_', ' ', $this->eventType)) . ' Notification';
+    }
+
+    /**
+     * Get default title based on event type
+     */
+    protected function getDefaultTitle(): string
+    {
+        return ucwords(str_replace('_', ' ', $this->eventType));
+    }
+
+    /**
+     * Extract only string values from template data for placeholder replacement
+     * Filters out objects, arrays, and null values
+     */
+    protected function getStringReplacements(array $templateData): array
+    {
+        $replacements = [];
+
+        foreach ($templateData as $key => $value) {
+            // Only include string, numeric, or boolean values
+            if (is_string($value) || is_numeric($value) || is_bool($value)) {
+                $replacements[$key] = (string) $value;
+            }
+            // Handle special cases
+            elseif (is_null($value)) {
+                $replacements[$key] = '';
+            }
+            // Skip objects and arrays - they're for view context only
+        }
+
+        return $replacements;
     }
 
     /**

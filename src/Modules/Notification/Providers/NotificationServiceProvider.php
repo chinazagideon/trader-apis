@@ -8,9 +8,12 @@ use App\Modules\Notification\Channels\SmsChannel;
 use App\Modules\Notification\Channels\CustomChannel;
 use App\Modules\Notification\Services\ProviderManager;
 use App\Modules\Notification\Services\NotificationService;
+use App\Modules\Notification\Services\NotificationOutboxPublisher;
 use App\Modules\Notification\Repositories\NotificationRepository;
 use App\Modules\Notification\Database\Models\Notification;
 use Illuminate\Support\Facades\Notification as NotificationFacade;
+use App\Modules\Notification\Contracts\NotificationOutboxPublisherInterface;
+use App\Modules\Notification\Console\Commands\ProcessNotificationOutbox;
 
 class NotificationServiceProvider extends BaseModuleServiceProvider
 {
@@ -48,6 +51,18 @@ class NotificationServiceProvider extends BaseModuleServiceProvider
                 $app->make(ProviderManager::class)
             );
         });
+
+        // Register Outbox Publisher
+        $this->app->singleton(NotificationOutboxPublisherInterface::class, function ($app) {
+            return new NotificationOutboxPublisher();
+        });
+
+        // Register Outbox Command
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                ProcessNotificationOutbox::class,
+            ]);
+        }
     }
 
     /**
@@ -56,6 +71,18 @@ class NotificationServiceProvider extends BaseModuleServiceProvider
     public function boot(): void
     {
         parent::boot();
+
+        // Register config file
+        $this->mergeConfigFrom(
+            __DIR__ . '/../config/notification.php',
+            'notification'
+        );
+
+        // Register notification views
+        $this->loadViewsFrom(
+            __DIR__ . '/../resources/views',
+            'notification'
+        );
 
         // Register custom notification channels
         $this->registerNotificationChannels();

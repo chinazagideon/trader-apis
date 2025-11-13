@@ -5,7 +5,9 @@ namespace App\Modules\Notification\Providers;
 use App\Core\Providers\ModuleEventServiceProviderBase;
 use App\Modules\Notification\Listeners\SendEntityNotification;
 use App\Modules\Investment\Events\InvestmentCreated;
+use App\Modules\Investment\Events\InvestmentWasCreated;
 use App\Modules\Transaction\Events\TransactionWasCreated;
+use App\Modules\User\Events\UserWasCreatedEvent;
 
 class NotificationEventServiceProvider extends ModuleEventServiceProviderBase
 {
@@ -19,7 +21,13 @@ class NotificationEventServiceProvider extends ModuleEventServiceProviderBase
         TransactionWasCreated::class => [
             SendEntityNotification::class,
         ],
-        // Add more events as needed
+        UserWasCreatedEvent::class => [
+            SendEntityNotification::class,
+        ],
+        InvestmentWasCreated::class => [
+            SendEntityNotification::class,
+        ],
+
     ];
 
     /**

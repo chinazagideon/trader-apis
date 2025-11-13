@@ -26,6 +26,8 @@ abstract class BaseNotification extends Notification implements ShouldQueue
         // Set queue configuration
         $this->onConnection(config('notification.queue.connection', 'redis'));
         $this->onQueue(config('notification.queue.name', 'notifications'));
+        // Ensure job is dispatched only after DB commit to avoid race conditions
+        $this->afterCommit();
     }
 
     /**
@@ -64,12 +66,13 @@ abstract class BaseNotification extends Notification implements ShouldQueue
     /**
      * Get template from database or config
      */
-    protected function getTemplate(string $templateKey): ?array
+    protected function getTemplate(string $templateKey, string $channel = 'mail'): ?array
     {
         // Try database first
         $dbTemplate = NotificationConfig::active()
             ->where('type', 'template')
             ->where('name', $templateKey)
+            ->where('channel', $channel)
             ->first();
 
         if ($dbTemplate) {
@@ -81,12 +84,42 @@ abstract class BaseNotification extends Notification implements ShouldQueue
     }
 
     /**
+     * Get HTML view path for email template
+     * Supports: view path, database config, or default
+     */
+    protected function getEmailView(string $templateKey): string
+    {
+        $template = $this->getTemplate($templateKey, 'mail');
+
+        // If template has a view path, use it
+        if (isset($template['view'])) {
+            return $template['view'];
+        }
+
+        // Default view path: notification::emails.{templateKey}
+        return "notification::emails.{$templateKey}";
+    }
+
+    /**
+     * Get template data for rendering
+     */
+    protected function getTemplateData(array $additionalData = []): array
+    {
+        return array_merge($this->data, $additionalData);
+    }
+
+    /**
      * Replace placeholders in template
+     * Only replaces string values - filters out objects, arrays, null, etc.
      */
     protected function replacePlaceholders(string $text, array $replacements): string
     {
         foreach ($replacements as $key => $value) {
-            $text = str_replace(':' . $key, $value, $text);
+            // Only replace if value is a string or can be converted to string
+            if (is_string($value) || is_numeric($value) || is_bool($value)) {
+                $text = str_replace(':' . $key, (string) $value, $text);
+            }
+            // Skip objects, arrays, null, etc. - they're passed to views directly
         }
 
         return $text;
