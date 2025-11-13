@@ -19,6 +19,7 @@ use App\Core\Contracts\OwnershipBased;
 use App\Core\Traits\LoadsRelationships;
 use App\Modules\Currency\Database\Models\Currency;
 use App\Modules\Pricing\Database\Models\Pricing;
+use App\Modules\User\Database\Models\User;
 
 #[UsePolicy(InvestmentPolicy::class)]
 class Investment extends Model implements TransactionContextInterface, OwnershipBased
@@ -148,5 +149,15 @@ class Investment extends Model implements TransactionContextInterface, Ownership
     public function pricing(): BelongsTo
     {
         return $this->belongsTo(Pricing::class);
+    }
+
+    /**
+     * get user relations
+     *
+     * @return BelongsTo
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

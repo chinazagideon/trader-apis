@@ -4,6 +4,7 @@ namespace App\Modules\Investment\Events;
 
 use App\Core\Events\EntityTransactionEvent;
 use App\Modules\Investment\Database\Models\Investment;
+use App\Modules\User\Database\Models\User;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -25,5 +26,16 @@ class InvestmentCreated extends EntityTransactionEvent
     public function broadcastOn(): array
     {
         return [];
+    }
+
+    // In InvestmentCreated event
+    public function getNotifiable(): ?User
+    {
+        // Option 1: Use relationship if available
+        if ($this->investment->relationLoaded('user')) {
+            return $this->investment->user;
+        }
+
+        return null;
     }
 }
