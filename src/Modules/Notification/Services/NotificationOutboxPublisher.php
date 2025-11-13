@@ -34,6 +34,18 @@ class NotificationOutboxPublisher implements NotificationOutboxPublisherInterfac
             ? $notifiable->getMorphClass()
             : get_class($notifiable);
 
+        Log::info('NotifTrace', [
+            'stage' => 'outbox_published',
+            'event_type' => $eventType,
+            'notifiable_type' => $notifiableType,
+            'notifiable_id' => $notifiable->id,
+            'notifiable_class' => get_class($notifiable),
+            'notifiable_has_email' => method_exists($notifiable, 'getEmailForPasswordReset') ? 'yes' : 'no',
+            'entity_type' => $entityType,
+            'entity_id' => $entityId,
+            'channels' => $channels,
+        ]);
+
         NotificationOutbox::firstOrCreate(
             ['dedupe_key' => $dedupeKey ?? $this->makeDedupeKey($eventType, $notifiableType, $notifiable->id, $entityType, $entityId)],
             [

@@ -8,7 +8,7 @@ use App\Modules\Investment\Events\InvestmentCreated;
 use App\Modules\Investment\Events\InvestmentWasCreated;
 use App\Modules\Transaction\Events\TransactionWasCreated;
 use App\Modules\User\Events\UserWasCreatedEvent;
-
+use App\Modules\Funding\Events\FundingWasCompleted;
 class NotificationEventServiceProvider extends ModuleEventServiceProviderBase
 {
     /**
@@ -25,6 +25,9 @@ class NotificationEventServiceProvider extends ModuleEventServiceProviderBase
             SendEntityNotification::class,
         ],
         InvestmentWasCreated::class => [
+            SendEntityNotification::class,
+        ],
+        FundingWasCompleted::class => [
             SendEntityNotification::class,
         ],
 

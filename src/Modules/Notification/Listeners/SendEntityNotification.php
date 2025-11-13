@@ -81,6 +81,17 @@ class SendEntityNotification implements ConfigurableListenerInterface, ShouldQue
         // Get notifiable from contract
         $notifiable = $event->getNotifiable();
 
+        Log::info('Notifiable', [
+            'notifiable' => $notifiable,
+            'entity' => $entity,
+            'event' => $event,
+            'event_type' => $event->getEventType(),
+            'entity_type' => get_class($entity),
+            'entity_id' => $entity->id ?? null,
+            'notifiable_type' => get_class($notifiable),
+            'notifiable_id' => $notifiable->id ?? null,
+        ]);
+
 
         if (!$notifiable) {
             Log::warning("No notifiable found for notification", [

@@ -2,22 +2,25 @@
 
 namespace App\Modules\Auth\Services;
 
-use App\Core\Exceptions\BusinessLogicException;
 use App\Core\Exceptions\NotFoundException;
 use App\Core\Exceptions\ValidationException;
 use App\Core\Http\ServiceResponse;
 use App\Core\Services\BaseService;
+use App\Core\Services\EventDispatcher;
 use App\Modules\Auth\Contracts\AuthServiceInterface;
 use App\Modules\Auth\Contracts\PasswordResetInterface;
 use App\Modules\Auth\Contracts\TokenServiceInterface;
 use App\Modules\Auth\Http\Requests\RegisterRequest;
 use App\Modules\User\Contracts\UserServiceInterface;
 use App\Modules\User\Database\Models\User;
-use Illuminate\Http\Response;
+use App\Modules\User\Events\UserWasCreatedEvent;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Modules\Auth\Notifications\VerificationEmail;
 
 class AuthService extends BaseService implements AuthServiceInterface
 {
@@ -26,9 +29,10 @@ class AuthService extends BaseService implements AuthServiceInterface
     public function __construct(
         private UserServiceInterface $userService,
         private TokenServiceInterface $tokenService,
-        private PasswordResetInterface $passwordResetService
+        private PasswordResetInterface $passwordResetService,
+        private EventDispatcher $eventDispatcher,
     ) {
-        parent::__construct();
+        parent::__construct($userService);
     }
 
     /**
@@ -63,6 +67,8 @@ class AuthService extends BaseService implements AuthServiceInterface
             $user->save();
             // Send verification email (placeholder)
             $this->sendVerificationEmail($user, $verificationToken);
+
+            $this->eventDispatcher->dispatch(new UserWasCreatedEvent($user));
 
             // Automatically log in the user after registration
             $loginResponse = $this->login([
@@ -347,6 +353,8 @@ class AuthService extends BaseService implements AuthServiceInterface
             'email' => $user->email,
             'token' => $token,
         ]);
+
+        // Mail::to($user->email)->send(new VerificationEmail($user, $token));
     }
 
     /**
@@ -358,5 +366,23 @@ class AuthService extends BaseService implements AuthServiceInterface
     private function prepareName(array $data): string
     {
         return $data['first_name'] . ' ' . $data['last_name'];
+    }
+
+    protected function completed(array $data, Model $model, string $operation = 'store|update|destroy'): void
+    {
+        $this->logBusinessLogic('Auth service completed', [
+            'data' => $data,
+            'model' => $model,
+            'operation' => $operation,
+        ]);
+        Log::info('Auth service completed', [
+            'data' => $data,
+            'model' => $model,
+            'operation' => $operation,
+        ]);
+        if ($operation === 'store') {
+            // /** @var User $model */
+            // $this->eventDispatcher->dispatch(new UserWasCreatedEvent($model));
+        }
     }
 }

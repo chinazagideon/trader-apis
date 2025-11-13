@@ -238,6 +238,12 @@ return [
             'view' => 'notification::emails.user_was_created',
             'greeting' => 'Hello :name,',
         ],
+        'funding_completed' => [
+            'subject' => 'Funding Completed',
+            'title' => 'Funding Completed',
+            'body' => 'Your funding request has been completed.',
+            'view' => 'notification::emails.funding_completed',
+        ],
     ],
 
     /*
