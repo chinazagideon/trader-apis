@@ -11,6 +11,8 @@ use App\Modules\Payment\Contracts\PaymentProcessorServiceContract;
 use App\Modules\Payment\Services\PaymentProcessorService;
 use App\Modules\Payment\Database\Models\PaymentGateway;
 use App\Modules\Payment\Policies\PaymentGatewayPolicy;;
+use App\Modules\Payment\Database\Models\PaymentProcessor;
+use App\Modules\Payment\Policies\PaymentProcessorPolicy;
 
 
 /*
@@ -59,6 +61,7 @@ class PaymentServiceProvider extends BaseModuleServiceProvider
      */
     protected array $policies = [
         PaymentGateway::class => PaymentGatewayPolicy::class,
+        PaymentProcessor::class => PaymentProcessorPolicy::class,
     ];
     /**
      * Register services

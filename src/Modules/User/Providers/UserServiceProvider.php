@@ -6,12 +6,14 @@ use App\Modules\User\Contracts\UserServiceInterface;
 use App\Modules\User\Contracts\UserBalanceServiceInterface;
 use App\Modules\User\Contracts\UserCreditServiceInterface;
 use App\Modules\User\Contracts\UserRepositoryInterface;
+use App\Modules\User\Contracts\UserDebitServiceInterface;
 use App\Modules\User\Database\Models\User;
 use App\Modules\User\Policies\UserPolicy;
 use App\Modules\User\Repositories\UserRepository;
 use App\Modules\User\Services\UserBalanceService;
 use App\Modules\User\Services\UserCreditService;
 use App\Modules\User\Services\UserService;
+use App\Modules\User\Services\UserDebitService;
 use App\Core\Providers\BaseModuleServiceProvider;
 use Illuminate\Support\Facades\Gate;
 
@@ -46,27 +48,41 @@ class UserServiceProvider extends BaseModuleServiceProvider
      */
     protected function registerServices(): void
     {
-        // Register UserRepository as singleton
-        // Laravel will automatically resolve User model dependency
+        /**
+         * Register UserRepository as singleton
+         */
         $this->app->singleton(UserRepository::class, function ($app) {
             return new UserRepository($app->make(User::class));
         });
 
-        // Register UserService as singleton for facade access
-        // This ensures the same instance is used throughout the request lifecycle
-        // Laravel will automatically resolve UserRepository dependency via constructor injection
+        /**
+         * Register UserService as singleton for facade access
+         */
         $this->app->singleton(UserService::class);
 
-        // Bind interface to concrete implementation
-        // This allows dependency injection via interface
+        /**
+         * Bind UserServiceInterface to UserService
+         */
         $this->app->bind(UserServiceInterface::class, UserService::class);
 
-        // Bind UserBalanceServiceInterface to UserBalanceService
+        /**
+         * Bind UserBalanceServiceInterface to UserBalanceService
+         */
         $this->app->bind(UserBalanceServiceInterface::class, UserBalanceService::class);
 
+        /**
+         * Bind UserCreditServiceInterface to UserCreditService
+         */
         $this->app->bind(UserCreditServiceInterface::class, UserCreditService::class);
 
+        /**
+         * Bind UserRepositoryInterface to UserRepository
+         */
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
+        /**
+         * Bind UserDebitServiceInterface to UserDebitService
+         */
+        $this->app->bind(UserDebitServiceInterface::class, UserDebitService::class);
     }
 
     /**

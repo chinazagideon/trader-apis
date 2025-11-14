@@ -81,7 +81,6 @@ class WithdrawalService extends BaseService
         $moduleName = strtolower($this->withdrawalRepository->moduleName);
         /** @var Withdrawal $withdrawal = $model */
         $this->withdrawalWasCompleted->dispatch($model, $moduleName);
-
     }
 
     /**
@@ -134,4 +133,19 @@ class WithdrawalService extends BaseService
         return $this->userBalanceService->checkBalance($data);
     }
 
+    /**
+     * Update the withdrawal status
+     * @param array $data
+     * @return ServiceResponse
+     */
+    public function updateWithdrawalStatus(array $data): ServiceResponse
+    {
+        $withdrawal = $this->withdrawalRepository->find($data['withdrawal_id']);
+        if (!$withdrawal) {
+            throw new NotFoundException('Withdrawal not found');
+        }
+        $withdrawal->status = $data['status'];
+        $withdrawal->save();
+        return ServiceResponse::success($withdrawal, 'Withdrawal status updated successfully');
+    }
 }

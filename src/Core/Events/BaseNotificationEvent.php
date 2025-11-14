@@ -46,4 +46,14 @@ abstract class BaseNotificationEvent implements NotificationEventsContract
     {
         return config("notification.channels", ['database']);
     }
+
+    /**
+     * Get the serialized data
+     *
+     * @return array
+     */
+    public function getSerializedData(): array
+    {
+        return [];
+    }
 }

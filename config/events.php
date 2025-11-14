@@ -160,57 +160,55 @@ return [
             ],
         ],
 
-        // Funding Events
-        'funding_completed' => [
-            'class' => \App\Modules\Funding\Events\FundingWasCompleted::class,
-            'mode' => env('EVENT_FUNDING_MODE', 'queue'), // sync in local, queue in production
+        // Payment Events
+        'payment_was_completed' => [
+            'class' => \App\Modules\Payment\Events\PaymentWasCompleted::class,
+            'mode' => env('EVENT_PAYMENT_MODE', 'queue'),
             'priority' => 'high',
             'listeners' => [
-                'user_balance_updated' => [
-                    'class' => \App\Modules\User\Listeners\FundingWasCompletedListener::class,
-                    'mode' => env('EVENT_FUNDING_BALANCE_MODE', 'queue'),
-                    'queue' => env('EVENT_FUNDING_BALANCE_QUEUE', 'default'),
-                    'tries' => env('EVENT_FUNDING_BALANCE_TRIES', 3),
+                'funding_payment_was_completed' => [
+                    'class' => \App\Modules\Funding\Listeners\FundingPaymentWasCompletedListener::class,
+                    'mode' => env('EVENT_PAYMENT_FUNDING_MODE', 'queue'),
+                    'queue' => env('EVENT_PAYMENT_FUNDING_QUEUE', 'default'),
+                    'tries' => env('EVENT_PAYMENT_FUNDING_TRIES', 3),
+                    'backoff' => [30, 60, 120],
+                ],
+                'withdrawal_was_completed' => [
+                    'class' => \App\Modules\Withdrawal\Listeners\WithdrawalPaymentWasCompletedListener::class,
+                    'mode' => env('EVENT_PAYMENT_WITHDRAWAL_MODE', 'queue'),
+                    'queue' => env('EVENT_PAYMENT_WITHDRAWAL_QUEUE', 'default'),
+                    'tries' => env('EVENT_PAYMENT_WITHDRAWAL_TRIES', 3),
                     'backoff' => [30, 60, 120],
                 ],
             ],
         ],
-
-        // Withdrawal Events
+        'funding_completed' => [
+            'class' => \App\Modules\Funding\Events\FundingWasCompleted::class,
+            'mode' => env('EVENT_FUNDING_MODE', 'queue'),
+            'priority' => 'high',
+            'listeners' => [
+                'create_funding_payment' => [
+                    'class' => \App\Modules\Payment\Listeners\FundingWasCompletedListener::class,
+                    'mode' => env('EVENT_FUNDING_PAYMENT_MODE', 'queue'),
+                    'queue' => env('EVENT_FUNDING_PAYMENT_QUEUE', 'default'),
+                    'tries' => env('EVENT_FUNDING_PAYMENT_TRIES', 3),
+                    'backoff' => [30, 60, 120],
+                ],
+            ]
+        ],
         'withdrawal_completed' => [
             'class' => \App\Modules\Withdrawal\Events\WithdrawalWasCompleted::class,
             'mode' => env('EVENT_WITHDRAWAL_MODE', 'queue'),
             'priority' => 'high',
             'listeners' => [
-                'user_balance_updated' => [
-                    'class' => \App\Modules\User\Listeners\WithdrawalWasCompletedListener::class,
-                    'mode' => env('EVENT_WITHDRAWAL_BALANCE_MODE', 'queue'),
-                    'queue' => env('EVENT_WITHDRAWAL_BALANCE_QUEUE', 'default'),
-                    'tries' => env('EVENT_WITHDRAWAL_BALANCE_TRIES', 3),
+                'create_withdrawal_payment' => [
+                    'class' => \App\Modules\Payment\Listeners\WithdrawalWasCompletedListener::class,
+                    'mode' => env('EVENT_WITHDRAWAL_PAYMENT_MODE', 'queue'),
+                    'queue' => env('EVENT_WITHDRAWAL_PAYMENT_QUEUE', 'default'),
+                    'tries' => env('EVENT_WITHDRAWAL_PAYMENT_TRIES', 3),
                     'backoff' => [30, 60, 120],
                 ],
-            ],
-
-        ],
-        // User Events (example)
-        'user_registered' => [
-            'mode' => env('EVENT_USER_MODE', 'queue'),
-            'queue' => 'notifications',
-            'priority' => 'medium',
-        ],
-
-        // Notification Events (example)
-        'email_notification' => [
-            'mode' => env('EVENT_EMAIL_MODE', 'scheduled'),
-            'frequency' => 'hourly',
-            'priority' => 'low',
-        ],
-
-        // Analytics Events (example)
-        'analytics_event' => [
-            'mode' => env('EVENT_ANALYTICS_MODE', 'scheduled'),
-            'frequency' => 'daily',
-            'priority' => 'low',
+            ]
         ],
     ],
 

@@ -11,8 +11,8 @@ interface UserCreditServiceInterface extends ServiceInterface
      */
     public function credit(array $data = []): bool;
 
-    public function updateAvailableBalance(array $data = [], string $operation = 'credit'): void;
+    public function updateAvailableBalance(array $data = []): void;
 
-    public function updateCommissionBalance(array $data = [], string $operation = 'credit'): void;
+    public function updateCommissionBalance(array $data = []): void;
 
 }

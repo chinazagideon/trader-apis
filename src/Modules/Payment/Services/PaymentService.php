@@ -8,6 +8,10 @@ use App\Modules\Payment\Repositories\PaymentRepository;
 use App\Modules\Payment\Events\PaymentWasCompleted;
 use Illuminate\Support\Str;
 use App\Modules\Payment\Enums\PaymentStatusEnum;
+use App\Core\Services\EventDispatcher;
+use App\Modules\Payment\Database\Models\Payment;
+use Illuminate\Support\Facades\Log;
+use App\Core\Exceptions\NotFoundException;
 
 class PaymentService extends BaseService
 {
@@ -15,7 +19,7 @@ class PaymentService extends BaseService
 
     public function __construct(
         private PaymentRepository $PaymentRepository,
-        private PaymentWasCompleted $PaymentWasCompleted
+        private EventDispatcher $eventDispatcher
     ) {
         parent::__construct($PaymentRepository);
     }
@@ -76,10 +80,20 @@ class PaymentService extends BaseService
     public function updatePaymentStatus(int $id, PaymentStatusEnum $status): object
     {
         $payment = $this->PaymentRepository->findOrFail($id);
+        if($payment->status === PaymentStatusEnum::COMPLETED->value) {
+            throw new \Exception('Payment already completed');
+        }
+
         $payment->update([
             'status' => $status->value,
         ]);
-        return $payment->refresh();
+
+        $payment->load(['payable']);
+        $payment->refresh();
+
+        $this->dispatchPaymentEvent($payment);
+
+        return $payment;
     }
 
     /**
@@ -98,4 +112,70 @@ class PaymentService extends BaseService
         }, 'show payment');
     }
 
+    /**
+     * Dispatch a payment event
+     * @param Payment $payment
+     * @return void
+     */
+    private function dispatchPaymentEvent(Payment $payment): void
+    {
+        // Only dispatch for statuses that require downstream updates
+        $actionableStatuses = $this->actionableStatuses();
+        $supportedPayableTypes = $this->supportedPayableTypes();
+        if (
+            !in_array($payment->payable_type, $supportedPayableTypes)
+            || !in_array($payment->status, $actionableStatuses)
+        ) {
+            return;
+        }
+
+        Log::info('PaymentService: Dispatching payment completed event', [
+            'payment' => $payment,
+        ]);
+        $this->eventDispatcher->dispatch(
+            new PaymentWasCompleted($payment),
+            'payment_was_completed'
+        );
+    }
+
+    /**
+     * Get the actionable statuses
+     * @return array
+     */
+    private function actionableStatuses(): array
+    {
+        return [
+            PaymentStatusEnum::COMPLETED->value,
+            PaymentStatusEnum::FAILED->value,
+        ];
+    }
+
+    /**
+     * Get the supported payable types
+     * @return array
+     */
+    private function supportedPayableTypes(): array
+    {
+        return [
+            'funding',
+            'withdrawal',
+        ];
+    }
+
+    /**
+     * Get a payment by uuid
+     * @param string $uuid
+     * @return ServiceResponse
+     * @throws NotFoundException
+     */
+    public function findByUuid(string $uuid): ServiceResponse
+    {
+        return $this->executeServiceOperation(function () use ($uuid) {
+            $payment = $this->PaymentRepository->findBy('uuid', $uuid);
+            if (!$payment) {
+                throw new NotFoundException('Payment not found');
+            }
+            return $payment;
+        }, 'find payment by uuid');
+    }
 }

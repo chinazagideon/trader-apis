@@ -13,8 +13,11 @@ use App\Modules\User\Contracts\UserCreditServiceInterface;
 use App\Modules\Role\Contracts\RoleServiceContract;
 use App\Modules\User\Events\UserWasCreatedEvent;
 use Illuminate\Contracts\Events\Dispatcher as EventDispatcher;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Log;
+use App\Modules\User\Enums\UserPaymentTypes;
+use App\Modules\User\Contracts\UserDebitServiceInterface;
+use App\Modules\Payment\Enums\PaymentStatusEnum;
+use App\Core\Exceptions\AppException;
+use App\Modules\User\Enums\UserStatus;
 
 /**
  * User Service
@@ -28,7 +31,8 @@ class UserService extends BaseService implements UserServiceInterface
         private UserBalanceServiceInterface $userBalanceService,
         private UserCreditServiceInterface $userCreditService,
         private RoleServiceContract $roleService,
-        private EventDispatcher $eventDispatcher
+        private EventDispatcher $eventDispatcher,
+        private UserDebitServiceInterface $userDebitService
     ) {
         parent::__construct($userRepository);
     }
@@ -311,9 +315,9 @@ class UserService extends BaseService implements UserServiceInterface
      * @param array $data
      * @return void
      */
-    public function updateAvailableBalance(array $data = [], string $operation = 'credit'): void
+    public function updateAvailableBalance(array $data = []): void
     {
-        $this->userCreditService->updateAvailableBalance($data, $operation);
+        $this->userCreditService->updateAvailableBalance($data);
     }
 
     /**
@@ -321,9 +325,9 @@ class UserService extends BaseService implements UserServiceInterface
      * @param array $data
      * @return void
      */
-    public function updateCommissionBalance(array $data = [], string $operation = 'credit'): void
+    public function updateCommissionBalance(array $data = []): void
     {
-        $this->userCreditService->updateCommissionBalance($data, $operation);
+        $this->userCreditService->updateCommissionBalance($data);
     }
 
     /**
@@ -350,7 +354,7 @@ class UserService extends BaseService implements UserServiceInterface
     public function creditAvailableBalance(array $data = []): ServiceResponse
     {
         return $this->executeServiceOperation(function () use ($data) {
-            $this->updateAvailableBalance($data, 'credit');
+            $this->updateAvailableBalance($data);
             return ServiceResponse::success(null, 'Credit available balance successful');
         }, 'credit available balance');
     }
@@ -363,8 +367,93 @@ class UserService extends BaseService implements UserServiceInterface
     public function creditCommissionBalance(array $data = []): ServiceResponse
     {
         return $this->executeServiceOperation(function () use ($data) {
-            $this->updateCommissionBalance($data, 'credit');
+            $this->updateCommissionBalance($data);
             return ServiceResponse::success(null, 'Credit commission balance successful');
         }, 'credit commission balance');
+    }
+
+    /**
+     * Resolve payment
+     * @param array $data
+     * @return void
+     */
+    public function resolvePayment(array $data = []): void
+    {
+        $status = $data['status'];
+        $type = $data['type'];
+
+        // $this->validateUserActive($userId);
+
+        //if status is completed, resolve payment
+        if ($status === PaymentStatusEnum::COMPLETED->value) {
+            //funding
+            if ($type === UserPaymentTypes::Funding->value) {
+                $this->updateAvailableBalanceForFunding($data);
+            }
+            //withdraw fund
+            if ($type === UserPaymentTypes::Withdrawal->value) {
+                $this->updateAvailableBalanceForWithdrawal($data);
+            }
+        }
+    }
+
+    /**
+     * Resolve funding payment
+     * @param array $data
+     * @return void
+     */
+    private function updateAvailableBalanceForFunding(array $data = []): void
+    {
+        $preparedData = $this->prepareCreditData($data);
+        $this->userCreditService->updateAvailableBalance($preparedData);
+    }
+
+    /**
+     * Withdraw fund
+     * @param array $data
+     * @return void
+     */
+    private function updateAvailableBalanceForWithdrawal(array $data = []): void
+    {
+        $preparedData = $this->prepareDebitData($data);
+        $this->userDebitService->debitAvailableBalance($preparedData);
+    }
+
+    /**
+     * Prepare debit data
+     * @param array $data
+     * @return array
+     */
+    private function prepareDebitData(array $data = []): array
+    {
+        return [
+            'user_id' => $data['user_id'],
+            'amount' => $data['amount'],
+            'type' => $data['type'],
+        ];
+    }
+
+    /**
+     * Prepare credit data
+     * @param array $data
+     * @return array
+     */
+    private function prepareCreditData(array $data = []): array
+    {
+        return [
+            'user_id' => $data['user_id'],
+            'amount' => $data['amount'],
+            'type' => $data['type'],
+        ];
+    }
+
+    /**
+     * Validate user active
+     * @param array $data
+     * @return void
+     */
+    private function validateUserActive(int $userId): void
+    {
+
     }
 }

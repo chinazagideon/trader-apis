@@ -12,6 +12,7 @@ Route::prefix('payment')->name('payment.')->group(function () {
 
         Route::prefix('processor')->name('processor.')->group(function() {
             Route::post('/initiate', [PaymentProcessorController::class, 'Initiate'])->name('postInitiate');
+            Route::post('/status', [PaymentProcessorController::class, 'Status'])->name('posStatus');
             Route::get('/', [PaymentProcessorController::class, 'index'])->name('show');
         });
 
@@ -24,6 +25,10 @@ Route::prefix('payment')->name('payment.')->group(function () {
             Route::put('/{id}', [PaymentGatewayController::class, 'update'])->name('update');
             Route::delete('/{id}', [PaymentGatewayController::class, 'destroy'])->name('destroy');
         });
+
+        Route::post('/status', [PaymentController::class, 'Status'])->name('postStatus');
+
+
         Route::get('/', [PaymentController::class, 'index'])->name('index');
         Route::post('/', [PaymentController::class, 'store'])->name('store');
         Route::get('/{id}', [PaymentController::class, 'show'])->name('show');

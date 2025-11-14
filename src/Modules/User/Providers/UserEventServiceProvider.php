@@ -3,10 +3,8 @@
 namespace App\Modules\User\Providers;
 
 use App\Core\Providers\ModuleEventServiceProviderBase;
-use App\Modules\Funding\Events\FundingWasCompleted;
-use App\Modules\User\Listeners\FundingWasCompletedListener;
-use App\Modules\Withdrawal\Events\WithdrawalWasCompleted;
-use App\Modules\User\Listeners\WithdrawalWasCompletedListener;
+use App\Modules\Payment\Events\PaymentWasCompleted;
+use App\Modules\User\Listeners\UserPaymentWasCompletedListener;
 
 class UserEventServiceProvider extends ModuleEventServiceProviderBase
 {
@@ -14,11 +12,8 @@ class UserEventServiceProvider extends ModuleEventServiceProviderBase
      * The event to listener mappings for the application.
      */
     protected $listen = [
-        FundingWasCompleted::class => [
-            FundingWasCompletedListener::class,
-        ],
-        WithdrawalWasCompleted::class => [
-            WithdrawalWasCompletedListener::class,
+        PaymentWasCompleted::class => [
+            UserPaymentWasCompletedListener::class,
         ],
     ];
 

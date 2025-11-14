@@ -385,12 +385,6 @@ abstract class CrudController extends BaseController
         preg_match('/App\\\\Modules\\\\([^\\\\]+)\\\\Http/', $namespace, $matches);
 
         $module = $matches[1] ?? 'Unknown';
-
-        \Illuminate\Support\Facades\Log::debug("Module name extracted", [
-            'module' => $module,
-            'matches' => $matches
-        ]);
-
         return $module;
     }
 

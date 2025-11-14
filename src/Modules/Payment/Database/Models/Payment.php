@@ -2,6 +2,7 @@
 
 namespace App\Modules\Payment\Database\Models;
 
+use App\Core\Models\CoreModel;
 use App\Core\Traits\HasTimestamps;
 use App\Core\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
@@ -11,12 +12,13 @@ use App\Modules\Currency\Database\Models\Currency;
 use App\Modules\Notification\Traits\Notifiable;
 use Illuminate\Database\Eloquent\Concerns\HasRelationships;
 use App\Modules\Payment\Traits\BelongsToPayable;
-class Payment extends Model
+class Payment extends CoreModel
 {
     use HasTimestamps;
     use HasUuid;
     use Notifiable;
     use BelongsToPayable;
+    
     /**
      * The attributes that are mass assignable.
      *

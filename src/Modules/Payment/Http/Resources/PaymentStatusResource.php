@@ -4,22 +4,21 @@ namespace App\Modules\Payment\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PaymentIndexResource extends JsonResource
+class PaymentStatusResource extends JsonResource
 {
+    /**
+     * Transform the resource into an array.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return array<string, mixed>
+     */
     public function toArray($request): array
     {
-
         return [
-            'id' => $this->id,
             'uuid' => $this->uuid,
+            'status' => $this->status,
             'payable_type' => $this->payable_type,
             'payable_id' => $this->payable_id,
-            'status' => $this->status,
-            'amount' => $this->amount,
-            'currency_id' => $this->currency_id,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
-            'currency' => $this->whenLoaded('currency'),
             'payable' => $this->whenLoaded('payable'),
         ];
     }

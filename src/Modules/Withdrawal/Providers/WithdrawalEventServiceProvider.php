@@ -4,6 +4,8 @@ namespace App\Modules\Withdrawal\Providers;
 
 use App\Core\Providers\ModuleEventServiceProviderBase;
 use App\Modules\Withdrawal\Events\WithdrawalWasCompleted;
+use App\Modules\Payment\Events\PaymentWasCompleted;
+use App\Modules\Withdrawal\Listeners\WithdrawalPaymentWasCompletedListener;
 use Illuminate\Support\Facades\Event;
 
 class WithdrawalEventServiceProvider extends ModuleEventServiceProviderBase
@@ -11,7 +13,11 @@ class WithdrawalEventServiceProvider extends ModuleEventServiceProviderBase
     /**
      * The event to listener mappings for the application.
      */
-    protected $listen = [];
+    protected $listen = [
+        PaymentWasCompleted::class => [
+            WithdrawalPaymentWasCompletedListener::class,
+        ],
+    ];
 
     /**
      * Register any events for your application.
@@ -19,8 +25,6 @@ class WithdrawalEventServiceProvider extends ModuleEventServiceProviderBase
     public function boot(): void
     {
         parent::boot();
-        //register withdrawal completed event
-        // Event::listen(WithdrawalWasCompleted::class);
     }
 
     /**

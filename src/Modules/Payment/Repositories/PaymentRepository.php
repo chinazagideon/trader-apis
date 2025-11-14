@@ -28,7 +28,7 @@ class PaymentRepository extends BaseRepository implements MorphRepositoryInterfa
      */
     protected function getDefaultRelationships(): array
     {
-        return ['currency'];
+        return ['currency', 'payable'];
     }
 
     // /**

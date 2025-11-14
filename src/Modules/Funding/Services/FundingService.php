@@ -47,6 +47,18 @@ class FundingService extends BaseService
     {
         /** @var Funding $model */
         FundingWasCompleted::dispatch($model, $this->FundingRepository->moduleName, $operation);
+    }
 
+    /**
+     * Update the funding status
+     * @param array $data
+     * @return ServiceResponse
+     */
+    public function updateFundingStatus(array $data): ServiceResponse
+    {
+        $funding = $this->FundingRepository->find($data['funding_id']);
+        $funding->status = $data['status'];
+        $funding->save();
+        return ServiceResponse::success($funding, 'Funding status updated successfully');
     }
 }

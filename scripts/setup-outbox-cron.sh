@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Setup script for notification outbox cron job
-# Run this script on your production server
 
 echo "Setting up notification outbox cron job..."
 
@@ -44,7 +43,7 @@ fi
 
 # Verify it was added
 if crontab -l 2>/dev/null | grep -q "schedule:run"; then
-    echo "✅ Cron job installed successfully!"
+    echo "Cron job installed successfully!"
     echo ""
     echo "Cron entry:"
     crontab -l | grep "schedule:run"
@@ -59,7 +58,7 @@ if crontab -l 2>/dev/null | grep -q "schedule:run"; then
     echo "To remove the cron job:"
     echo "  crontab -l | grep -v 'schedule:run' | crontab -"
 else
-    echo "❌ Failed to install cron job!"
+    echo "Failed to install cron job!"
     exit 1
 fi
 

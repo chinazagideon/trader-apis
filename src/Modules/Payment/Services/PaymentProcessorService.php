@@ -2,6 +2,7 @@
 
 namespace App\Modules\Payment\Services;
 
+use App\Core\Exceptions\AppException;
 use App\Core\Services\BaseService;
 use App\Core\Http\ServiceResponse;
 use App\Core\Services\EventDispatcher;
@@ -163,5 +164,25 @@ class PaymentProcessorService extends BaseService implements PaymentProcessorSer
 
         /** @var PaymentProcessor $paymentProcessor = $model */
         PaymentWasInitialised::dispatch($paymentProcessor);
+    }
+
+    /**
+     * Update the status of a payment processor
+     * @param array $data
+     * @return ServiceResponse
+     */
+    public function updateStatus(array $data): ServiceResponse
+    {
+        $paymentProcessorUuid = $data['uuid'];
+        $paymentProcessor = $this->paymentProcessorRepository->findBy('uuid', $paymentProcessorUuid);
+        if (!$paymentProcessor) {
+            throw new AppException('Invalid payment reference');
+        }
+        $updatedPayment = $this->paymentService->updatePaymentStatus($paymentProcessor->payment_id, PaymentStatusEnum::from($data['status']));
+        if (!$updatedPayment) {
+            throw new AppException('Failed to update payment status');
+        }
+        $paymentProcessor->update(['status' => $data['status']]);
+        return ServiceResponse::success($paymentProcessor->refresh(), "Payment status updated to {$data['status']} successfully");
     }
 }
