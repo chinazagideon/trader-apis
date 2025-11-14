@@ -40,7 +40,7 @@ class PaymentRepository extends BaseRepository implements MorphRepositoryInterfa
     public function getPayments(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         $query = $this->queryWithPolicyFilter($filters);
-        $query = $this->withAllRelations($query);
+        $query = $this->withAllRelations($query, $this->getDefaultRelationships());
         return $query->paginate($perPage);
     }
 
@@ -54,7 +54,7 @@ class PaymentRepository extends BaseRepository implements MorphRepositoryInterfa
     public function getPayment(int $id): ?Payment
     {
         $query = $this->queryWithPolicyFilter(['id' => $id]);
-        $query = $this->withAllRelations($query);
+        $query = $this->withAllRelations($query, $this->getDefaultRelationships());
         return $query->first();
     }
 
@@ -75,9 +75,8 @@ class PaymentRepository extends BaseRepository implements MorphRepositoryInterfa
     public function morphToRelations(): array
     {
         return [
-            \App\Modules\Withdrawal\Database\Models\Withdrawal::class => ['withdrawable'],
-            \App\Modules\Funding\Database\Models\Funding::class => ['fundable'],
-
+            \App\Modules\Withdrawal\Database\Models\Withdrawal::class => ['withdrawable', 'fiatCurrency'],
+            \App\Modules\Funding\Database\Models\Funding::class => ['fundable', 'fiatCurrency'],
         ];
     }
 

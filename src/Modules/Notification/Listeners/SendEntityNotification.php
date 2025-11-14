@@ -21,7 +21,7 @@ class SendEntityNotification implements ConfigurableListenerInterface, ShouldQue
     /**
      * Configuration keys for this listener
      */
-    protected string $eventConfigKey = 'investment_created'; // Default, can be overridden
+    protected string $eventConfigKey = 'notification_event'; // Default, can be overridden
     protected string $listenerConfigKey = 'send_notification';
 
     /**

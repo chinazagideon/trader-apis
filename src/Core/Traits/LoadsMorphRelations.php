@@ -118,6 +118,17 @@ trait LoadsMorphRelations
                 ? $additionalRelationships
                 : $this->getDefaultRelationships();
 
+            // Exclude the morph relationship from regular relationships to avoid overwriting
+            $morphRelationName = $this instanceof MorphRepositoryInterface
+                ? $this->getMorphRelationshipName()
+                : null;
+
+            if ($morphRelationName) {
+                $relationships = array_filter($relationships, function($rel) use ($morphRelationName) {
+                    return $rel !== $morphRelationName;
+                });
+            }
+
             $query = $this->withRelationships($query, $relationships);
         }
 

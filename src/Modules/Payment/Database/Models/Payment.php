@@ -18,7 +18,7 @@ class Payment extends CoreModel
     use HasUuid;
     use Notifiable;
     use BelongsToPayable;
-    
+
     /**
      * The attributes that are mass assignable.
      *

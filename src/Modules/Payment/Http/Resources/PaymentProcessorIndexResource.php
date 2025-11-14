@@ -13,7 +13,6 @@ class PaymentProcessorIndexResource extends JsonResource
             'id' => $this->id,
             'uuid' => $this->uuid,
             'payment_gateway_id' => $this->payment_gateway_id,
-            // 'payment_gateway' => new PaymentGatewayIndexResource($this->paymentGateway),
             'payment' => $this->whenLoaded('payment'),
             'payment_id' => $this->payment_id,
             'amount' => $this->amount,

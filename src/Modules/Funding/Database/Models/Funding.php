@@ -81,6 +81,6 @@ class Funding extends Model implements OwnershipBased
      */
     public function fiatCurrency(): BelongsTo
     {
-        return $this->belongsTo(Currency::class);
+        return $this->belongsTo(Currency::class, 'fiat_currency_id');
     }
 }

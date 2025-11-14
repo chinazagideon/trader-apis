@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Modules\Payment\Http\Resources;
+namespace  App\Modules\Payment\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -8,11 +8,11 @@ class PaymentProcessorShowResource extends JsonResource
 {
     public function toArray($request): array
     {
+
         return [
             'id' => $this->id,
             'uuid' => $this->uuid,
             'payment_gateway_id' => $this->payment_gateway_id,
-            'payment_gateway' => $this->whenLoaded('paymentGateway'),
             'payment' => $this->whenLoaded('payment'),
             'payment_id' => $this->payment_id,
             'amount' => $this->amount,
@@ -29,4 +29,3 @@ class PaymentProcessorShowResource extends JsonResource
         ];
     }
 }
-
