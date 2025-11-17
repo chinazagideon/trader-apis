@@ -66,7 +66,7 @@ services:
     networks:
       - trader-network
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$MYSQL_ROOT_PASSWORD"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p${DB_PASSWORD}"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -98,7 +98,7 @@ services:
     working_dir: /var/www
     volumes:
       - ./:/var/www
-    command: php artisan queue:work redis --queue=default,financial --verbose --tries=3 --timeout=90
+    command: php artisan queue:work redis --queue=notifications,default,financial --verbose --tries=3 --timeout=90
     networks:
       - trader-network
     healthcheck:
