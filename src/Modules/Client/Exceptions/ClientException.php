@@ -12,8 +12,8 @@ class ClientException extends AppException
 
     public function __construct(
         string $message = 'Client error occurred',
-        int $httpStatusCode = 0,
-        string $errorCode = '',
+        int $httpStatusCode = Response::HTTP_BAD_REQUEST,
+        string $errorCode = 'CLIENT_ERROR',
         array $context = [],
         int $code = 0,
         \Exception $previous = new \Exception()

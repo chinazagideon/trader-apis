@@ -62,6 +62,7 @@ class User extends Authenticatable implements JWTSubject
     protected $hidden = [
         'password',
         'remember_token',
+        'email_verification_token',
     ];
 
     /**
@@ -186,6 +187,16 @@ class User extends Authenticatable implements JWTSubject
             'role_id' => $this->role_id,
             'user_id' => $this->id,
         ];
+    }
+
+    /**
+     * Check if user has role
+     * @param int $roleId
+     * @return bool
+     */
+    public function hasRole(int $roleId): bool
+    {
+        return $this->role_id === $roleId;
     }
 
 

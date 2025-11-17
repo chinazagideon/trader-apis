@@ -3,6 +3,7 @@
 namespace App\Modules\Client\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Modules\User\Enums\RolesEnum;
 
 class ClientActivateClientRequest extends FormRequest
 {
@@ -13,7 +14,7 @@ class ClientActivateClientRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->hasRole(RolesEnum::SUPER_ADMIN->value);
     }
 
     /**
