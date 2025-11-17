@@ -5,6 +5,7 @@ namespace App\Modules\Notification\Channels;
 use App\Modules\Notification\Services\ProviderManager;
 use App\Modules\Notification\Database\Models\Notification as NotificationModel;
 use Illuminate\Notifications\Notification;
+use Illuminate\Notifications\Messages\MailMessage;
 
 class MultiProviderMailChannel
 {
@@ -17,22 +18,62 @@ class MultiProviderMailChannel
 
     /**
      * Send the given notification.
+     *
+     * @param mixed $notifiable
+     * @param Notification|EntityEventNotification $notification
      */
     public function send($notifiable, Notification $notification): void
     {
         // Get email data from notification
-        $data = method_exists($notification, 'toMail')
-            ? $notification->toMail($notifiable)
-            : $notification->toArray($notifiable);
+        $mailMessage = null;
 
-        // Prepare email data
-        $emailData = $this->prepareEmailData($notifiable, $data);
+        if (method_exists($notification, 'toMail')) {
+            /** @var MailMessage|null $mailMessage */
+            $mailMessage = $notification->toMail($notifiable);
+        }
 
-        // Send with failover
-        $result = $this->providerManager->sendWithFailover('mail', $notifiable, $emailData);
+        if (!$mailMessage instanceof MailMessage) {
+            // Fallback for array data
+            $emailData = $this->prepareEmailData($notifiable, $notification->toArray($notifiable));
+            $result = $this->providerManager->sendWithFailover('mail', $notifiable, $emailData);
+        } else {
+            // Extract view and data from MailMessage and use ProviderManager
+            $emailData = $this->prepareEmailDataFromMailMessage($notifiable, $mailMessage);
+            $result = $this->providerManager->sendWithFailover('mail', $notifiable, $emailData);
+        }
 
         // Store notification in database
         $this->storeNotification($notifiable, $notification, $result);
+    }
+
+    /**
+     * Prepare email data from MailMessage object
+     * Uses reflection to access protected properties
+     */
+    protected function prepareEmailDataFromMailMessage($notifiable, MailMessage $mailMessage): array
+    {
+        // Use reflection to access protected properties
+        $reflection = new \ReflectionClass($mailMessage);
+
+        // Get view property
+        $viewProperty = $reflection->getProperty('view');
+        $viewProperty->setAccessible(true);
+        $view = $viewProperty->getValue($mailMessage);
+
+        // Get viewData property
+        $viewDataProperty = $reflection->getProperty('viewData');
+        $viewDataProperty->setAccessible(true);
+        $viewData = $viewDataProperty->getValue($mailMessage) ?? [];
+
+        // Get subject (public property)
+        $subject = $mailMessage->subject ?? 'Notification';
+
+        return [
+            'email' => $notifiable->email ?? null,
+            'subject' => $subject,
+            'view' => $view,
+            'viewData' => $viewData,
+        ];
     }
 
     /**
@@ -48,13 +89,11 @@ class MultiProviderMailChannel
             ], $data);
         }
 
-        // Handle MailMessage object
+        // Handle MailMessage object (fallback - should not be reached)
         return [
             'email' => $notifiable->email ?? null,
             'subject' => $data->subject ?? 'Notification',
             'body' => $data->introLines[0] ?? '',
-            'view' => $data->view ?? null,
-            'viewData' => $data->viewData ?? [],
         ];
     }
 
@@ -82,4 +121,3 @@ class MultiProviderMailChannel
         ]);
     }
 }
-

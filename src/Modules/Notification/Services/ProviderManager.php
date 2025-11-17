@@ -171,17 +171,33 @@ class ProviderManager
         try {
             $mailer = $provider['config']['mailer'] ?? $provider['name'];
 
-            Mail::mailer($mailer)->send(
-                $data['view'] ?? 'notification::email',
-                $data,
-                function ($message) use ($notifiable, $data) {
-                    $to = $data['email'] ?? ($notifiable->email ?? null);
-                    if ($to) {
-                        $message->to($to)
+            // Handle MailMessage-style data (with view and viewData)
+            if (isset($data['view']) && isset($data['viewData'])) {
+                Mail::mailer($mailer)->send(
+                    $data['view'],
+                    $data['viewData'],
+                    function ($message) use ($notifiable, $data) {
+                        $to = $data['email'] ?? ($notifiable->email ?? null);
+                        if ($to) {
+                            $message->to($to)
                                 ->subject($data['subject'] ?? 'Notification');
+                        }
                     }
-                }
-            );
+                );
+            } else {
+                // Fallback for simple array data
+                Mail::mailer($mailer)->send(
+                    $data['view'] ?? 'emails.notification',
+                    $data,
+                    function ($message) use ($notifiable, $data) {
+                        $to = $data['email'] ?? ($notifiable->email ?? null);
+                        if ($to) {
+                            $message->to($to)
+                                ->subject($data['subject'] ?? 'Notification');
+                        }
+                    }
+                );
+            }
 
             return ['success' => true, 'message' => 'Email sent successfully'];
         } catch (\Exception $e) {
@@ -334,7 +350,7 @@ class ProviderManager
      */
     protected function getProviderType(string $channel): string
     {
-        return match($channel) {
+        return match ($channel) {
             'mail' => 'email_provider',
             'sms' => 'sms_provider',
             'push' => 'push_provider',
@@ -348,7 +364,7 @@ class ProviderManager
      */
     protected function getChannelKey(string $channel): string
     {
-        return match($channel) {
+        return match ($channel) {
             'mail' => 'email',
             default => $channel,
         };
@@ -382,4 +398,3 @@ class ProviderManager
         }
     }
 }
-
