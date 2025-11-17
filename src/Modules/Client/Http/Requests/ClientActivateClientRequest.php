@@ -14,7 +14,7 @@ class ClientActivateClientRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->hasRole(RolesEnum::SUPER_ADMIN->value);
+        return true;
     }
 
     /**
