@@ -184,6 +184,9 @@ class UserController extends CrudController
         return $this->handleServiceResponse($response);
     }
 
+    /**
+     * Credit available balance
+     */
     public function creditAvailableBalance(array $data = []): JsonResponse
     {
         $response = $this->userService->creditAvailableBalance($data);
@@ -191,9 +194,21 @@ class UserController extends CrudController
         return $this->handleServiceResponse($response);
     }
 
+    /**
+     * Credit commission balance
+     * @param array $data
+     * @return JsonResponse
+     */
     public function creditCommissionBalance(array $data = []): JsonResponse
     {
         $response = $this->userService->creditCommissionBalance($data);
         return $this->handleServiceResponse($response);
     }
+
+    // public function changePassword(array $data = []): JsonResponse
+    // {
+        // $response = $this->userService->changePassword($data);
+        // return $this->handleServiceResponse($response);
+    // }
+
 }
