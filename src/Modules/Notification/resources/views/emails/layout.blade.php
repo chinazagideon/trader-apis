@@ -11,9 +11,9 @@
     style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
 
     <!-- Header -->
-    <div style="background-color: #4F46E5; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
-        <img src="https://www.shutterstock.com/image-vector/google-icon-made-manually-based-600w-2317500299.jpg"
-            alt="Logo" style="width: 100px; height: 100px;">
+    <div style="background-color: #0c0606; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
+        {{-- <img src="https://www.shutterstock.com/image-vector/google-icon-made-manually-based-600w-2317500299.jpg"
+            alt="Logo" style="width: 100px; height: 100px;"> --}}
         <h1 style="margin: 0; font-size: 24px;">{{ $title ?? 'Notification' }}</h1>
     </div>
 
