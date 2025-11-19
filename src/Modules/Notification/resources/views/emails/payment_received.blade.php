@@ -2,7 +2,7 @@
 
 @section('content')
     <p style="font-size: 16px; margin-bottom: 15px; color: #374151;">
-        We have successfully received your payment!
+        Payment was received successfully.
     </p>
 
     <!-- Payment Details -->
@@ -53,7 +53,7 @@
     </div>
 
     <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">
-        Thank you for your payment! Your account has been updated accordingly. If you have any questions about this payment, please contact our support team.
+         Your account has been updated accordingly. If you have any questions about this payment, please contact our support team.
     </p>
 @endsection
 

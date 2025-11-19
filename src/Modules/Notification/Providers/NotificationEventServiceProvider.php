@@ -10,6 +10,9 @@ use App\Modules\Transaction\Events\TransactionWasCreated;
 use App\Modules\User\Events\UserWasCreatedEvent;
 use App\Modules\Funding\Events\FundingWasCompleted;
 use App\Modules\Payment\Events\PaymentWasCompleted;
+use App\Modules\Withdrawal\Events\WithdrawalWasCompleted;
+
+
 class NotificationEventServiceProvider extends ModuleEventServiceProviderBase
 {
     /**
@@ -32,6 +35,9 @@ class NotificationEventServiceProvider extends ModuleEventServiceProviderBase
             SendEntityNotification::class,
         ],
         PaymentWasCompleted::class => [
+            SendEntityNotification::class,
+        ],
+        WithdrawalWasCompleted::class => [
             SendEntityNotification::class,
         ],
 

@@ -140,7 +140,7 @@ class PaymentWasCompleted extends BaseNotificationEvent implements ShouldDispatc
             // 'type' => $this->payment->payable_type, // Keep for backward compatibility
             'amount' => $this->payment->amount,
             'hash' => $this->payment->hash ?? null,
-            'currency' => $this->payment->currency,
+            'currency' => $this->payment->currency ?? null,
             'method' => $this->payment->method ?? null,
             'uuid' => $this->payment->uuid,
         ];

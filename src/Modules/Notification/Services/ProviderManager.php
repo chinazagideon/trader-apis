@@ -187,7 +187,9 @@ class ProviderManager
             $providerInstance = $this->providerResolver->resolve($providerName, $providerConfig, 'mail');
 
             if ($providerInstance && $providerInstance->isAvailable()) {
-                return $providerInstance->send($notifiable, $data);
+                // Prepare data for SendGrid (resolve email, render views, etc.)
+                $preparedData = $this->prepareEmailDataForProvider($providerName, $notifiable, $data);
+                return $providerInstance->send($notifiable, $preparedData);
             }
 
             // Fallback to Laravel's Mail facade for standard providers
@@ -437,5 +439,41 @@ class ProviderManager
                 'data' => $data,
             ]);
         }
+    }
+
+    /**
+     * Prepare email data for provider (resolve email, render views, etc.)
+     */
+    protected function prepareEmailDataForProvider(string $providerName, $notifiable, array $data): array
+    {
+        // Resolve recipient email
+        $to = $data['email'] ?? ($notifiable->email ?? null);
+
+        // Resolve from name (module-specific logic)
+        $fromName = null;
+        if (isset($data['notifiable_client_name'])) {
+            $fromName = ucwords($data['notifiable_client_name']);
+        }
+
+        // Render views if needed
+        $html = null;
+        $text = null;
+
+        if (isset($data['view']) && isset($data['viewData'])) {
+            $html = view($data['view'], $data['viewData'])->render();
+            $text = strip_tags($html);
+        } elseif (isset($data['body']) || isset($data['message'])) {
+            $text = $data['body'] ?? $data['message'] ?? null;
+        }
+
+        // Build prepared data
+        $preparedData = array_merge($data, [
+            'to' => $to,
+            'from_name' => $fromName,
+            'html' => $html,
+            'text' => $text,
+        ]);
+
+        return $preparedData;
     }
 }

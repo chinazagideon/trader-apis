@@ -134,11 +134,11 @@ return [
     */
     'email_providers' => [
         'smtp' => [
-            'host' => env('MAIL_HOST'),
-            'port' => env('MAIL_PORT'),
+            'host' => env('MAIL_HOST', env('APP_ENV') === 'local' ? '127.0.0.1' : 'smtp.mailtrap.io'),
+            'port' => env('MAIL_PORT', env('APP_ENV') === 'local' ? 1025 : 2525),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
-            'encryption' => env('MAIL_ENCRYPTION'),
+            'encryption' => env('MAIL_ENCRYPTION', env('APP_ENV') === 'local' ? null : 'tls'),
         ],
         'ses' => [
             'key' => env('AWS_ACCESS_KEY_ID'),
@@ -250,6 +250,12 @@ return [
             'title' => 'Funding Completed',
             'body' => 'Your funding request has been completed.',
             'view' => 'notification::emails.funding_completed',
+        ],
+        'withdrawal_completed' => [
+            'subject' => 'Withdrawal Completed',
+            'title' => 'Withdrawal Completed',
+            'body' => 'Your withdrawal request has been completed.',
+            'view' => 'notification::emails.withdrawal_completed',
         ],
     ],
 

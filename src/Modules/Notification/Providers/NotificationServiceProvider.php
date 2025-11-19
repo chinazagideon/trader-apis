@@ -37,12 +37,15 @@ class NotificationServiceProvider extends BaseModuleServiceProvider
      */
     protected function registerServices(): void
     {
-        // Register SendGrid Mailer Service first (dependency for ProviderManager)
+        // Register SendGrid Mailer Service
         $this->app->singleton(SendGridMailerService::class, function ($app) {
             return new SendGridMailerService();
         });
 
-
+        // Register SMTP Mailer Service
+        $this->app->singleton(\App\Modules\Notification\Services\SMTPMailerService::class, function ($app) {
+            return new \App\Modules\Notification\Services\SMTPMailerService();
+        });
 
         // Register Provider Resolver
         $this->app->singleton(ProviderResolverInterface::class, ProviderResolver::class);

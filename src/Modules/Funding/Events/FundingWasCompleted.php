@@ -43,7 +43,7 @@ class FundingWasCompleted extends BaseNotificationEvent implements ShouldDispatc
      */
     public function getMetadata(): array
     {
-        return $this->getPreparedNotificationData();
+        return array_merge($this->getPreparedNotificationData(), $this->getSerializedData());
     }
 
     /**
@@ -133,5 +133,25 @@ class FundingWasCompleted extends BaseNotificationEvent implements ShouldDispatc
     public function getNotifiable(): User
     {
         return $this->funding->fundable;
+    }
+
+    /**
+     * Get the serialized data
+     *
+     * @return array
+     */
+    public function getSerializedData(): array
+    {
+        return [
+            'funding_id' => $this->funding->id,
+            'uuid' => $this->funding->uuid,
+            'fundable_id' => $this->funding->fundable_id,
+            'fundable_type' => $this->funding->fundable_type,
+            'amount' => $this->funding->amount,
+            'fiat_amount' => $this->funding->fiat_amount,
+            'status' => $this->funding->status,
+            'currency' => $this->funding->currency ?? null,
+            'fiat_currency' => $this->funding->fiatCurrency ?? null,
+        ];
     }
 }

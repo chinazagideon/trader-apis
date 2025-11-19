@@ -84,6 +84,7 @@ class ProviderResolver implements ProviderResolverInterface
         $providerMap = [
             'mail' => [
                 'sendgrid' => \App\Modules\Notification\Services\SendGridMailerService::class,
+                'smtp' => \App\Modules\Notification\Services\SMTPMailerService::class,
             ],
             'sms' => [],
         ];

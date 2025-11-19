@@ -30,7 +30,7 @@ class EntityEventNotification extends BaseNotification
         // Prepare template data (objects for view, strings for placeholders)
         $templateData = $this->getTemplateData([
             'entity' => $this->entity,
-            'entityId' => $this->entity->id ?? 'N/A',
+            'entityId' => $this->entity->uuid ?? $this->entity->id ?? 'N/A',
             'entityType' => class_basename(get_class($this->entity)),
             'notifiable' => $notifiable,
             'eventType' => $this->eventType,
@@ -120,7 +120,7 @@ class EntityEventNotification extends BaseNotification
         $message = $this->data['message'] ?? $template['body'] ?? '';
 
         $replacements = array_merge(
-            ['id' => $this->entity->id ?? 'N/A'],
+            ['id' => $this->entity->uuid ?? $this->entity->id ?? 'N/A'],
             $this->data
         );
 
@@ -129,7 +129,7 @@ class EntityEventNotification extends BaseNotification
             'message' => $this->replacePlaceholders($message, $replacements),
             'event_type' => $this->eventType,
             'entity_type' => get_class($this->entity),
-            'entity_id' => $this->entity->id ?? null,
+            'entity_id' => $this->entity->uuid ?? $this->entity->id ?? null,
             'data' => $this->data,
         ];
     }
@@ -143,7 +143,7 @@ class EntityEventNotification extends BaseNotification
         $message = $template['body'] ?? $this->data['message'] ?? '';
 
         $replacements = array_merge(
-            ['id' => $this->entity->id ?? 'N/A'],
+            ['id' => $this->entity->uuid ?? $this->entity->id ?? 'N/A'],
             $this->data
         );
 
@@ -164,7 +164,7 @@ class EntityEventNotification extends BaseNotification
         $body = $template['body'] ?? $this->data['message'] ?? '';
 
         $replacements = array_merge(
-            ['id' => $this->entity->id ?? 'N/A'],
+            ['id' => $this->entity->uuid ?? $this->entity->id ?? 'N/A'],
             $this->data
         );
 
@@ -184,7 +184,7 @@ class EntityEventNotification extends BaseNotification
         $message = $template['body'] ?? $this->data['message'] ?? '';
 
         $replacements = array_merge(
-            ['id' => $this->entity->id ?? 'N/A'],
+            ['id' => $this->entity->uuid ?? $this->entity->id ?? 'N/A'],
             $this->data
         );
 

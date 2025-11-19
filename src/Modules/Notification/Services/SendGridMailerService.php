@@ -47,39 +47,44 @@ class SendGridMailerService implements ProviderInterface
                 'data' => $data,
             ]);
 
-            $email = new SendGridMail();
-            $getNameFromData = $this->getFromName($data);
-
-            // Set from address
-            $email->setFrom($this->fromAddress, $getNameFromData ?? $this->fromName);
-
-            // Get recipient email
-            $to = $data['email'] ?? ($notifiable->email ?? null);
+            // Expect resolved email address
+            $to = $data['to'] ?? $data['email'] ?? null;
             if (!$to) {
                 return [
                     'success' => false,
-                    'message' => 'No email address found for notifiable',
+                    'message' => 'Recipient email address is required',
                 ];
             }
 
+            // Build SendGrid Mail object
+            $email = new SendGridMail();
+
+            // Set from (use provided or fallback to config)
+            $from = $data['from'] ?? $this->fromAddress;
+            $fromName = $data['from_name'] ?? $this->fromName;
+            $email->setFrom($from, $fromName);
+
+            // Set recipient and subject
             $email->addTo($to);
             $email->setSubject($data['subject'] ?? 'Notification');
 
-            // Handle view-based emails (HTML)
-            if (isset($data['view']) && isset($data['viewData'])) {
-                $htmlContent = view($data['view'], $data['viewData'])->render();
-                $email->addContent("text/html", $htmlContent);
+            // Expect pre-rendered content
+            if (!empty($data['html'])) {
+                $email->addContent("text/html", $data['html']);
+            }
 
-                // Also add plain text version for better deliverability
-                $plainText = strip_tags($htmlContent);
-                $email->addContent("text/plain", $plainText);
+            if (!empty($data['text'])) {
+                $email->addContent("text/plain", $data['text']);
+            } elseif (!empty($data['html'])) {
+                // Fallback: generate plain text from HTML if only HTML provided
+                $email->addContent("text/plain", strip_tags($data['html']));
             } else {
-                // Plain text fallback
+                // Last resort: use body/message if provided
                 $body = $data['body'] ?? $data['message'] ?? 'Notification';
                 $email->addContent("text/plain", $body);
             }
 
-            // Send via HTTP API (HTTPS - port 443)
+            // Send via SendGrid API
             $response = $this->sendGrid->send($email);
 
             if ($response->statusCode() >= 200 && $response->statusCode() < 300) {
@@ -89,13 +94,13 @@ class SendGridMailerService implements ProviderInterface
                     'message' => 'Email sent successfully via SendGrid HTTP API',
                     'status_code' => $response->statusCode(),
                 ];
-            } else {
-                return [
-                    'success' => false,
-                    'message' => 'SendGrid API error: ' . $response->statusCode() . ' - ' . $response->body(),
-                    'status_code' => $response->statusCode(),
-                ];
             }
+
+            return [
+                'success' => false,
+                'message' => 'SendGrid API error: ' . $response->statusCode() . ' - ' . $response->body(),
+                'status_code' => $response->statusCode(),
+            ];
         } catch (\Exception $e) {
             Log::error('SendGrid email sending failed', [
                 'error' => $e->getMessage(),
@@ -158,20 +163,6 @@ class SendGridMailerService implements ProviderInterface
     public function getType(): string
     {
         return 'mail';
-    }
-
-    /**
-     * Get the from name
-     *
-     * @param array $data
-     * @return string|null
-     */
-    private function getFromName(array $data): ?string
-    {
-        if (isset($data['notifiable_client_name'])) {
-            return ucwords($data['notifiable_client_name']);
-        }
-        return null;
     }
 }
 
