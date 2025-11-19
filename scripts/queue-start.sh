@@ -13,8 +13,5 @@ fi
 
 php artisan config:clear 2>/dev/null || true
 
-exec php artisan queue:work redis \
-    --queue=notifications,default,financial \
-    --verbose \
-    --tries=3 \
-    --timeout=90
+docker exec -it trader-apis-queue php artisan queue:work redis \
+    --queue=notifications,default,financial --verbose --tries=3 --timeout=90
