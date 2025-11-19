@@ -26,13 +26,7 @@ class PaymentService extends BaseService
 
     public function store(array $data): ServiceResponse
     {
-        // Handle reference UUID: use it as payment UUID if provided, otherwise generate one
-        if (isset($data['reference']) && !empty($data['reference'])) {
-            $data['uuid'] = $data['reference'];
-            unset($data['reference']); // Remove reference from data as it's now stored as uuid
-        } elseif (!isset($data['uuid']) || empty($data['uuid'])) {
-            $data['uuid'] = (string) Str::uuid();
-        }
+        $data = $this->preparePaymentData($data);
 
         $response = parent::store($data);
 
@@ -42,6 +36,25 @@ class PaymentService extends BaseService
         }
 
         return $response;
+    }
+
+    /**
+     * Prepare the funding data
+     * @param array $data [reference (optional), uuid (optional)]
+     * @return array
+     */
+    private function preparePaymentData(array $data): array
+    {
+        if (isset($data['reference']) && !empty($data['reference'])) {
+            $data['uuid'] = $data['reference'];
+            unset($data['reference']);
+        } elseif (!isset($data['uuid']) || empty($data['uuid'])) {
+            $data['uuid'] = $this->generatePaymentUuid();
+        }
+        \Illuminate\Support\Facades\Log::info('prepared payment store data', [
+            'data' => $data
+        ]);
+        return $data;
     }
     /**
      * Make a payment
@@ -80,9 +93,9 @@ class PaymentService extends BaseService
     public function updatePaymentStatus(int $id, PaymentStatusEnum $status): object
     {
         $payment = $this->PaymentRepository->findOrFail($id);
-        if($payment->status === PaymentStatusEnum::COMPLETED->value) {
-            throw new \Exception('Payment already completed');
-        }
+        // if($payment->status === PaymentStatusEnum::COMPLETED->value) {
+        //     throw new \Exception('Payment already completed');
+        // }
 
         $payment->update([
             'status' => $status->value,
@@ -177,5 +190,14 @@ class PaymentService extends BaseService
             }
             return $payment;
         }, 'find payment by uuid');
+    }
+
+    /**
+     * Generate a unique payment uuid
+     * @return string
+     */
+    private function generatePaymentUuid(): string
+    {
+        return (string) Str::uuid();
     }
 }

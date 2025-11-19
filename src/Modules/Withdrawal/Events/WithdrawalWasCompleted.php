@@ -9,6 +9,7 @@ use App\Modules\Withdrawal\Database\Models\Withdrawal;
 use App\Core\Events\BaseNotificationEvent;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use App\Modules\User\Database\Models\User;
+use App\Modules\User\Enums\UserPaymentTypes;
 
 class WithdrawalWasCompleted extends BaseNotificationEvent implements ShouldDispatchAfterCommit
 {
@@ -18,8 +19,13 @@ class WithdrawalWasCompleted extends BaseNotificationEvent implements ShouldDisp
      * Constructor
      *
      * @param Withdrawal $withdrawal
+     * @param string $moduleName
+     * @param string $operation
      */
-    public function __construct(public Withdrawal $withdrawal) {}
+    public function __construct(public Withdrawal $withdrawal, public string $moduleName = 'withdrawal', public string $operation = 'store')
+    {
+
+    }
 
     /**
      * Get the entity
@@ -157,5 +163,14 @@ class WithdrawalWasCompleted extends BaseNotificationEvent implements ShouldDisp
     {
         // return $this->withdrawal->withdrawable->name;
         return null;
+    }
+
+    /**
+     * Get the withdrawal payable type
+     * @return string
+     */
+    public function getWithdrawalPayableType(): string
+    {
+        return UserPaymentTypes::Withdrawal->value;
     }
 }

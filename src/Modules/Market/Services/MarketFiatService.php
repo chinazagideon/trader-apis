@@ -17,7 +17,7 @@ class MarketFiatService extends BaseService implements MarketFiatServiceInterfac
 {
     protected string $serviceName = 'MarketFiatService';
     private const CRYPTO_SCALE = 8;
-    private const FIAT_SCALE = 2;
+    private const FIAT_SCALE = 8;
 
 
     public function __construct(
@@ -30,55 +30,38 @@ class MarketFiatService extends BaseService implements MarketFiatServiceInterfac
 
     /**
      * Convert crypto currency to fiat currency
-     * @param float $amount
-     * @param int $currencyId
+     * convert a cryptocurrency to a fiat any fiat currency
+     * @param array $data [amount (in fiat|crypto currency), fiat_currency_id (fiat currency id), currency_id (crypto currency id)]
      * @return ServiceResponse
      */
     public function fiatConverter(array $data): ServiceResponse
     {
-        $amount = (float) $data['amount'];
+        $amount = (float) $data['amount'];  //in FIAT or CRYPTO currency
         $currencyId = (int) $data['currency_id'];
         $fiatCurrencyId = (int) $data['fiat_currency_id'];
 
+        $this->validateCurrencyIdType($currencyId);
+        $this->validateFiatCurrencyIdType($fiatCurrencyId);
 
         $cryptoCurrency = $this->currencyService->getCurrency($currencyId);
-        $fiatCurrency = $this->currencyService->getCurrency($fiatCurrencyId);
-
-        $getCryptoCurrencyType = $cryptoCurrency->getData()->type;
-        $getFiatCurrencyType = $fiatCurrency->getData()->type;
-
-        $this->validateCurrencyType($getCryptoCurrencyType, $getFiatCurrencyType);
-
-        $marketPrice = $this->marketPriceService->getCurrencyPriceRaw($cryptoCurrency->getData()->code);
+        $cryptoCurrencyCode = $cryptoCurrency->getData()->code;
+        $cryptoMarketPrice = $this->marketPriceService->getCurrencyPriceRaw($cryptoCurrencyCode);
 
 
-        $rawMarketPrice = $marketPrice->getData();
-        $price = $rawMarketPrice->price;
+        $rawCryptoMarketData = $cryptoMarketPrice->getData();
+        $price = $rawCryptoMarketData->price;
         $cryptoCurrencyData = $cryptoCurrency->getData()->toArray();
-
-        $rawFiatMarketPrice = $this->marketPriceService->getCurrencyPriceRaw($fiatCurrency->getData()->code);
-
-        $fiatPrice = $rawFiatMarketPrice->getData()->price;
-        $fiatCurrencyData = $fiatCurrency->getData()->toArray();
-
-        // dd($price, $cryptoCurrencyData, $amount);
-
 
         $fiatAmount = $this->computeFiatAmount($amount, $price, $cryptoCurrencyData);
         $cryptoAmount = $this->computeCryptoAmount($amount, $price, $cryptoCurrencyData);
 
-
         $data = (object) [];
-        $data->market_data = $rawMarketPrice->toArray();
-        $data->fiat_currency = $rawMarketPrice->currency_id;
+        $data->market_data = $rawCryptoMarketData->toArray();
+        $data->fiat_currency = $rawCryptoMarketData->currency_id;
         $data->amount = $amount;
-        $data->price = $rawMarketPrice->price;
+        $data->price = $rawCryptoMarketData->price;
         $data->fiat_amount = $fiatAmount;
         $data->crypto_amount = $cryptoAmount;
-        \Illuminate\Support\Facades\Log::info('market fiat service fiat converter', [
-            'data' => $data,
-            'amount' => $amount,
-        ]);
 
         return ServiceResponse::success($data, 'Fiat converted successfully');
     }
@@ -129,14 +112,23 @@ class MarketFiatService extends BaseService implements MarketFiatServiceInterfac
      * @param string $currencyType
      * @return void
      */
-    private function validateCurrencyType(string $currencyType, string $fiatCurrencyType): void
+    private function validateCurrencyIdType(int $currencyId): void
     {
-        if ($currencyType !== CurrencyType::Crypto->value && $fiatCurrencyType !== CurrencyType::Fiat->value) {
-            throw new AppException('Currency or fiat currency is not a cryptocurrency or fiat');
-        }
+        $isCryptoCurrency = $this->currencyService->isCryptoCurrency($currencyId);
+        if (!$isCryptoCurrency)
+            throw new AppException('Currency ID must be crypto');
     }
-
-
+    /**
+     * Validate fiat currency id type
+     * @param int $fiatCurrencyId
+     * @return void
+     */
+    private function validateFiatCurrencyIdType(int $fiatCurrencyId): void
+    {
+        $isFiatCurrency = $this->currencyService->isFiatCurrency($fiatCurrencyId);
+        if (!$isFiatCurrency)
+            throw new AppException('Fiat currency ID must be fiat');
+    }
     /**
      * Compute fiat amount.
      * - If input currency is crypto: fiat = crypto * fiatPerCryptoPrice

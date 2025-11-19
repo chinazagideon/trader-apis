@@ -24,6 +24,7 @@ return [
         'investment' => \App\Modules\Investment\Database\Models\Investment::class,
         'transaction' => \App\Modules\Transaction\Database\Models\Transaction::class,
         'funding' => \App\Modules\Funding\Database\Models\Funding::class,
+        'withdrawal' => \App\Modules\Withdrawal\Database\Models\Withdrawal::class,
     ],
     'payment_gateway' => [
         'instructions' => [

@@ -41,6 +41,7 @@ class PaymentRepository extends BaseRepository implements MorphRepositoryInterfa
     {
         $query = $this->queryWithPolicyFilter($filters);
         $query = $this->withAllRelations($query, $this->getDefaultRelationships());
+        $query->latest('created_at');
         return $query->paginate($perPage);
     }
 

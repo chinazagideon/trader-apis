@@ -51,4 +51,11 @@ interface CurrencyServiceContract extends ServiceInterface
      * @return bool
      */
     public function isFiatCurrency(int $id): bool;
+
+    /**
+     * Check if currency is crypto
+     * @param int $id
+     * @return bool
+     */
+    public function isCryptoCurrency(int $id): bool;
 }

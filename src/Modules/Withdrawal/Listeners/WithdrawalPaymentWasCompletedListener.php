@@ -12,7 +12,7 @@ use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use App\Modules\Withdrawal\Services\WithdrawalService;
 use App\Modules\User\Enums\UserPaymentTypes;
 
-class WithdrawalPaymentWasCompletedListener implements ConfigurableListenerInterface, ShouldQueue, ShouldDispatchAfterCommit
+class WithdrawalPaymentWasCompletedListener implements ConfigurableListenerInterface, ShouldDispatchAfterCommit
 {
     use ConfigurableListener;
 
@@ -37,6 +37,10 @@ class WithdrawalPaymentWasCompletedListener implements ConfigurableListenerInter
     public function handle(PaymentWasCompleted $event): void
     {
         $data = $event->getSerializedData();
+        Log::info('withdrawal payment was completed listener: Data', [
+            'data' => $data,
+            'event' => $event,
+        ]);
 
         try {
 
@@ -46,7 +50,7 @@ class WithdrawalPaymentWasCompletedListener implements ConfigurableListenerInter
                     'status' => $data['status'],
                 ]);
             }
-            
+
         } catch (\Exception $e) {
 
             Log::error('Listener: Failed to update withdrawal status', [

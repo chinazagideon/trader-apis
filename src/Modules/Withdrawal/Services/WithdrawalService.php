@@ -10,7 +10,8 @@ use App\Core\Exceptions\NotFoundException;
 use Illuminate\Database\Eloquent\Model;
 use App\Modules\Withdrawal\Events\WithdrawalWasCompleted;
 use Illuminate\Support\Facades\Log;
-use App\Modules\Market\Services\MarketFiatService;
+// use App\Modules\Market\Services\MarketFiatService;
+use App\Modules\Market\Contracts\MarketFiatServiceInterface;
 use App\Modules\Withdrawal\Enums\WithdrawalStatus;
 use App\Modules\User\Contracts\UserBalanceServiceInterface;
 
@@ -20,8 +21,7 @@ class WithdrawalService extends BaseService
 
     public function __construct(
         private WithdrawalRepository $withdrawalRepository,
-        private WithdrawalWasCompleted $withdrawalWasCompleted,
-        private MarketFiatService $marketFiatService,
+        private MarketFiatServiceInterface $marketFiatService,
         private UserBalanceServiceInterface $userBalanceService
     ) {
         parent::__construct($withdrawalRepository);
@@ -78,9 +78,9 @@ class WithdrawalService extends BaseService
             'model' => $model,
             'operation' => $operation,
         ]);
-        $moduleName = strtolower($this->withdrawalRepository->moduleName);
-        /** @var Withdrawal $withdrawal = $model */
-        $this->withdrawalWasCompleted->dispatch($model, $moduleName);
+
+        /** @var Withdrawal $model */
+        WithdrawalWasCompleted::dispatch($model);
     }
 
     /**
@@ -106,20 +106,23 @@ class WithdrawalService extends BaseService
     public function prepareDataForStore(array $data): array
     {
 
-        $data['status'] = WithdrawalStatus::defaultStatus();
-        $convertFiatResponse = $this->convertAmountToFiat(
-            [
-                'amount' => $data['amount'],
-                'currency_id' => $data['currency_id'],
-                'fiat_currency_id' => $data['fiat_currency_id'],
-            ]
-        );
+        $preparedData = [
+            'amount' => $data['amount'],
+            'currency_id' => $data['currency_id'],
+            'fiat_currency_id' => $data['fiat_currency_id'],
+        ];
+
+        $fiatAmount = $data['amount'];
+        $convertFiatResponse = $this->convertAmountToFiat($preparedData);
 
         $convertFiat = $convertFiatResponse->getData();
 
         $data['amount'] = $convertFiat->crypto_amount;
-        $data['fiat_amount'] = $convertFiat->fiat_amount;
+        $data['fiat_amount'] = $fiatAmount;
         $data['fiat_currency_id'] = $data['fiat_currency_id'];
+        $data['status'] = WithdrawalStatus::defaultStatus();
+
+
         return $data;
     }
 

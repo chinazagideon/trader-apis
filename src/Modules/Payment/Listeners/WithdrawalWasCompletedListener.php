@@ -4,7 +4,6 @@ namespace App\Modules\Payment\Listeners;
 
 use App\Modules\Withdrawal\Events\WithdrawalWasCompleted;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 use App\Core\Contracts\ConfigurableListenerInterface;
 use App\Core\Traits\ConfigurableListener;
 use Illuminate\Support\Facades\Log;
@@ -39,6 +38,12 @@ class WithdrawalWasCompletedListener implements ConfigurableListenerInterface, S
      */
     public function handle(WithdrawalWasCompleted $event): void
     {
+        Log::error('withdrawal was STARTING listener: Failed to create payment', [
+            'withdrawal_id' => $event->withdrawal->id,
+            'withdrawal' => $event->withdrawal,
+            'module_name' => $event->moduleName,
+            // 'service' => $this->paymentService->getServiceName()
+        ]);
 
         try {
             $data = [

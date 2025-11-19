@@ -10,6 +10,7 @@ use App\Modules\Funding\Database\Models\Funding;
 use App\Modules\Funding\Events\FundingWasCompleted;
 use Illuminate\Database\Eloquent\Model;
 use App\Modules\Market\Services\MarketFiatService;
+use App\Modules\Funding\Enums\FundingStatus;
 
 class FundingService extends BaseService
 {
@@ -23,11 +24,11 @@ class FundingService extends BaseService
         parent::__construct($FundingRepository);
     }
     /**
-     * Convert amount to fiat
+     * Convert fiat to crypto
      * @param array $data
      * @return ServiceResponse
      */
-    public function convertAmountToFiat(array $data): ServiceResponse
+    public function fiatConverter(array $data): ServiceResponse
     {
         return $this->marketFiatService->fiatConverter([
             'amount' => $data['amount'],
@@ -60,5 +61,38 @@ class FundingService extends BaseService
         $funding->status = $data['status'];
         $funding->save();
         return ServiceResponse::success($funding, 'Funding status updated successfully');
+    }
+
+    /**
+     * Prepare data for store
+     * @param array $data
+     * @return array
+     */
+    public function prepareDataForStore(array $data): array
+    {
+        $convertFiatResponse = $this->fiatConverter(
+            [
+                'amount' => $data['amount'],
+                'currency_id' => $data['currency_id'],
+                'fiat_currency_id' => $data['fiat_currency_id'],
+            ]
+        );
+        // dd($convertFiatResponse->getData());
+
+        $convertFiat = $convertFiatResponse->getData();
+        $cryptoAmount = $convertFiat->crypto_amount;
+        $fiatAmount = $data['amount'];
+        $fiatCurrencyId = $data['fiat_currency_id'];
+
+        $data['fundable_type'] = $data['fundable_type'];
+        $data['fundable_id'] = $data['fundable_id'];
+        $data['amount'] = $cryptoAmount;
+        $data['currency_id'] = (int) $data['currency_id'];
+        $data['fiat_amount'] = $fiatAmount;
+        $data['fiat_currency_id'] = $fiatCurrencyId;
+        $data['user_id'] = $data['user_id'];
+        $data['type'] = $data['type'];
+        $data['status'] = FundingStatus::getDefaultStatus();
+        return $data;
     }
 }

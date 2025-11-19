@@ -125,4 +125,18 @@ class CurrencyService extends BaseService implements CurrencyServiceContract
         }
         return $currency->getData()->type === CurrencyType::Fiat->value;
     }
+
+    /**
+     * Check if currency is crypto
+     * @param int $id
+     * @return bool
+     */
+    public function isCryptoCurrency(int $id): bool
+    {
+        return $this->getCurrency($id)->getData()->type === CurrencyType::Crypto->value;
+        if (!$currency->isSuccess()) {
+            throw new \App\Core\Exceptions\ServiceException($currency->getMessage());
+        }
+        return $currency->getData()->type === CurrencyType::Crypto->value;
+    }
 }

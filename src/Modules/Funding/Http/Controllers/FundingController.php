@@ -25,38 +25,7 @@ class FundingController extends CrudController
      */
     public function beforeStore(array $data, Request $request): array
     {
-        return $this->prepareData($data);
+        return $this->fundingService->prepareDataForStore($data);
     }
 
-    /**
-     * Prepare data for funding creation
-     *
-     * @param array $data
-     * @return array
-     */
-    private function prepareData(array $data): array
-    {
-
-        $convertFiatResponse = $this->fundingService->convertAmountToFiat(
-            [
-                'amount' => $data['amount'],
-                'currency_id' => $data['currency_id'],
-                'fiat_currency_id' => $data['fiat_currency_id'],
-            ]
-        );
-
-        $convertFiat = $convertFiatResponse->getData();
-
-        $data['fundable_type'] = $data['fundable_type'];
-        $data['fundable_id'] = $data['fundable_id'];
-        $data['amount'] = $convertFiat->crypto_amount;
-        $data['currency_id'] = (int) $data['currency_id'];
-        $data['fiat_amount'] = $convertFiat->fiat_amount;
-        $data['fiat_currency_id'] = $convertFiat->fiat_currency;
-        $data['user_id'] = $data['user_id'];
-        $data['type'] = $data['type'];
-        $data['status'] = FundingStatus::getDefaultStatus();
-
-        return $data;
-    }
 }

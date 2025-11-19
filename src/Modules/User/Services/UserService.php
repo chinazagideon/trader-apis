@@ -16,12 +16,13 @@ use App\Modules\User\Enums\UserPaymentTypes;
 use App\Modules\User\Contracts\UserDebitServiceInterface;
 use App\Modules\Payment\Enums\PaymentStatusEnum;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Log;
 use App\Core\Services\EventDispatcher;
 use App\Modules\User\Facade\UserModelFacade;
 use App\Modules\Market\Contracts\MarketFiatServiceInterface;
 use App\Modules\Currency\Contracts\CurrencyServiceContract;
- /**
+use Illuminate\Support\Facades\Log;
+
+/**
  * User Service
  */
 class UserService extends BaseService implements UserServiceInterface
@@ -62,10 +63,6 @@ class UserService extends BaseService implements UserServiceInterface
 
             // Dispatch UserWasCreatedEvent to trigger notifications
             $this->eventDispatcher->dispatch(new UserWasCreatedEvent($user), 'user_was_created');
-
-            Log::info('UserWasCreatedEvent dispatched', [
-                'user' => $user,
-            ]);
 
             return ServiceResponse::success($user, 'User created successfully', Response::HTTP_CREATED);
         }, 'create user');
@@ -391,26 +388,16 @@ class UserService extends BaseService implements UserServiceInterface
         $type = $data['type'];
 
 
-        Log::info('Resolve payment', [
-            'data' => $data,
-            'status' => $status,
-            'type' => $type,
-        ]);
-
         //if status is completed, resolve payment
         if ($status === PaymentStatusEnum::COMPLETED->value) {
             //funding
             if ($type === UserPaymentTypes::Funding->value) {
-                Log::info('Update available balance for funding', [
-                    'data' => $data,
-                ]);
+
                 $this->updateAvailableBalanceForFunding($data);
             }
             //withdraw fund
             if ($type === UserPaymentTypes::Withdrawal->value) {
-                Log::info('Update available balance for withdrawal', [
-                    'data' => $data,
-                ]);
+
                 $this->updateAvailableBalanceForWithdrawal($data);
             }
         }
@@ -424,9 +411,6 @@ class UserService extends BaseService implements UserServiceInterface
     private function updateAvailableBalanceForFunding(array $data = []): void
     {
         $preparedData = $this->prepareCreditData($data);
-        Log::info('Prepared data for funding', [
-            'preparedData' => $preparedData,
-        ]);
         $this->userCreditService->updateAvailableBalance($preparedData);
     }
 
@@ -438,9 +422,6 @@ class UserService extends BaseService implements UserServiceInterface
     private function updateAvailableBalanceForWithdrawal(array $data = []): void
     {
         $preparedData = $this->prepareDebitData($data);
-        Log::info('Prepared data for withdrawal', [
-            'preparedData' => $preparedData,
-        ]);
         $this->userDebitService->debitAvailableBalance($preparedData);
     }
 
@@ -451,10 +432,11 @@ class UserService extends BaseService implements UserServiceInterface
      */
     private function prepareDebitData(array $data = []): array
     {
-
+        $convertedResponse = $this->fiatConverter($data);
+        $fiatAmount = $convertedResponse->getData();
         return [
             'user_id' => $data['user_id'],
-            'amount' => $data['amount'],
+            'amount' => $fiatAmount,
             'type' => $data['type'],
         ];
     }
@@ -466,24 +448,12 @@ class UserService extends BaseService implements UserServiceInterface
      */
     private function prepareCreditData(array $data = []): array
     {
+        $convertedResponse = $this->fiatConverter($data);
+        $fiatAmount = $convertedResponse->getData();
 
-        $isFiatCurrency = $this->isFiatCurrency($data['currency_id']);
-        Log::info('Is fiat currency', [
-            'currency_id' => $data['currency_id'],
-            'is_fiat_currency' => $isFiatCurrency,
-        ]);
-        if ($isFiatCurrency) {
-            $amount = $data['amount'];
-        } else {
-            $conversionResponse = $this->convertFiatToCrypto($data);
-            if (!$conversionResponse->isSuccess()) {
-                throw new \App\Core\Exceptions\ServiceException($conversionResponse->getMessage());
-            }
-            $amount = $conversionResponse->getData();
-        }
         return [
             'user_id' => $data['user_id'],
-            'amount' => $amount,
+            'amount' => $fiatAmount,
             'type' => $data['type'],
             'currency_id' => $data['currency_id'],
         ];
@@ -494,10 +464,7 @@ class UserService extends BaseService implements UserServiceInterface
      * @param array $data
      * @return void
      */
-    private function validateUserActive(int $userId): void
-    {
-
-    }
+    private function validateUserActive(int $userId): void {}
 
     /**
      * Change password
@@ -517,23 +484,17 @@ class UserService extends BaseService implements UserServiceInterface
      * @param array $data
      * @return ServiceResponse
      */
-    public function convertFiatToCrypto(array $data = []): ServiceResponse
+    public function fiatConverter(array $data = []): ServiceResponse
     {
         return $this->executeServiceOperation(function () use ($data) {
-            Log::info('Convert fiat to crypto', [
-                'data' => $data,
-                'default_fiat_currency_id' => $this->getDefaultFiatCurrencyId(),
-            ]);
             $preparedData = [
                 'amount' => $data['amount'],
                 'currency_id' => $data['currency_id'],
                 'fiat_currency_id' => $this->getDefaultFiatCurrencyId(),
             ];
+
             $response = $this->marketFiatService->fiatConverter($preparedData);
-            Log::info('Response from fiat converter', [
-                'response' => $response,
-                'preparedData' => $preparedData,
-            ]);
+
             if (!$response->isSuccess()) {
                 throw new \App\Core\Exceptions\ServiceException($response->getMessage());
             }
@@ -563,11 +524,6 @@ class UserService extends BaseService implements UserServiceInterface
     private function isFiatCurrency(int $id): bool
     {
         $is_fiat = $this->currencyService->isFiatCurrency($id);
-        Log::info('Is fiat currency', [
-            'id' => $id,
-            'is_fiat' => $is_fiat,
-            'default_fiat_currency_id' => $this->getDefaultFiatCurrencyId(),
-        ]);
         if ($is_fiat && $this->getDefaultFiatCurrencyId() !== $id) {
             throw new \App\Core\Exceptions\ServiceException('Invalid currency or fiat currency combination');
         }
