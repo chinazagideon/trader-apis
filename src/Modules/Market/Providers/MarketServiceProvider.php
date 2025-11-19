@@ -10,7 +10,7 @@ use App\Modules\Market\Facade\MarketFiatServiceFacade;
 use Illuminate\Support\Facades\Facade as Facades;
 use App\Modules\Market\Database\Models\MarketPrice;
 use App\Modules\Market\Policies\MarketPricePolicy;
-
+use App\Modules\Market\Contracts\MarketFiatServiceInterface;
 class MarketServiceProvider extends BaseModuleServiceProvider
 {
     /**
@@ -40,4 +40,9 @@ class MarketServiceProvider extends BaseModuleServiceProvider
     protected array $policies = [
         MarketPrice::class => MarketPricePolicy::class,
     ];
+
+    public function registerServices(): void
+    {
+        $this->app->bind(MarketFiatServiceInterface::class, MarketFiatService::class);
+    }
 }

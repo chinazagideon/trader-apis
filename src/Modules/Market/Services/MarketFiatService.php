@@ -11,8 +11,9 @@ use App\Core\Exceptions\AppException;
 use App\Modules\Currency\Contracts\CurrencyServiceContract;
 use Brick\Math\BigDecimal;
 use Brick\Math\RoundingMode;
+use App\Modules\Market\Contracts\MarketFiatServiceInterface;
 
-class MarketFiatService extends BaseService
+class MarketFiatService extends BaseService implements MarketFiatServiceInterface
 {
     protected string $serviceName = 'MarketFiatService';
     private const CRYPTO_SCALE = 8;
@@ -63,7 +64,7 @@ class MarketFiatService extends BaseService
         // dd($price, $cryptoCurrencyData, $amount);
 
 
-        $fiatAmount = $this->computeFiatAmount($amount, $fiatPrice, $fiatCurrencyData);
+        $fiatAmount = $this->computeFiatAmount($amount, $price, $cryptoCurrencyData);
         $cryptoAmount = $this->computeCryptoAmount($amount, $price, $cryptoCurrencyData);
 
 
@@ -74,6 +75,10 @@ class MarketFiatService extends BaseService
         $data->price = $rawMarketPrice->price;
         $data->fiat_amount = $fiatAmount;
         $data->crypto_amount = $cryptoAmount;
+        \Illuminate\Support\Facades\Log::info('market fiat service fiat converter', [
+            'data' => $data,
+            'amount' => $amount,
+        ]);
 
         return ServiceResponse::success($data, 'Fiat converted successfully');
     }

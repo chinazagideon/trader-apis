@@ -187,6 +187,13 @@ return [
                     'tries' => env('EVENT_NOTIFICATION_TRIES', 3),
                     'backoff' => [30, 60, 120],
                 ],
+                'user_payment_was_completed' => [
+                    'class' => \App\Modules\User\Listeners\UserPaymentWasCompletedListener::class,
+                    'mode' => env('EVENT_PAYMENT_USER_MODE', 'sync'), // or 'queue' if you want it queued
+                    'queue' => env('EVENT_PAYMENT_USER_QUEUE', 'default'),
+                    'tries' => env('EVENT_PAYMENT_USER_TRIES', 3),
+                    'backoff' => [30, 60, 120],
+                ],
             ],
         ],
         'funding_completed' => [

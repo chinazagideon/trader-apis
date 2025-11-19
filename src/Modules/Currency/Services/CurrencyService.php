@@ -6,6 +6,7 @@ use App\Core\Services\BaseService;
 use App\Core\Http\ServiceResponse;
 use App\Modules\Currency\Repositories\CurrencyRepository;
 use App\Modules\Currency\Contracts\CurrencyServiceContract;
+use App\Modules\Currency\Enums\CurrencyType;
 
 class CurrencyService extends BaseService implements CurrencyServiceContract
 {
@@ -111,5 +112,17 @@ class CurrencyService extends BaseService implements CurrencyServiceContract
         }, 'getCurrencyTypeById');
     }
 
-
+    /**
+     * Check if currency is fiat
+     * @param int $id
+     * @return bool
+     */
+    public function isFiatCurrency(int $id): bool
+    {
+        $currency = $this->getCurrency($id);
+        if (!$currency->isSuccess()) {
+            throw new \App\Core\Exceptions\ServiceException($currency->getMessage());
+        }
+        return $currency->getData()->type === CurrencyType::Fiat->value;
+    }
 }

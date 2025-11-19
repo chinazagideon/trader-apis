@@ -3,7 +3,6 @@
 namespace App\Modules\User\Listeners;
 
 
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
 use App\Core\Contracts\ConfigurableListenerInterface;
 use App\Modules\Payment\Events\PaymentWasCompleted;
@@ -11,7 +10,7 @@ use App\Core\Traits\ConfigurableListener;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use App\Modules\User\Services\UserService;
 
-class UserPaymentWasCompletedListener implements ConfigurableListenerInterface, ShouldQueue, ShouldDispatchAfterCommit
+class UserPaymentWasCompletedListener implements ConfigurableListenerInterface, ShouldDispatchAfterCommit
 {
     use ConfigurableListener;
 
@@ -35,6 +34,10 @@ class UserPaymentWasCompletedListener implements ConfigurableListenerInterface, 
      */
     public function handle(PaymentWasCompleted $event): void
     {
+        Log::info('UserPaymentWasCompletedListener: Payment was completed', [
+            'event' => $event,
+            'data' => $event->getSerializedData(),
+        ]);
         $data = $event->getSerializedData();
         try {
 

@@ -44,4 +44,11 @@ interface CurrencyServiceContract extends ServiceInterface
      * @return ServiceResponse
      */
     public function getCurrency(int $id): ServiceResponse;
+
+    /**
+     * Check if currency is fiat
+     * @param int $id
+     * @return bool
+     */
+    public function isFiatCurrency(int $id): bool;
 }
