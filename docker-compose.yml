@@ -58,8 +58,8 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_USER: ${DB_USERNAME}
       MYSQL_PASSWORD: ${DB_PASSWORD}
-    # ports:
-    #   - "3306:3306"
+    ports:
+      - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
       - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
@@ -98,7 +98,7 @@ services:
     working_dir: /var/www
     volumes:
       - ./:/var/www
-    command: php artisan queue:work redis --queue=notifications,default,financial --verbose --tries=3 --timeout=90
+    command: sh /var/www/scripts/queue-start.sh
     networks:
       - trader-network
     healthcheck:
@@ -106,7 +106,7 @@ services:
       interval: 2m
       timeout: 30s
       retries: 3
-      start_period: 60s
+      start_period: 90s
     depends_on:
       app:
         condition: service_healthy
