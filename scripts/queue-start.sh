@@ -2,46 +2,40 @@
 
 set -e
 
-echo "=========================================="
-echo "Queue Worker Startup Script"
-echo "=========================================="
+# CRITICAL: Clear config cache BEFORE Laravel bootstraps
+# Remove cached config file if it exists
+rm -f bootstrap/cache/config.php 2>/dev/null || true
 
-# Wait for Redis DNS resolution
-echo "[1/3] Waiting for Redis DNS resolution..."
-MAX_ATTEMPTS=30
-ATTEMPT=1
+# Clear via artisan (in case it exists)
+php artisan config:clear 2>/dev/null || true
 
-while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
-    if ping -c 1 redis > /dev/null 2>&1; then
-        echo "✓ Redis DNS resolved successfully"
-        break
-    else
-        echo "  Attempt $ATTEMPT/$MAX_ATTEMPTS: Redis not reachable, waiting 2 seconds..."
-        sleep 2
-        ATTEMPT=$((ATTEMPT + 1))
-    fi
+# Wait for Redis - try both service name and container name
+REDIS_FOUND=false
+for host in redis trader-apis-redis; do
+    for i in {1..10}; do
+        if ping -c 1 "$host" > /dev/null 2>&1; then
+            echo "✓ Redis reachable at: $host"
+            REDIS_FOUND=true
+            break 2
+        fi
+        sleep 1
+    done
 done
 
-if [ $ATTEMPT -gt $MAX_ATTEMPTS ]; then
-    echo "✗ Failed to resolve Redis DNS after $MAX_ATTEMPTS attempts"
+if [ "$REDIS_FOUND" = false ]; then
+    echo "✗ Redis not reachable"
     exit 1
 fi
 
-# Clear Laravel caches
-echo "[2/3] Clearing Laravel caches..."
-php artisan config:clear || true
-php artisan cache:clear || true
-echo "✓ Caches cleared"
+# Ensure .env has correct Redis host (if using container name)
+if ! grep -q "^REDIS_HOST=trader-apis-redis" .env 2>/dev/null; then
+    sed -i 's/^REDIS_HOST=.*/REDIS_HOST=trader-apis-redis/' .env 2>/dev/null || true
+    # Clear cache again after .env change
+    rm -f bootstrap/cache/config.php 2>/dev/null || true
+fi
 
-# Wait a moment for Redis to be fully ready
-echo "[3/3] Verifying Redis connection..."
-sleep 2
-
-# Start queue worker
-echo "=========================================="
-echo "Starting queue worker..."
-echo "Queues: notifications,default,financial"
-echo "=========================================="
+# Final cache clear
+php artisan cache:clear 2>/dev/null || true
 
 exec php artisan queue:work redis \
     --queue=notifications,default,financial \
