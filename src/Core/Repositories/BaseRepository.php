@@ -150,7 +150,7 @@ abstract class BaseRepository implements RepositoryInterface
     {
 
         $query = $this->queryWithPolicyFilter($filters);
-
+        $query->latest('created_at');
         return $query->paginate($perPage, $columns);
     }
 
