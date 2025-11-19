@@ -34,32 +34,38 @@ class NotificationOutboxPublisher implements NotificationOutboxPublisherInterfac
             ? $notifiable->getMorphClass()
             : get_class($notifiable);
 
-        Log::info('NotifTrace', [
-            'stage' => 'outbox_published',
-            'event_type' => $eventType,
-            'notifiable_type' => $notifiableType,
-            'notifiable_id' => $notifiable->id,
-            'notifiable_class' => get_class($notifiable),
-            'notifiable_has_email' => method_exists($notifiable, 'getEmailForPasswordReset') ? 'yes' : 'no',
-            'entity_type' => $entityType,
-            'entity_id' => $entityId,
-            'channels' => $channels,
-        ]);
 
-        NotificationOutbox::firstOrCreate(
-            ['dedupe_key' => $dedupeKey ?? $this->makeDedupeKey($eventType, $notifiableType, $notifiable->id, $entityType, $entityId)],
-            [
+        try {
+            $outbox = NotificationOutbox::firstOrCreate(
+                ['dedupe_key' => $dedupeKey ?? $this->makeDedupeKey($eventType, $notifiableType, $notifiable->id, $entityType, $entityId)],
+                [
+                    'event_type' => $eventType,
+                    'notifiable_type' => $notifiableType,
+                    'notifiable_id' => $notifiable->id,
+                    'entity_type' => $entityType,
+                    'entity_id' => $entityId,
+                    'channels' => array_values(array_unique($channels)),
+                    'payload' => $payload,
+                    'status' => 'pending',
+                    'available_at' => now(),
+                ]
+            );
+
+            Log::info('NotifTrace', [
+                'stage' => 'outbox_record_created',
+                'outbox_id' => $outbox->id,
+                'was_newly_created' => $outbox->wasRecentlyCreated,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to create notification outbox record', [
                 'event_type' => $eventType,
                 'notifiable_type' => $notifiableType,
-                'notifiable_id' => $notifiable->id,
-                'entity_type' => $entityType,
-                'entity_id' => $entityId,
-                'channels' => array_values(array_unique($channels)),
-                'payload' => $payload,
-                'status' => 'pending',
-                'available_at' => now(),
-            ]
-        );
+                'notifiable_id' => $notifiable->id ?? null,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            throw $e;
+        }
     }
 
     /**

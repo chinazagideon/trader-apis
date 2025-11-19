@@ -40,8 +40,8 @@ class RegisterRequest extends FormRequest
             'first_name' => 'required|string',
             'last_name' => 'required|string',
             'referral_code' => 'nullable|string|max:255',
-            'phone' => 'required|string|max:20|unique:users,phone',
-            'email' => 'required|email|max:255|unique:users,email',
+            'phone' => 'required|string|max:20',
+            'email' => 'required|email|max:255',
             'password' => [
                 'required',
                 new PasswordRule(

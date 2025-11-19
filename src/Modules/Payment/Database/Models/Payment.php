@@ -5,19 +5,18 @@ namespace App\Modules\Payment\Database\Models;
 use App\Core\Models\CoreModel;
 use App\Core\Traits\HasTimestamps;
 use App\Core\Traits\HasUuid;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Modules\Currency\Database\Models\Currency;
 use App\Modules\Notification\Traits\Notifiable;
-use Illuminate\Database\Eloquent\Concerns\HasRelationships;
 use App\Modules\Payment\Traits\BelongsToPayable;
+use App\Core\Traits\HasClientScope;
 class Payment extends CoreModel
 {
     use HasTimestamps;
     use HasUuid;
     use Notifiable;
     use BelongsToPayable;
+    // use HasClientScope;
 
     /**
      * The attributes that are mass assignable.
@@ -32,6 +31,7 @@ class Payment extends CoreModel
         'status',
         'amount',
         'currency_id',
+        'client_id',
     ];
 
     /**

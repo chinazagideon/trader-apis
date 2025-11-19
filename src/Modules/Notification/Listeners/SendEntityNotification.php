@@ -8,20 +8,23 @@ use App\Core\Contracts\NotificationEventsContract;
 use App\Core\Exceptions\AppException;
 use App\Modules\Notification\Services\NotificationService;
 use App\Modules\Notification\Notifications\EntityEventNotification;
+use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use App\Core\Services\LoggingService;
 use App\Modules\Notification\Contracts\NotificationOutboxPublisherInterface;
+use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 
-class SendEntityNotification implements ConfigurableListenerInterface, ShouldQueue, ShouldDispatchAfterCommit
+class SendEntityNotification implements ConfigurableListenerInterface, ShouldDispatchAfterCommit
 {
-    use ConfigurableListener;
+    use ConfigurableListener, Queueable, InteractsWithQueue, SerializesModels;
 
     /**
      * Configuration keys for this listener
      */
-    protected string $eventConfigKey = 'notification_event'; // Default, can be overridden
+    protected ?string $eventConfigKey = null;
     protected string $listenerConfigKey = 'send_notification';
 
     /**
@@ -39,16 +42,6 @@ class SendEntityNotification implements ConfigurableListenerInterface, ShouldQue
      */
     public int $timeout;
 
-    /**
-     * The name of the queue connection to use.
-     */
-    public ?string $connection;
-
-    /**
-     * The name of the queue to push the job to.
-     */
-    public ?string $queue;
-
     public function __construct(
         private NotificationService $notificationService,
         private LoggingService $logger,
@@ -58,8 +51,24 @@ class SendEntityNotification implements ConfigurableListenerInterface, ShouldQue
         $this->tries = $this->getTries();
         $this->backoff = $this->getBackoff();
         $this->timeout = $this->getTimeout();
-        $this->connection = $this->getQueueConnection() ?? 'redis';
-        $this->queue = $this->getQueue() ?? 'notifications';
+
+        // Set queue connection and queue name using Queueable trait methods
+        $connection = $this->getQueueConnection() ?? 'redis';
+
+        // For notification listeners, always use 'notifications' queue if config can't be read
+        $queue = $this->getQueue();
+        if (!$queue || $queue === 'default') {
+            $queue = 'notifications';
+        }
+
+        $this->onConnection($connection);
+        $this->onQueue($queue);
+
+        Log::info('[SendEntityNotification] Listener initialized', [
+            'connection' => $connection,
+            'queue' => $queue,
+            'tries' => $this->tries,
+        ]);
     }
 
     /**
@@ -70,6 +79,14 @@ class SendEntityNotification implements ConfigurableListenerInterface, ShouldQue
     public function handle(NotificationEventsContract $event): void
     {
         $this->logger->startPerformanceTracking();
+
+        Log::info('SendEntityNotification listener started', [
+            'event_class' => get_class($event),
+            'event_type' => method_exists($event, 'getEventType') ? $event->getEventType() : 'unknown',
+            'listener_class' => static::class,
+            'queue_connection' => $this->connection ?? 'unknown',
+            'queue_name' => $this->queue ?? 'unknown',
+        ]);
 
         // Get entity from event
         $entity = $event->getEntity();
@@ -90,6 +107,8 @@ class SendEntityNotification implements ConfigurableListenerInterface, ShouldQue
             'entity_id' => $entity->id ?? null,
             'notifiable_type' => get_class($notifiable),
             'notifiable_id' => $notifiable->id ?? null,
+            'notifiable_client_name' => $event->getNotifiableClientName(),
+            'metadata' => $event->getMetadata(),
         ]);
 
 
@@ -122,17 +141,27 @@ class SendEntityNotification implements ConfigurableListenerInterface, ShouldQue
         ]);
 
         // Publish to outbox; consumer will persist DB notification and send emails
-        $this->outboxPublisher->publish(
-            eventType: $eventType,
-            notifiable: $notifiable,
-            channels: $channels,
-            payload: [
-                'to_database' => $notification->toDatabase($notifiable),
-                'mail_data' => $notificationData,
-            ],
-            entityType: get_class($entity),
-            entityId: $entity->id ?? null
-        );
+        try {
+            $this->outboxPublisher->publish(
+                eventType: $eventType,
+                notifiable: $notifiable,
+                channels: $channels,
+                payload: [
+                    'to_database' => $notification->toDatabase($notifiable),
+                    'mail_data' => $notificationData,
+                ],
+                entityType: get_class($entity),
+                entityId: $entity->id ?? null
+            );
+        } catch (\Exception $e) {
+            Log::error('Failed to publish notification to outbox', [
+                'event_type' => $eventType,
+                'notifiable_type' => get_class($notifiable),
+                'notifiable_id' => $notifiable->id ?? null,
+                'error' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
 
         Log::info("Entity notification sent", [
             'event_type' => $eventType,
@@ -159,7 +188,7 @@ class SendEntityNotification implements ConfigurableListenerInterface, ShouldQue
             'action_text' => $event->getActionText(),
             'entity_id' => $entity->id ?? null,
             'entity_type' => get_class($entity),
-            // Include any additional metadata
+            'notifiable_client_name' => $event->getNotifiableClientName(),
             ...$event->getMetadata(),
         ];
     }
@@ -173,6 +202,10 @@ class SendEntityNotification implements ConfigurableListenerInterface, ShouldQue
             'event' => get_class($event),
             'event_type' => $event->getEventType(),
             'exception' => $exception->getMessage(),
+            'exception_class' => get_class($exception),
+            'file' => $exception->getFile(),
+            'line' => $exception->getLine(),
+            'trace' => $exception->getTraceAsString(),
         ]);
     }
 

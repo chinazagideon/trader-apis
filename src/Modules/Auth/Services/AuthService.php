@@ -62,13 +62,12 @@ class AuthService extends BaseService implements AuthServiceInterface
             $user = $userResponse->getData();
 
             // Generate email verification token
-            $verificationToken = Str::random(64);
-            $user->email_verification_token = $verificationToken;
-            $user->save();
+            // $verificationToken = Str::random(64);
+            // $user->email_verification_token = $verificationToken;
+            // $user->save();
             // Send verification email (placeholder)
-            $this->sendVerificationEmail($user, $verificationToken);
+            // $this->sendVerificationEmail($user, $verificationToken);
 
-            $this->eventDispatcher->dispatch(new UserWasCreatedEvent($user));
 
             // Automatically log in the user after registration
             $loginResponse = $this->login([
@@ -368,21 +367,4 @@ class AuthService extends BaseService implements AuthServiceInterface
         return $data['first_name'] . ' ' . $data['last_name'];
     }
 
-    protected function completed(array $data, Model $model, string $operation = 'store|update|destroy'): void
-    {
-        $this->logBusinessLogic('Auth service completed', [
-            'data' => $data,
-            'model' => $model,
-            'operation' => $operation,
-        ]);
-        Log::info('Auth service completed', [
-            'data' => $data,
-            'model' => $model,
-            'operation' => $operation,
-        ]);
-        if ($operation === 'store') {
-            // /** @var User $model */
-            // $this->eventDispatcher->dispatch(new UserWasCreatedEvent($model));
-        }
-    }
 }

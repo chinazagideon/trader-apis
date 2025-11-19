@@ -11,7 +11,7 @@ class IndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // return $this->user()->can('viewAny', Payment::class);
+        // return $this->user()->can('isOwner', $this->user(), $this->payment);
         return true;
     }
 

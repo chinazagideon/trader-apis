@@ -12,14 +12,14 @@ use Illuminate\Support\Facades\Hash;
 use App\Modules\User\Contracts\UserCreditServiceInterface;
 use App\Modules\Role\Contracts\RoleServiceContract;
 use App\Modules\User\Events\UserWasCreatedEvent;
-use Illuminate\Contracts\Events\Dispatcher as EventDispatcher;
 use App\Modules\User\Enums\UserPaymentTypes;
 use App\Modules\User\Contracts\UserDebitServiceInterface;
 use App\Modules\Payment\Enums\PaymentStatusEnum;
-use App\Core\Exceptions\AppException;
-use App\Modules\User\Enums\UserStatus;
-
-/**
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
+use App\Core\Services\EventDispatcher;
+use App\Modules\User\Facade\UserModelFacade;
+ /**
  * User Service
  */
 class UserService extends BaseService implements UserServiceInterface
@@ -57,7 +57,11 @@ class UserService extends BaseService implements UserServiceInterface
             $user = $this->userRepository->create($data);
 
             // Dispatch UserWasCreatedEvent to trigger notifications
-            $this->eventDispatcher->dispatch(new UserWasCreatedEvent($user));
+            $this->eventDispatcher->dispatch(new UserWasCreatedEvent($user), 'user_was_created');
+
+            Log::info('UserWasCreatedEvent dispatched', [
+                'user' => $user,
+            ]);
 
             return ServiceResponse::success($user, 'User created successfully', Response::HTTP_CREATED);
         }, 'create user');
@@ -455,5 +459,27 @@ class UserService extends BaseService implements UserServiceInterface
     private function validateUserActive(int $userId): void
     {
 
+    }
+
+    /**
+     * Change password
+     * @param array $data
+     * @return ServiceResponse
+     */
+    public function changePassword(array $data = []): ServiceResponse
+    {
+        return $this->executeServiceOperation(function () use ($data) {
+
+            return ServiceResponse::success(null, 'Password changed successfully');
+        }, 'change password');
+    }
+
+    public function completed(array $data, Model $model, string $operation = 'store|update|destroy'): void
+    {
+        Log::info('User service completed', [
+            'data' => $data,
+            'model' => $model,
+            'operation' => $operation,
+        ]);
     }
 }

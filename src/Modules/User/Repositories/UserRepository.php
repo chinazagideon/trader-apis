@@ -6,6 +6,7 @@ use App\Core\Repositories\BaseRepository;
 use App\Modules\User\Database\Models\User;
 use App\Modules\User\Contracts\UserRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class UserRepository extends BaseRepository implements UserRepositoryInterface
@@ -91,5 +92,19 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
     protected function getDefaultRelationships(): array
     {
         return ['role', 'payments'];
+    }
+
+    /**
+     * Get a model instance of the user model
+     * @param int $id
+     * @return Model
+     */
+    public function getModelById(int $id): Model
+    {
+        $model = $this->find($id);
+        if (!$model) {
+            throw new \Exception('User not found');
+        }
+        return $model;
     }
 }

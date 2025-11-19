@@ -89,9 +89,14 @@ return [
     'providers' => [
         'email' => [
             [
+                'name' => 'sendgrid',
+                'driver' => 'sendgrid',
+                'priority' => 1,
+            ],
+            [
                 'name' => 'smtp',
                 'driver' => 'smtp',
-                'priority' => 1,
+                'priority' => 2,
             ],
             [
                 'name' => 'log',
@@ -146,7 +151,9 @@ return [
             'endpoint' => env('MAILGUN_ENDPOINT', 'api.mailgun.net'),
         ],
         'sendgrid' => [
-            'api_key' => env('SENDGRID_API_KEY'),
+            'api_key' => env('SENDGRID_API_KEY', env('MAIL_PASSWORD')), // Fallback to MAIL_PASSWORD if SENDGRID_API_KEY not set
+            'from_address' => env('MAIL_FROM_ADDRESS'),
+            'from_name' => env('MAIL_FROM_NAME'),
         ],
     ],
 
@@ -225,7 +232,7 @@ return [
             'body' => 'Your transaction #:id has been completed.',
             'view' => 'notification::emails.transaction_completed',
         ],
-        'payment_received' => [
+        'payment_was_completed' => [
             'subject' => 'Payment Received',
             'title' => 'Payment Received',
             'body' => 'We have received your payment of :amount.',

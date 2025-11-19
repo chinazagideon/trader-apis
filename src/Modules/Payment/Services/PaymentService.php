@@ -88,7 +88,7 @@ class PaymentService extends BaseService
             'status' => $status->value,
         ]);
 
-        $payment->load(['payable']);
+        $payment->load(['payable', 'currency']);
         $payment->refresh();
 
         $this->dispatchPaymentEvent($payment);

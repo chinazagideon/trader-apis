@@ -4,14 +4,25 @@ namespace App\Modules\Notification\Services;
 
 use App\Modules\Notification\Contracts\ProviderInterface;
 use App\Modules\Notification\Database\Models\NotificationConfig;
+use App\Modules\Notification\Services\SendGridMailerService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Http;
+use App\Modules\Notification\Contracts\ProviderResolverInterface;
 
 class ProviderManager
 {
     protected array $providers = [];
     protected array $healthStatus = [];
+
+    /**
+     * ProviderManager constructor
+     *
+     * @param ProviderResolver|null $providerResolver
+     */
+    public function __construct(
+        private ?ProviderResolverInterface $providerResolver = null
+    ) {}
 
     /**
      * Get active providers for a channel with failover support
@@ -169,40 +180,70 @@ class ProviderManager
     protected function sendEmail(array $provider, $notifiable, array $data): array
     {
         try {
-            $mailer = $provider['config']['mailer'] ?? $provider['name'];
+            $providerName = $provider['name'] ?? '';
+            $providerConfig = $provider['config'] ?? [];
 
-            // Handle MailMessage-style data (with view and viewData)
-            if (isset($data['view']) && isset($data['viewData'])) {
-                Mail::mailer($mailer)->send(
-                    $data['view'],
-                    $data['viewData'],
-                    function ($message) use ($notifiable, $data) {
-                        $to = $data['email'] ?? ($notifiable->email ?? null);
-                        if ($to) {
-                            $message->to($to)
-                                ->subject($data['subject'] ?? 'Notification');
-                        }
-                    }
-                );
-            } else {
-                // Fallback for simple array data
-                Mail::mailer($mailer)->send(
-                    $data['view'] ?? 'emails.notification',
-                    $data,
-                    function ($message) use ($notifiable, $data) {
-                        $to = $data['email'] ?? ($notifiable->email ?? null);
-                        if ($to) {
-                            $message->to($to)
-                                ->subject($data['subject'] ?? 'Notification');
-                        }
-                    }
-                );
+            // Try to resolve provider instance
+            $providerInstance = $this->providerResolver->resolve($providerName, $providerConfig, 'mail');
+
+            if ($providerInstance && $providerInstance->isAvailable()) {
+                return $providerInstance->send($notifiable, $data);
             }
 
-            return ['success' => true, 'message' => 'Email sent successfully'];
+            // Fallback to Laravel's Mail facade for standard providers
+            return $this->sendViaLaravelMail($provider, $notifiable, $data);
         } catch (\Exception $e) {
-            return ['success' => false, 'message' => $e->getMessage()];
+            Log::error('Email sending failed', [
+                'provider' => $provider['name'] ?? 'unknown',
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => $e->getMessage(),
+            ];
         }
+    }
+
+    /**
+     * Send email via Laravel's Mail facade (for SMTP, log, etc.)
+     *
+     * @param array $provider
+     * @param mixed $notifiable
+     * @param array $data
+     * @return array
+     */
+    protected function sendViaLaravelMail(array $provider, $notifiable, array $data): array
+    {
+        $mailer = $provider['config']['mailer'] ?? $provider['name'];
+
+        if (isset($data['view']) && isset($data['viewData'])) {
+            Mail::mailer($mailer)->send(
+                $data['view'],
+                $data['viewData'],
+                function ($message) use ($notifiable, $data) {
+                    $to = $data['email'] ?? ($notifiable->email ?? null);
+                    if ($to) {
+                        $message->to($to)
+                            ->subject($data['subject'] ?? 'Notification');
+                    }
+                }
+            );
+        } else {
+            Mail::mailer($mailer)->send(
+                $data['view'] ?? 'emails.notification',
+                $data,
+                function ($message) use ($notifiable, $data) {
+                    $to = $data['email'] ?? ($notifiable->email ?? null);
+                    if ($to) {
+                        $message->to($to)
+                            ->subject($data['subject'] ?? 'Notification');
+                    }
+                }
+            );
+        }
+
+        return ['success' => true, 'message' => 'Email sent successfully'];
     }
 
     /**

@@ -27,9 +27,7 @@ return [
 
     'allowed_origins' => explode(',', env('CORS_ALLOWED_ORIGINS', 'http://localhost:3000')),
 
-    'allowed_origins_patterns' => [
-        // 'https://*.yourdomain.com',
-    ],
+    'allowed_origins_patterns' => [],
 
     'allowed_headers' => ['*'],
 

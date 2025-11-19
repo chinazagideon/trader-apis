@@ -20,6 +20,9 @@ Route::prefix('users')->name('users.')->group(function () {
 
     Route::middleware(['auth:sanctum'])->group(function () {
 
+        Route::post('/password/reset', [UserController::class, 'resetPassword'])->name('password.reset');
+        Route::post('/password/change', [UserController::class, 'changePassword'])->name('password.change');
+
         // Credit available balance
         Route::post('/credit/balance', [UserController::class, 'creditAvailableBalance'])->name('credit.available');
         // Credit commission balance

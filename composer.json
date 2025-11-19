@@ -12,6 +12,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
         "rap2hpoutre/laravel-log-viewer": "^2.5",
+        "sendgrid/sendgrid": "^8.1",
         "tymon/jwt-auth": "^2.2"
     },
     "require-dev": {

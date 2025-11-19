@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Modules\Role\Database\Models\Role;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use App\Modules\Payment\Traits\HasPayments;
+use App\Modules\Client\Database\Models\Client;
 class User extends Authenticatable implements JWTSubject
 {
     use HasApiTokens;
@@ -199,5 +200,13 @@ class User extends Authenticatable implements JWTSubject
         return $this->role_id === $roleId;
     }
 
+    /**
+     * Get the client that owns the user.
+     * @return BelongsTo
+     */
+    public function client(): BelongsTo
+    {
+        return $this->belongsTo(Client::class);
+    }
 
 }

@@ -56,4 +56,14 @@ abstract class BaseNotificationEvent implements NotificationEventsContract
     {
         return [];
     }
+
+    /**
+     * Get the notifiable client
+     *
+     * @return string|null
+     */
+    public function getNotifiableClientName(): ?string
+    {
+        return null;
+    }
 }

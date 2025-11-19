@@ -113,15 +113,8 @@ trait ConfigurableListener
             return $queue;
         }
 
-        // Check priority-based queue
-        $priority = $this->getEventConfig('priority', 'medium');
-        $priorityQueue = config("events.priority_queues.{$priority}");
-        if ($priorityQueue) {
-            return $priorityQueue;
-        }
-
-        // Fall back to default queue
-        return config('events.processing.queue_name', 'events');
+        // Fall back to default queue (no priority-based queues)
+        return 'default';
     }
 
     /**

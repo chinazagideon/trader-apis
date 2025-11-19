@@ -34,6 +34,13 @@ class EventDispatcher
 
         $mode = $this->resolveProcessingMode($eventKey);
 
+        $hasListeners = Event::hasListeners(get_class($event));
+        Log::info('[EventDispatcher] Dispatching event', [
+            'event_class' => get_class($event),
+            'event_key' => $eventKey,
+            'mode' => $mode,
+            'has_listeners' => $hasListeners,
+        ]);
         $this->logDispatch($event, $eventKey, $mode);
 
         return match ($mode) {
@@ -52,7 +59,18 @@ class EventDispatcher
      */
     protected function dispatchSync(object $event)
     {
-        return Event::dispatch($event);
+        Log::info('[EventDispatcher] Dispatching synchronously', [
+            'event_class' => get_class($event),
+        ]);
+
+        $result = Event::dispatch($event);
+
+        Log::info('[EventDispatcher] Event dispatched synchronously', [
+            'event_class' => get_class($event),
+            'result' => $result,
+        ]);
+
+        return $result;
     }
 
     /**
@@ -64,7 +82,74 @@ class EventDispatcher
     protected function dispatchQueue(object $event)
     {
         // Laravel's Event::dispatch automatically queues listeners that implement ShouldQueue
-        return Event::dispatch($event);
+        Log::info('[EventDispatcher] Dispatching to queue', [
+            'event_class' => get_class($event),
+            'listeners_implement_shouldqueue' => $this->checkListenersShouldQueue($event),
+            'implements_should_dispatch_after_commit' => $event instanceof \Illuminate\Contracts\Events\ShouldDispatchAfterCommit,
+        ]);
+
+        // Use Event::dispatch which respects ShouldDispatchAfterCommit and queues ShouldQueue listeners
+        $result = Event::dispatch($event);
+
+        // After dispatch, check if jobs were actually queued
+        $listeners = Event::getListeners(get_class($event));
+        $queuedJobs = [];
+        foreach ($listeners as $listener) {
+            if (is_string($listener) && class_exists($listener)) {
+                $reflection = new \ReflectionClass($listener);
+                if ($reflection->implementsInterface(\Illuminate\Contracts\Queue\ShouldQueue::class)) {
+                    $queuedJobs[] = $listener;
+                }
+            }
+        }
+
+        Log::info('[EventDispatcher] Event dispatched to queue', [
+            'event_class' => get_class($event),
+            'result' => $result,
+            'listeners_that_should_queue' => $queuedJobs,
+            'queue_connection' => config('queue.default'),
+        ]);
+
+        return $result;
+    }
+
+    /**
+     * Check if any listeners implement ShouldQueue
+     */
+    protected function checkListenersShouldQueue(object $event): array
+    {
+        $listeners = Event::getListeners(get_class($event));
+        $info = [];
+
+        foreach ($listeners as $listener) {
+            $className = null;
+            if (is_string($listener)) {
+                $className = $listener;
+            } elseif (is_array($listener) && isset($listener[0])) {
+                $className = is_object($listener[0]) ? get_class($listener[0]) : (string)$listener[0];
+            } elseif (is_object($listener)) {
+                // Handle already-instantiated listener objects
+                $className = get_class($listener);
+            }
+
+            if ($className && class_exists($className)) {
+                $implementsShouldQueue = in_array(
+                    \Illuminate\Contracts\Queue\ShouldQueue::class,
+                    class_implements($className)
+                );
+                $info[] = [
+                    'class' => $className,
+                    'implements_shouldqueue' => $implementsShouldQueue,
+                ];
+            } else {
+                $info[] = [
+                    'class' => gettype($listener),
+                    'implements_shouldqueue' => false,
+                ];
+            }
+        }
+
+        return $info;
     }
 
     /**
@@ -89,7 +174,7 @@ class EventDispatcher
             'scheduled_at' => $this->calculateScheduledTime($config),
             'metadata' => [
                 'dispatched_at' => now()->toISOString(),
-                'dispatched_by' => auth()->id(),
+                'dispatched_by' => 0,
                 'environment' => app()->environment(),
             ],
         ]);

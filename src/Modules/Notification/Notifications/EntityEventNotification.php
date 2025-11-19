@@ -38,7 +38,6 @@ class EntityEventNotification extends BaseNotification
             'title' => $template['title'] ?? $this->data['title'] ?? $this->getDefaultTitle(),
             'action_url' => $this->data['action_url'] ?? null,
             'action_text' => $this->data['action_text'] ?? 'View Details',
-            // Add string versions for placeholder replacement
             'name' => $this->data['name'] ?? ($notifiable->name ?? ($notifiable->email ?? 'User')),
             'email' => $this->data['email'] ?? ($notifiable->email ?? ''),
         ]);

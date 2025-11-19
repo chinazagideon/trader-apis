@@ -3,7 +3,6 @@
 namespace App\Core\Providers;
 
 use App\Core\Services\LoggingService;
-use App\Core\Services\EventDispatcher;
 use App\Core\Services\TransactionContextFactory;
 use App\Core\Providers\BaseModuleServiceProvider;
 
@@ -24,8 +23,8 @@ class AppServiceProvider extends BaseModuleServiceProvider
         });
 
         // Register the EventDispatcher as singleton
-        $this->app->singleton(EventDispatcher::class, function ($app) {
-            return new EventDispatcher();
+        $this->app->singleton(\App\Core\Services\EventDispatcher::class, function ($app) {
+            return new \App\Core\Services\EventDispatcher();
         });
 
         // Register the TransactionContextFactory as singleton

@@ -9,11 +9,14 @@ use App\Modules\Notification\Channels\CustomChannel;
 use App\Modules\Notification\Services\ProviderManager;
 use App\Modules\Notification\Services\NotificationService;
 use App\Modules\Notification\Services\NotificationOutboxPublisher;
+use App\Modules\Notification\Services\SendGridMailerService;
 use App\Modules\Notification\Repositories\NotificationRepository;
 use App\Modules\Notification\Database\Models\Notification;
 use Illuminate\Support\Facades\Notification as NotificationFacade;
 use App\Modules\Notification\Contracts\NotificationOutboxPublisherInterface;
 use App\Modules\Notification\Console\Commands\ProcessNotificationOutbox;
+use App\Modules\Notification\Contracts\ProviderResolverInterface;
+use App\Modules\Notification\Services\ProviderResolver;
 
 class NotificationServiceProvider extends BaseModuleServiceProvider
 {
@@ -34,9 +37,21 @@ class NotificationServiceProvider extends BaseModuleServiceProvider
      */
     protected function registerServices(): void
     {
-        // Register ProviderManager
+        // Register SendGrid Mailer Service first (dependency for ProviderManager)
+        $this->app->singleton(SendGridMailerService::class, function ($app) {
+            return new SendGridMailerService();
+        });
+
+
+
+        // Register Provider Resolver
+        $this->app->singleton(ProviderResolverInterface::class, ProviderResolver::class);
+
+        // Register ProviderManager with ProviderResolver injected
         $this->app->singleton(ProviderManager::class, function ($app) {
-            return new ProviderManager();
+            return new ProviderManager(
+                $app->make(ProviderResolverInterface::class)
+            );
         });
 
         // Register NotificationRepository
@@ -96,6 +111,11 @@ class NotificationServiceProvider extends BaseModuleServiceProvider
      */
     protected function registerNotificationChannels(): void
     {
+        // Override Laravel's default 'mail' channel
+        NotificationFacade::extend('mail', function ($app) {
+            return $app->make(MultiProviderMailChannel::class);
+        });
+
         // Register Multi-Provider Mail Channel
         NotificationFacade::extend('multi_mail', function ($app) {
             return $app->make(MultiProviderMailChannel::class);

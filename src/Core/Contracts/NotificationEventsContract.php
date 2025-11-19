@@ -66,4 +66,11 @@ interface NotificationEventsContract
      * @return string e.g., 'user_was_created', 'investment_created'
      */
     public function getEventType(): string;
+
+    /**
+     * Get the notifiable client
+     *
+     * @return array|null
+     */
+    public function getNotifiableClientName(): ?string;
 }

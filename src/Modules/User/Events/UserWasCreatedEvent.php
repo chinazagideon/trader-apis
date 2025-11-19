@@ -126,4 +126,14 @@ class UserWasCreatedEvent extends BaseNotificationEvent implements ShouldDispatc
         return 'Your account has been created successfully.
         Welcome to our platform! You can now login to your account to continue.';
     }
+
+    /**
+     * Get the notifiable client
+     *
+     * @return string|null
+     */
+    public function getNotifiableClientName(): ?string
+    {
+        return $this->getNotifiable()?->client?->name ?? null;
+    }
 }

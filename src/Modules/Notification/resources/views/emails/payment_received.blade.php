@@ -12,7 +12,23 @@
             @if(isset($entity->amount))
             <tr>
                 <td style="padding: 8px 0; font-weight: bold; color: #6b7280;">Amount:</td>
-                <td style="padding: 8px 0; color: #111827; font-size: 18px; font-weight: bold;">{{ $entity->amount }}</td>
+                <td style="padding: 8px 0; color: #111827; font-size: 18px; font-weight: bold;">
+                    {{ number_format($entity->amount, 2) }}
+                    @if($entity->currency)
+                        {{ $entity->currency->symbol ?? $entity->currency->code ?? '' }}
+                    @endif
+                </td>
+            </tr>
+            @endif
+            @if($entity->currency)
+            <tr>
+                <td style="padding: 8px 0; font-weight: bold; color: #6b7280;">Currency:</td>
+                <td style="padding: 8px 0; color: #111827;">
+                    {{ $entity->currency->name ?? $entity->currency->code ?? 'N/A' }}
+                    @if($entity->currency->code && $entity->currency->code !== ($entity->currency->name ?? ''))
+                        ({{ $entity->currency->code }})
+                    @endif
+                </td>
             </tr>
             @endif
             @if(isset($entity->payment_method))

@@ -7,9 +7,12 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Queue\SerializesModels;
 use App\Core\Events\BaseNotificationEvent;
+use App\Modules\User\Database\Models\User;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Database\Eloquent\Model;
 use App\Modules\User\Enums\UserPaymentTypes;
+use App\Modules\User\Facade\UserRepositoryFacade;
+use App\Modules\Currency\Facades\CurrencyRepositoryFacade;
 
 class PaymentWasCompleted extends BaseNotificationEvent implements ShouldDispatchAfterCommit
 {
@@ -17,7 +20,10 @@ class PaymentWasCompleted extends BaseNotificationEvent implements ShouldDispatc
 
     public function __construct(
         public Payment $payment
-    ) {}
+    ) {
+
+        $this->payment->loadMissing('currency');
+    }
 
 
     /**
@@ -37,7 +43,7 @@ class PaymentWasCompleted extends BaseNotificationEvent implements ShouldDispatc
      */
     public function getMetadata(): array
     {
-        return $this->getPreparedNotificationData();
+        return array_merge($this->getPreparedNotificationData(), $this->getSerializedData());
     }
 
     /**
@@ -53,7 +59,7 @@ class PaymentWasCompleted extends BaseNotificationEvent implements ShouldDispatc
             'notification_message' => $this->getMessage(),
             'action_url' => $this->getActionUrl(),
             'action_text' => $this->getActionText(),
-            'source' => 'payment_completed',
+            'source' => 'payment_was_completed',
         ];
     }
 
@@ -117,15 +123,6 @@ class PaymentWasCompleted extends BaseNotificationEvent implements ShouldDispatc
         return 'Your payment has been completed successfully.';
     }
 
-    /**
-     * Get the notifiable
-     *
-     * @return Model
-     */
-    public function getNotifiable(): Model
-    {
-        return $this->payment->payable;
-    }
 
     /**
      * Get the serialized data
@@ -142,9 +139,10 @@ class PaymentWasCompleted extends BaseNotificationEvent implements ShouldDispatc
             'status' => $this->payment->status,
             // 'type' => $this->payment->payable_type, // Keep for backward compatibility
             'amount' => $this->payment->amount,
-            'currency_id' => $this->payment->currency_id,
+            'hash' => $this->payment->hash ?? null,
+            'currency' => $this->payment->currency,
             'method' => $this->payment->method ?? null,
-            'uuid' => $this->payment->uuid ?? null,
+            'uuid' => $this->payment->uuid,
         ];
     }
 
@@ -168,4 +166,25 @@ class PaymentWasCompleted extends BaseNotificationEvent implements ShouldDispatc
         return (int) $payable->user_id;
     }
 
+
+    /**
+     * Get the notifiable
+     *
+     * @return Model
+     */
+    public function getNotifiable(): Model
+    {
+        return UserRepositoryFacade::getModelById($this->getUserIdByPayableType());
+    }
+
+    /**
+     * Get the notifiable client name
+     *
+     * @return string|null
+     */
+    public function getNotifiableClientName(): ?string
+    {
+        return null;
+        // return ucwords(UserModelFacade::find($this->getUserIdByPayableType())?->client?->name ?? null);
+    }
 }

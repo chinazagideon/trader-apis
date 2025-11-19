@@ -129,7 +129,7 @@ return [
                 'send_notification' => [
                     'class' => \App\Modules\Notification\Listeners\SendEntityNotification::class,
                     'mode' => env('EVENT_NOTIFICATION_MODE', 'queue'),
-                    'queue' => env('EVENT_NOTIFICATION_QUEUE', 'notifications-high'),
+                    'queue' => env('EVENT_NOTIFICATION_QUEUE', 'notifications'),
                     'tries' => env('EVENT_NOTIFICATION_TRIES', 3),
                     'backoff' => [30, 60, 120],
                 ],
@@ -153,7 +153,7 @@ return [
                 'send_notification' => [
                     'class' => \App\Modules\Notification\Listeners\SendEntityNotification::class,
                     'mode' => env('EVENT_NOTIFICATION_MODE', 'queue'),
-                    'queue' => env('EVENT_NOTIFICATION_QUEUE', 'notifications-medium'),
+                    'queue' => env('EVENT_NOTIFICATION_QUEUE', 'notifications'),
                     'tries' => env('EVENT_NOTIFICATION_TRIES', 3),
                     'backoff' => [30, 60, 120],
                 ],
@@ -163,7 +163,7 @@ return [
         // Payment Events
         'payment_was_completed' => [
             'class' => \App\Modules\Payment\Events\PaymentWasCompleted::class,
-            'mode' => env('EVENT_PAYMENT_MODE', 'queue'),
+            'mode' => env('EVENT_PAYMENT_MODE', 'sync'),
             'priority' => 'high',
             'listeners' => [
                 'funding_payment_was_completed' => [
@@ -178,6 +178,13 @@ return [
                     'mode' => env('EVENT_PAYMENT_WITHDRAWAL_MODE', 'queue'),
                     'queue' => env('EVENT_PAYMENT_WITHDRAWAL_QUEUE', 'default'),
                     'tries' => env('EVENT_PAYMENT_WITHDRAWAL_TRIES', 3),
+                    'backoff' => [30, 60, 120],
+                ],
+                'send_notification' => [
+                    'class' => \App\Modules\Notification\Listeners\SendEntityNotification::class,
+                    'mode' => env('EVENT_NOTIFICATION_MODE', 'queue'),
+                    'queue' => env('EVENT_NOTIFICATION_QUEUE', 'notifications'),
+                    'tries' => env('EVENT_NOTIFICATION_TRIES', 3),
                     'backoff' => [30, 60, 120],
                 ],
             ],
@@ -209,6 +216,20 @@ return [
                     'backoff' => [30, 60, 120],
                 ],
             ]
+        ],
+        'user_was_created' => [
+            'class' => \App\Modules\User\Events\UserWasCreatedEvent::class,
+            'mode' => env('EVENT_USER_CREATED_MODE', 'queue'),
+            'priority' => 'high',
+            'listeners' => [
+                'send_notification' => [
+                    'class' => \App\Modules\Notification\Listeners\SendEntityNotification::class,
+                    'mode' => env('EVENT_NOTIFICATION_MODE', 'queue'),
+                    'queue' => env('EVENT_NOTIFICATION_QUEUE', 'notifications'),
+                    'tries' => env('EVENT_NOTIFICATION_TRIES', 3),
+                    'backoff' => [30, 60, 120],
+                ],
+            ],
         ],
     ],
 

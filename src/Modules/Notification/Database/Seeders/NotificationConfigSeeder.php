@@ -16,6 +16,20 @@ class NotificationConfigSeeder extends Seeder
             // Email Providers
             [
                 'type' => 'email_provider',
+                'name' => 'sendgrid',
+                'channel' => 'mail',
+                'config' => [
+                    'api_key' => env('SENDGRID_API_KEY', env('MAIL_PASSWORD')),
+                    'from_address' => env('MAIL_FROM_ADDRESS'),
+                    'from_name' => env('MAIL_FROM_NAME'),
+                    'driver' => 'sendgrid',
+                ],
+                'priority' => 1,
+                'is_active' => true,
+                'description' => 'SendGrid HTTP API email provider',
+            ],
+            [
+                'type' => 'email_provider',
                 'name' => 'smtp',
                 'channel' => 'mail',
                 'config' => [
@@ -26,7 +40,7 @@ class NotificationConfigSeeder extends Seeder
                     'encryption' => env('MAIL_ENCRYPTION', 'tls'),
                     'mailer' => 'smtp',
                 ],
-                'priority' => 1,
+                'priority' => 2,
                 'is_active' => true,
                 'description' => 'SMTP email provider',
             ],

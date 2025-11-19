@@ -9,18 +9,19 @@ use App\Modules\Investment\Events\InvestmentWasCreated;
 use App\Modules\Transaction\Events\TransactionWasCreated;
 use App\Modules\User\Events\UserWasCreatedEvent;
 use App\Modules\Funding\Events\FundingWasCompleted;
+use App\Modules\Payment\Events\PaymentWasCompleted;
 class NotificationEventServiceProvider extends ModuleEventServiceProviderBase
 {
     /**
      * The event to listener mappings for the application.
      */
     protected $listen = [
-        InvestmentCreated::class => [
-            SendEntityNotification::class,
-        ],
-        TransactionWasCreated::class => [
-            SendEntityNotification::class,
-        ],
+        // InvestmentCreated::class => [
+        //     SendEntityNotification::class,
+        // ],
+        // TransactionWasCreated::class => [
+        //     SendEntityNotification::class,
+        // ],
         UserWasCreatedEvent::class => [
             SendEntityNotification::class,
         ],
@@ -28,6 +29,9 @@ class NotificationEventServiceProvider extends ModuleEventServiceProviderBase
             SendEntityNotification::class,
         ],
         FundingWasCompleted::class => [
+            SendEntityNotification::class,
+        ],
+        PaymentWasCompleted::class => [
             SendEntityNotification::class,
         ],
 
@@ -38,7 +42,7 @@ class NotificationEventServiceProvider extends ModuleEventServiceProviderBase
      */
     public function boot(): void
     {
-        //
+        parent::boot();
     }
 
     /**
