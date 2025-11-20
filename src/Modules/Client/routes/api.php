@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Modules\Client\Http\Controllers\ClientController;
-
+use App\Modules\Client\Http\Controllers\ClientSecretController;
 
 Route::prefix('client')->name('client.')->group(function () {
     Route::get('/health', [ClientController::class, 'health'])->name('health');
@@ -15,4 +15,11 @@ Route::prefix('client')->name('client.')->group(function () {
         Route::put('/config', [ClientController::class, 'ConfigUpdate'])->name('update.config');
         Route::post('/', [ClientController::class, 'store'])->name('store');
     });
+});
+
+Route::prefix('client-secret')->name('client-secret.')->group(function () {
+    Route::get('/', [ClientSecretController::class, 'index'])->name('index');
+    Route::post('/', [ClientSecretController::class, 'store'])->name('store');
+    Route::put('/{clientSecret}', [ClientSecretController::class, 'update'])->name('update');
+    Route::delete('/{clientSecret}', [ClientSecretController::class, 'destroy'])->name('destroy');
 });

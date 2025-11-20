@@ -68,6 +68,7 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
     public function getUsersWithFilters(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         $query = $this->queryUnfiltered();
+        $query->latest();
         $this->applyBusinessFilters($query, $filters);
         return $this->withRelationships($query)->paginate($perPage);
     }

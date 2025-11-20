@@ -10,6 +10,7 @@ class CurrencyRepository extends BaseRepository
 {
     protected string $serviceName = 'CurrencyRepository';
 
+
     /**
      * Constructor
      */
@@ -25,8 +26,7 @@ class CurrencyRepository extends BaseRepository
     {
         $query = $this->queryUnfiltered();
         $query = $this->applyFilters($query, $filters);
-        return $this->withRelationships($query, $this->getDefaultRelationships())
-            ->paginate($perPage);
+        return $this->withRelationships($query, $this->getDefaultRelationships())->paginate($perPage);
     }
 
     /**

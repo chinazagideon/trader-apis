@@ -9,6 +9,9 @@ use App\Modules\Client\Contracts\ClientRepositoryContract;
 use App\Modules\Client\Policies\ClientPolicy;
 use App\Modules\Client\Repositories\ClientRepository;
 use App\Modules\Client\Database\Models\Client;
+use App\Modules\Client\Database\Models\ClientSecret;
+use App\Modules\Client\Policies\ClientSecretPolicy;
+use App\Modules\Client\Services\ClientSecretService;
 
 class ClientServiceProvider extends BaseModuleServiceProvider
 {
@@ -23,6 +26,7 @@ class ClientServiceProvider extends BaseModuleServiceProvider
      */
     protected array $services = [
         ClientService::class,
+        ClientSecretService::class,
     ];
 
     /**
@@ -37,10 +41,13 @@ class ClientServiceProvider extends BaseModuleServiceProvider
      */
     protected array $policies = [
         ClientPolicy::class => Client::class,
+        ClientSecretPolicy::class => ClientSecret::class,
     ];
 
     protected function registerServices(): void
     {
+        parent::registerServices();
+        
         $this->app->bind(
             ClientServiceContract::class,
             ClientService::class
@@ -50,5 +57,6 @@ class ClientServiceProvider extends BaseModuleServiceProvider
             ClientRepositoryContract::class,
             ClientRepository::class
         );
+
     }
 }

@@ -93,9 +93,9 @@ class PaymentService extends BaseService
     public function updatePaymentStatus(int $id, PaymentStatusEnum $status): object
     {
         $payment = $this->PaymentRepository->findOrFail($id);
-        // if($payment->status === PaymentStatusEnum::COMPLETED->value) {
-        //     throw new \Exception('Payment already completed');
-        // }
+        if($payment->status === PaymentStatusEnum::COMPLETED->value) {
+            throw new \Exception('Payment already completed');
+        }
 
         $payment->update([
             'status' => $status->value,

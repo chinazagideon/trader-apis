@@ -5,6 +5,7 @@ namespace App\Modules\Payment\Repositories;
 use App\Core\Repositories\BaseRepository;
 use App\Modules\Payment\Database\Models\PaymentGateway;
 use App\Core\Exceptions\AppException;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class PaymentGatewayRepository extends BaseRepository
 {
@@ -77,5 +78,18 @@ class PaymentGatewayRepository extends BaseRepository
 
         // Use bulk update for better performance
         return $query->update(['is_active' => false]);
+    }
+
+    /**
+     * Get payment gateways with filters and pagination
+     * @param array $filters
+     * @param int $perPage
+     * @return LengthAwarePaginator
+     */
+    public function getPaymentGateways(array $filters = [], int $perPage = 15): LengthAwarePaginator
+    {
+        $query = $this->queryUnfiltered();
+        $query = $this->applyFilters($query, $filters);
+        return $this->withRelationships($query, $this->getDefaultRelationships())->paginate($perPage);
     }
 }

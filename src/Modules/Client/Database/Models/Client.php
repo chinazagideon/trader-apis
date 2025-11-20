@@ -24,7 +24,7 @@ class Client extends CoreModel
 
     protected $casts = [
         'config' => 'array',
-        'features' => 'array',
+        'features' => 'json',
         'is_active' => 'boolean',
     ];
 
@@ -55,7 +55,7 @@ class Client extends CoreModel
      */
     public function getFeatures()
     {
-        return $this->features;
+        return $this->features ?? [];
     }
 
 }

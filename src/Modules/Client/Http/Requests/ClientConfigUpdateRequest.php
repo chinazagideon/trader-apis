@@ -27,6 +27,7 @@ class ClientConfigUpdateRequest extends FormRequest
         return [
             'api_key' => 'sometimes|string',
             'config' => 'required|array',
+            'features' => 'nullable|array',
         ];
     }
 
@@ -56,6 +57,7 @@ class ClientConfigUpdateRequest extends FormRequest
             'api_key.string' => 'The api key field must be a string.',
             'config.required' => 'The config field is required.',
             'config.array' => 'The config field must be an array.',
+            'features.array' => 'The features field must be an array.',
         ];
     }
 }

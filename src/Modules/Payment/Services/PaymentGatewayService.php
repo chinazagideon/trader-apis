@@ -97,7 +97,7 @@ class PaymentGatewayService extends BaseService implements PaymentGatewayService
     {
         $currency = $this->currencyService->getCurrencyByCode($slug, ['type']);
 
-        if (!$currency || !$currency->getData()->type) {
+        if (!$currency || $currency->getData()->type === null) {
             throw new AppException('Invalid slug or currency type not found');
         }
 
@@ -111,11 +111,15 @@ class PaymentGatewayService extends BaseService implements PaymentGatewayService
      */
     public function store(array $data): ServiceResponse
     {
-        $data = $this->preparePaymentGatewayData($data);
         $response = parent::store($data);
         return $response;
     }
 
+    /**
+     * Prepare instructions
+     * @param array $data
+     * @return array
+     */
     private function prepareInstructions(array $data): array
     {
         $instructions = config('Payment.payment_gateway.instructions');
@@ -186,6 +190,21 @@ class PaymentGatewayService extends BaseService implements PaymentGatewayService
             throw new \App\Core\Exceptions\AppException('Payment gateway not found');
         }
         return $gateway->getData()->slug;
+    }
+
+    /**
+     * Get payment gateways
+     * @param array $filters
+     * @param int $perPage
+     * @return ServiceResponse
+     */
+    public function index(array $filters = [], int $perPage = 15): ServiceResponse
+    {
+
+        return $this->executeServiceOperation(function () use ($filters, $perPage) {
+            $paymentGateways = $this->paymentGatewayRepository->getPaymentGateways($filters, $perPage);
+            return ServiceResponse::success($paymentGateways, 'Payment gateways retrieved successfully');
+        }, 'index');
     }
 
 }

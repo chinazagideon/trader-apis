@@ -176,9 +176,14 @@ class ClientService extends BaseService implements ClientServiceContract
         $preparedData = $this->prepareClientUpdateData($data);
         $client = $this->clientRepository->findByApiKey($data['api_key']);
 
-        $existingConfig = $client->config ?? [];
+        $existingConfig = (array) $client->config;
+        $existingFeatures = (array) $client->features;
+
+
         $client->config = array_merge($existingConfig, $preparedData);
-        $client = $this->clientRepository->update($client->id, $client->config);
+        $client->features = array_merge($existingFeatures, $preparedData);
+
+        $client = $this->clientRepository->update($client->id, $client->config, $client->features);
 
         return $client->refresh();
     }
@@ -193,6 +198,7 @@ class ClientService extends BaseService implements ClientServiceContract
         $this->validateRequiredClientConfigKeys($data);
         return [
             "config" => $data['config'],
+            "features" => $data['features'],
         ];
     }
 }
