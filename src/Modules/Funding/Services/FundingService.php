@@ -77,7 +77,6 @@ class FundingService extends BaseService
                 'fiat_currency_id' => $data['fiat_currency_id'],
             ]
         );
-        // dd($convertFiatResponse->getData());
 
         $convertFiat = $convertFiatResponse->getData();
         $cryptoAmount = $convertFiat->crypto_amount;
