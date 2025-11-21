@@ -2,11 +2,10 @@
 
 namespace App\Modules\Notification\Services;
 
-use App\Modules\Notification\Contracts\ProviderInterface;
 use App\Modules\Notification\Database\Models\NotificationConfig;
-use App\Modules\Notification\Services\SendGridMailerService;
+use App\Modules\Notification\Contracts\NotificationIdentityResolverInterface;
+use App\Modules\Notification\Contracts\NotificationIdentity;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Http;
 use App\Modules\Notification\Contracts\ProviderResolverInterface;
 
@@ -15,13 +14,16 @@ class ProviderManager
     protected array $providers = [];
     protected array $healthStatus = [];
 
+
     /**
      * ProviderManager constructor
      *
      * @param ProviderResolver|null $providerResolver
+     * @param NotificationIdentityResolverInterface|null $notificationIdentityResolver
      */
     public function __construct(
-        private ?ProviderResolverInterface $providerResolver = null
+        private ?ProviderResolverInterface $providerResolver = null,
+        private ?NotificationIdentityResolverInterface $notificationIdentityResolver = null
     ) {}
 
     /**
@@ -89,6 +91,7 @@ class ProviderManager
      */
     public function sendWithFailover(string $channel, $notifiable, array $data): array
     {
+
         $providers = $this->getProvidersForChannel($channel);
         $maxRetries = config('notification.failover.max_retries', 3);
         $retryDelay = config('notification.failover.retry_delay', 5);
@@ -182,18 +185,36 @@ class ProviderManager
         try {
             $providerName = $provider['name'] ?? '';
             $providerConfig = $provider['config'] ?? [];
+            $preparedData = $this->prepareEmailDataForProvider(
+                $providerName,
+                $notifiable,
+                $data,
+                $providerConfig
+            );
 
             // Try to resolve provider instance
             $providerInstance = $this->providerResolver->resolve($providerName, $providerConfig, 'mail');
 
             if ($providerInstance && $providerInstance->isAvailable()) {
-                // Prepare data for SendGrid (resolve email, render views, etc.)
-                $preparedData = $this->prepareEmailDataForProvider($providerName, $notifiable, $data);
                 return $providerInstance->send($notifiable, $preparedData);
             }
 
-            // Fallback to Laravel's Mail facade for standard providers
-            return $this->sendViaLaravelMail($provider, $notifiable, $data);
+            // Fallback: Try to resolve as 'default' provider
+            $fallbackProvider = $this->providerResolver->resolve('default', $providerConfig, 'mail');
+            if ($fallbackProvider && $fallbackProvider->isAvailable()) {
+                // Add mailer name to prepared data if available
+                if (isset($providerConfig['mailer'])) {
+                    $preparedData['mailer'] = $providerConfig['mailer'];
+                } elseif (isset($providerName)) {
+                    $preparedData['mailer'] = $providerName;
+                }
+                return $fallbackProvider->send($notifiable, $preparedData);
+            }
+
+            return [
+                'success' => false,
+                'message' => 'No available email provider found',
+            ];
         } catch (\Exception $e) {
             Log::error('Email sending failed', [
                 'provider' => $provider['name'] ?? 'unknown',
@@ -205,47 +226,6 @@ class ProviderManager
                 'message' => $e->getMessage(),
             ];
         }
-    }
-
-    /**
-     * Send email via Laravel's Mail facade (for SMTP, log, etc.)
-     *
-     * @param array $provider
-     * @param mixed $notifiable
-     * @param array $data
-     * @return array
-     */
-    protected function sendViaLaravelMail(array $provider, $notifiable, array $data): array
-    {
-        $mailer = $provider['config']['mailer'] ?? $provider['name'];
-
-        if (isset($data['view']) && isset($data['viewData'])) {
-            Mail::mailer($mailer)->send(
-                $data['view'],
-                $data['viewData'],
-                function ($message) use ($notifiable, $data) {
-                    $to = $data['email'] ?? ($notifiable->email ?? null);
-                    if ($to) {
-                        $message->to($to)
-                            ->subject($data['subject'] ?? 'Notification');
-                    }
-                }
-            );
-        } else {
-            Mail::mailer($mailer)->send(
-                $data['view'] ?? 'emails.notification',
-                $data,
-                function ($message) use ($notifiable, $data) {
-                    $to = $data['email'] ?? ($notifiable->email ?? null);
-                    if ($to) {
-                        $message->to($to)
-                            ->subject($data['subject'] ?? 'Notification');
-                    }
-                }
-            );
-        }
-
-        return ['success' => true, 'message' => 'Email sent successfully'];
     }
 
     /**
@@ -444,36 +424,164 @@ class ProviderManager
     /**
      * Prepare email data for provider (resolve email, render views, etc.)
      */
-    protected function prepareEmailDataForProvider(string $providerName, $notifiable, array $data): array
+    protected function prepareEmailDataForProvider(string $providerName, $notifiable, array $data, array $providerConfig = []): array
     {
         // Resolve recipient email
         $to = $data['email'] ?? ($notifiable->email ?? null);
 
-        // Resolve from name (module-specific logic)
-        $fromName = null;
-        if (isset($data['notifiable_client_name'])) {
-            $fromName = ucwords($data['notifiable_client_name']);
+        // 1. Try to get from NotificationConfig (provider-specific)
+        $configFromEmail = null;
+        $configFromName = null;
+
+        if (!empty($providerConfig) && is_array($providerConfig)) {
+            $configFromEmail = $providerConfig['from_address'] ?? null;
+            $configFromName = $providerConfig['from_name'] ?? null;
         }
 
-        // Render views if needed
-        $html = null;
-        $text = null;
+        // 2. Get from ClientSecret (client-specific) via identity resolver
+        $identity = $this->getNotificationIdentity($notifiable, 'mail');
 
-        if (isset($data['view']) && isset($data['viewData'])) {
-            $html = view($data['view'], $data['viewData'])->render();
-            $text = strip_tags($html);
-        } elseif (isset($data['body']) || isset($data['message'])) {
-            $text = $data['body'] ?? $data['message'] ?? null;
-        }
+        // 3. Resolve with priority: NotificationConfig → ClientSecret → Laravel config
+        $fromName = $configFromName
+            ?? $identity?->fromName
+            ?? config('mail.from.name');
+        $fromEmail = $configFromEmail
+            ?? $identity?->fromEmail
+            ?? config('mail.from.address');
+        $replyToEmail = $identity?->replyToEmail ?? $fromEmail;
+        $replyToName = $identity?->replyToName ?? $fromName;
+
+        // Merge personalization into data
+        $data = $this->mergePersonalization($data, $identity);
+
+        // Resolve email body (view-based or plain text)
+        $bodyData = $this->resolveEmailBody($data);
 
         // Build prepared data
         $preparedData = array_merge($data, [
             'to' => $to,
             'from_name' => $fromName,
-            'html' => $html,
-            'text' => $text,
-        ]);
+            'from_email' => $fromEmail,
+            'reply_to_email' => $replyToEmail,
+            'reply_to_name' => $replyToName,
+        ], $bodyData);
 
         return $preparedData;
+    }
+
+    /**
+     * Merge client personalization into email data
+     *
+     * @param array $data
+     * @param NotificationIdentity|null $identity
+     * @return array
+     */
+    protected function mergePersonalization(array $data, ?NotificationIdentity $identity): array
+    {
+        $personalization = $identity?->metadata ?? [];
+
+        if (empty($personalization)) {
+            return $data;
+        }
+
+        // Merge into viewData if it exists, otherwise merge into data
+        $target = &$data['viewData'] ?? $data;
+
+        if (is_array($target)) {
+            $target = array_merge($personalization, $target);
+        } else {
+            $data = array_merge($personalization, $data);
+        }
+
+        return $data;
+    }
+
+    /**
+     * Resolve email body based on data type (view-based or plain text)
+     * Uses method mapping to avoid control structures
+     *
+     * @param array $data
+     * @return array Contains 'html' and/or 'text' keys
+     */
+    protected function resolveEmailBody(array $data): array
+    {
+        // Map body type to resolver method
+        $bodyResolvers = [
+            'view' => fn() => $this->resolveViewBody($data),
+            'body' => fn() => $this->resolvePlainTextBody($data),
+            'message' => fn() => $this->resolvePlainTextBody($data),
+        ];
+
+        // Determine body type and resolve
+        $bodyType = $this->detectBodyType($data);
+        $resolver = $bodyResolvers[$bodyType] ?? fn() => ['html' => null, 'text' => null];
+
+        return $resolver();
+    }
+
+    /**
+     * Detect the type of email body from data
+     *
+     * @param array $data
+     * @return string Body type: 'view', 'body', 'message', or 'none'
+     */
+    protected function detectBodyType(array $data): string
+    {
+        return match (true) {
+            isset($data['view']) && isset($data['viewData']) => 'view',
+            isset($data['body']) => 'body',
+            isset($data['message']) => 'message',
+            default => 'none',
+        };
+    }
+
+    /**
+     * Resolve view-based email body
+     *
+     * @param array $data
+     * @return array
+     */
+    protected function resolveViewBody(array $data): array
+    {
+        $view = $data['view'];
+        $viewData = $data['viewData'] ?? [];
+
+        $html = view($view, $viewData)->render();
+        $text = strip_tags($html);
+
+        return [
+            'html' => $html,
+            'text' => $text,
+        ];
+    }
+
+    /**
+     * Resolve plain text email body
+     *
+     * @param array $data
+     * @return array
+     */
+    protected function resolvePlainTextBody(array $data): array
+    {
+        $text = $data['body'] ?? $data['message'] ?? null;
+
+        return [
+            'html' => null,
+            'text' => $text,
+        ];
+    }
+
+
+    private function getNotificationIdentity($notifiable, string $channel): ?NotificationIdentity
+    {
+        // Get morph alias if available, otherwise use class name
+        $notifiableType = method_exists($notifiable, 'getMorphClass')
+            ? $notifiable->getMorphClass()
+            : get_class($notifiable);
+
+        return $this->notificationIdentityResolver->resolve($channel, [
+            'notifiable_type' => $notifiableType,
+            'notifiable_id' => $notifiable->id ?? null,
+        ]);
     }
 }

@@ -36,7 +36,7 @@ class SMTPMailerService implements ProviderInterface
         $this->port = $port ?? $smtpConfig['port'] ?? $mailConfig['port'] ?? 1025;
         $this->username = $username ?? $smtpConfig['username'] ?? $mailConfig['username'];
         $this->password = $password ?? $smtpConfig['password'] ?? $mailConfig['password'];
-        $this->encryption = $encryption ?? $smtpConfig['encryption'] ?? $mailConfig['encryption'];
+        $this->encryption = $encryption ?? $smtpConfig['encryption'] ?? $mailConfig['encryption'] ?? 'tls';
 
         $this->fromAddress = $fromAddress ?? config('mail.from.address');
         $this->fromName = $fromName ?? config('mail.from.name');
@@ -116,7 +116,7 @@ class SMTPMailerService implements ProviderInterface
 
             // Build Symfony Email
             $email = (new Email())
-                ->from(sprintf('%s <%s>', $data['from_name'] ?? $this->fromName, $data['from'] ?? $this->fromAddress))
+                ->from(sprintf('%s <%s>', $data['from_name'] ?? $this->fromName, $data['from_email'] ?? $data['from'] ?? $this->fromAddress))
                 ->to($to)
                 ->subject($data['subject'] ?? 'Notification');
 

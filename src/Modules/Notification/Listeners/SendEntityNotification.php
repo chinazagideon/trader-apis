@@ -132,7 +132,7 @@ class SendEntityNotification implements ConfigurableListenerInterface, ShouldDis
         // Build notification for payload preparation only
         $notification = new EntityEventNotification($entity, $eventType, $notificationData, $channels);
 
-        Log::info('NotifTrace', [
+        Log::info('Notification Trace', [
             'stage' => 'listener_publishing_outbox',
             'event_type' => $eventType,
             'notifiable_type' => method_exists($notifiable, 'getMorphClass') ? $notifiable->getMorphClass() : get_class($notifiable),

@@ -17,6 +17,9 @@ use App\Modules\Notification\Contracts\NotificationOutboxPublisherInterface;
 use App\Modules\Notification\Console\Commands\ProcessNotificationOutbox;
 use App\Modules\Notification\Contracts\ProviderResolverInterface;
 use App\Modules\Notification\Services\ProviderResolver;
+use App\Modules\Notification\Contracts\NotificationIdentityResolverInterface;
+use App\Modules\Notification\Services\NullNotificationIdentityResolver;
+use App\Modules\Notification\Services\LaravelMailService;
 
 class NotificationServiceProvider extends BaseModuleServiceProvider
 {
@@ -50,10 +53,18 @@ class NotificationServiceProvider extends BaseModuleServiceProvider
         // Register Provider Resolver
         $this->app->singleton(ProviderResolverInterface::class, ProviderResolver::class);
 
+        // Register Notification Identity Resolver
+        // Default to null resolver, can be overridden by other modules
+        $this->app->singleton(
+            NotificationIdentityResolverInterface::class,
+            NullNotificationIdentityResolver::class
+        );
+
         // Register ProviderManager with ProviderResolver injected
         $this->app->singleton(ProviderManager::class, function ($app) {
             return new ProviderManager(
-                $app->make(ProviderResolverInterface::class)
+                $app->make(ProviderResolverInterface::class),
+                $app->make(NotificationIdentityResolverInterface::class)
             );
         });
 
@@ -75,12 +86,18 @@ class NotificationServiceProvider extends BaseModuleServiceProvider
             return new NotificationOutboxPublisher();
         });
 
+        // Register Laravel Mail Provider (fallback provider)
+        $this->app->singleton(LaravelMailService::class, function ($app) {
+            return new LaravelMailService();
+        });
+
         // Register Outbox Command
         if ($this->app->runningInConsole()) {
             $this->commands([
                 ProcessNotificationOutbox::class,
             ]);
         }
+
     }
 
     /**

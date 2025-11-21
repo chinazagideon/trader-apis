@@ -85,6 +85,8 @@ class ProviderResolver implements ProviderResolverInterface
             'mail' => [
                 'sendgrid' => \App\Modules\Notification\Services\SendGridMailerService::class,
                 'smtp' => \App\Modules\Notification\Services\SMTPMailerService::class,
+                'default' => \App\Modules\Notification\Services\LaravelMailService::class,
+                'log' => \App\Modules\Notification\Services\LaravelMailService::class,
             ],
             'sms' => [],
         ];

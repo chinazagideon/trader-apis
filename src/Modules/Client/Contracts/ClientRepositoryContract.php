@@ -27,4 +27,11 @@ interface ClientRepositoryContract
      */
     public function findBySlug(string $slug): ?Client;
 
+    /**
+     * find a client by id
+     *
+     * @param int $id
+     * @return Client|null
+     */
+    public function findById(int $id): ?Client;
 }

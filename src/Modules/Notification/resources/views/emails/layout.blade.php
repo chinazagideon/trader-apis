@@ -12,9 +12,12 @@
 
     <!-- Header -->
     <div style="background-color: #0c0606; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
-        {{-- <img src="https://www.shutterstock.com/image-vector/google-icon-made-manually-based-600w-2317500299.jpg"
-            alt="Logo" style="width: 100px; height: 100px;"> --}}
-        <h1 style="margin: 0; font-size: 24px;">{{ $title ?? 'Notification' }}</h1>
+        @if (isset($client_logo))
+            <img src="{{ $client_logo }}" alt="Logo" style="width: auto; height: auto;">
+        @elseif (isset($client_name))
+            <h1 style="margin: 0; font-size: 24px; font-weight: bold;">{{ $client_name ?? '' }}</h1>
+        @endif
+        <h1 style="margin: 0; font-size: 24px; font-weight: bold;">{{ $title ?? 'Notification' }}</h1>
     </div>
 
     <!-- Content -->
@@ -47,8 +50,10 @@
 
     <!-- Footer -->
     <div style="text-align: center; padding: 20px; color: #6b7280; font-size: 12px;">
-        @if (isset($notifiable_client_name))
-            <p style="margin: 5px 0;">© {{ date('Y') }} {{ $notifiable_client_name ?? '' }}. All rights reserved.
+        @if (isset($client_footer))
+            <p style="margin: 5px 0;">{{ $client_footer }}</p>
+        @elseif (isset($client_name))
+            <p style="margin: 5px 0;">© {{ date('Y') }} {{ $client_name ?? '' }}. All rights reserved.
             </p>
         @else
             <p style="margin: 5px 0;">© {{ date('Y') }} All rights reserved.</p>

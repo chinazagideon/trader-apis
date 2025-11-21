@@ -40,4 +40,15 @@ class ClientRepository extends BaseRepository implements ClientRepositoryContrac
             ->where('slug', $slug)
             ->first();
     }
+
+    /**
+     * find client by id
+     *
+     * @param int $id
+     * @return Client|null
+     */
+    public function findById(int $id): ?Client
+    {
+        return $this->find($id);
+    }
 }

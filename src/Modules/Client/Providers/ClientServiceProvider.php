@@ -47,7 +47,7 @@ class ClientServiceProvider extends BaseModuleServiceProvider
     protected function registerServices(): void
     {
         parent::registerServices();
-        
+
         $this->app->bind(
             ClientServiceContract::class,
             ClientService::class
@@ -57,6 +57,22 @@ class ClientServiceProvider extends BaseModuleServiceProvider
             ClientRepositoryContract::class,
             ClientRepository::class
         );
+    }
 
+    /**
+     * Boot runs AFTER all register() methods
+     * Use extend() to override the singleton binding
+     */
+    public function boot(): void
+    {
+        parent::boot();
+
+        // Override the NotificationIdentityResolverInterface AFTER NotificationServiceProvider registers it
+        $this->app->extend(
+            \App\Modules\Notification\Contracts\NotificationIdentityResolverInterface::class,
+            function ($existing, $app) {
+                return $app->make(\App\Modules\Client\Services\ClientNotificationIdentityResolver::class);
+            }
+        );
     }
 }
