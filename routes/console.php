@@ -11,7 +11,7 @@ Artisan::command('inspire', function () {
 // Schedule notification outbox processing
 Schedule::command('notifications:outbox:process --limit=100')
     ->everyMinute()
-    ->withoutOverlapping()
+    // ->withoutOverlapping()
     ->runInBackground()
     ->onFailure(function () {
         \Illuminate\Support\Facades\Log::error('Notification outbox processing failed');
