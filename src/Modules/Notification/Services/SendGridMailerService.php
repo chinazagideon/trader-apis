@@ -41,12 +41,6 @@ class SendGridMailerService implements ProviderInterface
                     'message' => 'SendGrid is not configured or available',
                 ];
             }
-
-            Log::info('SendGridMailerService send', [
-                'notifiable' => $notifiable,
-                'data' => $data,
-            ]);
-
             // Expect resolved email address
             $to = $data['to'] ?? $data['email'] ?? null;
             if (!$to) {
@@ -59,8 +53,8 @@ class SendGridMailerService implements ProviderInterface
             // Build SendGrid Mail object
             $email = new SendGridMail();
 
-            // Set from (use provided or fallback to config)
-            $from = $data['from'] ?? $this->fromAddress;
+            // Set from (use from_email from preparedData, fallback to from, then config)
+            $from = $data['from_email'] ?? $data['from'] ?? $this->fromAddress;
             $fromName = $data['from_name'] ?? $this->fromName;
             $email->setFrom($from, $fromName);
 
