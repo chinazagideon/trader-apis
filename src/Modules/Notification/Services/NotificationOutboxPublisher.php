@@ -51,11 +51,6 @@ class NotificationOutboxPublisher implements NotificationOutboxPublisherInterfac
                 ]
             );
 
-            Log::info('NotifTrace', [
-                'stage' => 'outbox_record_created',
-                'outbox_id' => $outbox->id,
-                'was_newly_created' => $outbox->wasRecentlyCreated,
-            ]);
         } catch (\Exception $e) {
             Log::error('Failed to create notification outbox record', [
                 'event_type' => $eventType,
