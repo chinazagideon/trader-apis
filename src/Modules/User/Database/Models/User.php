@@ -209,4 +209,12 @@ class User extends Authenticatable implements JWTSubject
         return $this->belongsTo(Client::class);
     }
 
+    /**
+     * is admin User
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role_id === RolesEnum::ADMIN->value;
+    }
 }
