@@ -5,6 +5,7 @@ namespace App\Modules\Dashboard\Services;
 use App\Core\Services\BaseService;
 use App\Core\Http\ServiceResponse;
 use App\Modules\Dashboard\Repositories\DashboardRepository;
+use Illuminate\Support\Facades\Log;
 
 class DashboardService extends BaseService
 {
@@ -21,6 +22,7 @@ class DashboardService extends BaseService
      */
     public function getStatistics(array $filters = []): ServiceResponse
     {
+
         return $this->executeServiceOperation(function () use ($filters) {
             $statistics = $this->dashboardRepository->getDashboardStatistics($filters);
 

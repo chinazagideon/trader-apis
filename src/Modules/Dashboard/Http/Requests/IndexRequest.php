@@ -13,21 +13,7 @@ class IndexRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->role_id == RolesEnum::ADMIN->value;
-    }
-
-    /**
-     * Prepare the data for validation.
-     */
-    public function prepareForValidation()
-    {
-        if ($this->user()->role_id !== RolesEnum::ADMIN->value) {
-            $this->merge([
-                'user_id' => $this->user()?->id,
-                'date_from' => Carbon::now()->startOfDay(),
-                'date_to' => Carbon::now()->endOfDay(),
-            ]);
-        }
+        return true;
     }
 
     /**
@@ -37,14 +23,47 @@ class IndexRequest extends FormRequest
     {
 
         return [
-            'date_from' => 'sometimes|date',
+            'date_from' => 'nullable|date',
             'date_to' => 'sometimes|date|after_or_equal:date_from',
-            'status' => 'sometimes|string',
-            'user_id' => 'required|integer|exists:users,id',
-            'currency_id' => 'sometimes|integer|exists:currencies,id',
-            'type' => 'sometimes|string',
+            'status' => 'nullable|string',
+            'user_id' => 'integer|exists:users,id|required_if:is_admin,true',
+            'currency_id' => 'nullable|integer|exists:currencies,id',
+            'type' => 'nullable|string',
             'include_chart_data' => 'sometimes|boolean',
             'group_by' => 'sometimes|string|in:day,week,month,year',
+        ];
+    }
+
+
+
+    /**
+     * Prepare the data for validation.
+     */
+    public function prepareForValidation()
+    {
+        $user_id = null;
+        if($this->user()?->isAdmin()) {
+            $user_id = $this->input('user_id') ?? $this->route('id');
+        } else {
+            $user_id = $this->user()?->id;
+        }
+        $this->merge([
+            "user_id" => $user_id,
+        ]);
+    }
+
+    public function messages(): array
+    {
+        return [
+            'user_id.exists' => 'The user does not exist',
+            'date_from.date' => 'The date from must be a valid date',
+            'date_to.date' => 'The date to must be a valid date',
+            'date_to.after_or_equal' => 'The date to must be after or equal to the date from',
+            'status.string' => 'The status must be a string',
+            'status.in' => 'The status must be one of: pending, completed, cancelled',
+            'currency_id.integer' => 'The currency id must be an integer',
+            'currency_id.exists' => 'The currency does not exist',
+            'type.string' => 'The type must be a string',
         ];
     }
 }
