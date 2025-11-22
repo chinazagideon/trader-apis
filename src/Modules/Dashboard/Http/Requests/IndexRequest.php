@@ -26,7 +26,7 @@ class IndexRequest extends FormRequest
             'date_from' => 'nullable|date',
             'date_to' => 'sometimes|date|after_or_equal:date_from',
             'status' => 'nullable|string',
-            'user_id' => 'integer|exists:users,id|required_if:is_admin,true',
+            'user_id' => 'integer|exists:users,id|nullable',
             'currency_id' => 'nullable|integer|exists:currencies,id',
             'type' => 'nullable|string',
             'include_chart_data' => 'sometimes|boolean',
@@ -43,7 +43,7 @@ class IndexRequest extends FormRequest
     {
         $user_id = null;
         if($this->user()?->isAdmin()) {
-            $user_id = $this->input('user_id') ?? $this->route('id');
+            $user_id = $this->input('user_id') ?? $this->route('id') ?? null;
         } else {
             $user_id = $this->user()?->id;
         }
