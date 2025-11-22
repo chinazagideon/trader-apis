@@ -1,6 +1,6 @@
-# Trader APIs - Modular Laravel Architecture
+# Payment Service APIs - Laravel Microservice Application
 
-A Laravel application built with a modular, event-driven architecture designed for scalability and maintainability.
+A Secured robust, event-driven payment microservices system API key middleware for resource authorization and tenant isolation. Built with a modular, event-driven architecture for scalability and maintainability.
 
 ## Core Architecture Principles
 
