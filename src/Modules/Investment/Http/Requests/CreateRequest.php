@@ -21,7 +21,7 @@ class CreateRequest extends FormRequest
         return [
             'user_id' => ['required', 'integer', 'min:1', 'exists:users,id'],
             'pricing_id' => 'required|integer|min:1|exists:pricings,id',
-            'category_id' => 'required|integer|min:1|exists:categories,id',
+            'category_id' => 'required|integer|min:1',
             'amount' => 'required|numeric|min:0.01',
             'status' => 'sometimes|string|in:pending,cancelled,running,completed',
             'start_date' => 'sometimes|date|after_or_equal:today',
