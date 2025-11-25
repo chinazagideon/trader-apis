@@ -3,7 +3,6 @@
 namespace App\Modules\Investment\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use App\Core\Rules\AuthUser;
 class CreateRequest extends FormRequest
 {
     /**
@@ -20,7 +19,7 @@ class CreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'integer', 'min:1', 'exists:users,id', new AuthUser()],
+            'user_id' => ['required', 'integer', 'min:1', 'exists:users,id'],
             'pricing_id' => 'required|integer|min:1|exists:pricings,id',
             'category_id' => 'required|integer|min:1|exists:categories,id',
             'amount' => 'required|numeric|min:0.01',
@@ -32,6 +31,15 @@ class CreateRequest extends FormRequest
             'risk' => 'string|nullable',
             'name' => 'string|nullable',
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if (!$this->user()->hasPermission('admin.all')) {
+            $this->merge([
+                'user_id' => $this->user()->id,
+            ]);
+        }
     }
 
     /**

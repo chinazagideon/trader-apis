@@ -10,6 +10,7 @@ use App\Modules\Investment\Events\InvestmentCreated;
 use App\Modules\Investment\Events\InvestmentWasCreated;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use App\Core\Exceptions\ServiceException;
 
 
 class InvestmentService extends BaseService
@@ -32,31 +33,12 @@ class InvestmentService extends BaseService
 
             $response = parent::store($data);
 
-            if ($response->isSuccess() && $response->getData()) {
-                $investment = $response->getData();
-
-                // Create event instance
-                // $event = new InvestmentCreated($investment, [
-                //     'created_by' => Auth::id(),
-                //     'source' => 'api',
-                //     'timestamp' => now()->toISOString(),
-                //     'request' => $data,
-                //     'category_id' => $data['category_id'] ?? null,
-                // ]);
-
-
-                // Dispatch using configurable EventDispatcher to honor env/queue/scheduled modes
-                // $this->eventDispatcher->dispatch($event, 'investment_created');
-                $this->eventDispatcher->dispatch(
-                    new InvestmentWasCreated(
-                        $investment,
-                        ['user' => $investment->user ?? $response->getData()->user]
-                    ),
-                    'investment_was_created'
-                );
-
+            if (! $response->isSuccess()) {
+                throw new ServiceException($response->getMessage());
             }
 
+            $investment = $response->getData();
+            $this->dispatcher($investment);
             return $response;
         }, 'store');
     }
@@ -77,8 +59,31 @@ class InvestmentService extends BaseService
         return config('investment.transaction.status');
     }
 
-    protected function completed(array $data, Model $model, string $operation = 'store|update|destroy'): void
+    /**
+     * Dispatcher the event
+     * @param Model $model
+     * @return void
+     */
+    private function dispatcher(Model $model): void
     {
+        // Create event instance
+        $event = new InvestmentCreated($model, [
+            'created_by' => Auth::id(),
+            'source' => 'api',
+            'timestamp' => now()->toISOString(),
+            'request' => $model->toArray(),
+            'category_id' => $model->category_id ?? null,
+        ]);
 
+
+        // Dispatch using configurable EventDispatcher to honor env/queue/scheduled modes
+        $this->eventDispatcher->dispatch($event, 'investment_created');
+        $this->eventDispatcher->dispatch(
+            new InvestmentWasCreated(
+                $model,
+                ['user' => $model->user ?? $model->user]
+            ),
+            'investment_was_created'
+        );
     }
 }

@@ -9,7 +9,7 @@ use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Events\ShouldDispatchAfterCommit;
 use Illuminate\Support\Facades\Log;
-
+use App\Modules\User\Database\Models\User;
 class InvestmentWasCreated extends BaseNotificationEvent implements ShouldDispatchAfterCommit
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
@@ -125,9 +125,9 @@ class InvestmentWasCreated extends BaseNotificationEvent implements ShouldDispat
      * IMPORTANT: This method is called AFTER the event is unserialized in the queue worker,
      * so we must reload the user relationship from the database.
      *
-     * @return \App\Modules\User\Database\Models\User|null
+     * @return ?User
      */
-    public function getNotifiable()
+    public function getNotifiable(): ?User
     {
         $user = $this->metadata['user'] ?? null;
         if ($user) {
