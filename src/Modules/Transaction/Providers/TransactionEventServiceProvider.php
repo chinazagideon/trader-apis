@@ -8,6 +8,7 @@ use App\Modules\Investment\Events\InvestmentCreated;
 use App\Modules\Transaction\Listeners\CreateTransactionForEntity;
 use App\Modules\Transaction\Listeners\CreateCategoryForTransaction;
 use App\Modules\Transaction\Events\TransactionWasCreated;
+use App\Modules\Payment\Events\CreatePaymentTransactionEvent;
 
 
 
@@ -25,6 +26,9 @@ class TransactionEventServiceProvider extends ModuleEventServiceProviderBase
         ],
         TransactionWasCreated::class => [
             CreateCategoryForTransaction::class,
+        ],
+        CreatePaymentTransactionEvent::class => [
+            CreateTransactionForEntity::class,
         ],
     ];
 

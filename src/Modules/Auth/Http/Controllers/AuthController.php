@@ -8,6 +8,7 @@ use App\Modules\Auth\Http\Requests\LoginRequest;
 use App\Modules\Auth\Http\Requests\RegisterRequest;
 use App\Modules\Auth\Http\Requests\PasswordResetRequest;
 use App\Modules\Auth\Http\Requests\ChangePasswordRequest;
+use App\Modules\Auth\Http\Requests\SendPasswordResetLinkRequest;
 use App\Modules\Auth\Http\Resources\AuthResource;
 use App\Modules\Auth\Http\Resources\LoginResource;
 use App\Modules\Auth\Http\Resources\RegisterResource;
@@ -111,9 +112,10 @@ class AuthController extends BaseController
     /**
      * Send password reset link
      */
-    public function sendPasswordResetLink(Request $request): JsonResponse
+    public function sendPasswordResetLink(SendPasswordResetLinkRequest $request): JsonResponse
     {
-        $response = $this->authService->sendPasswordResetLink($request->get('email'));
+        $email = $request->validated('email');
+        $response = $this->authService->sendPasswordResetLink($email);
         return $this->handleServiceResponse($response);
     }
 
@@ -122,6 +124,7 @@ class AuthController extends BaseController
      */
     public function resetPassword(PasswordResetRequest $request): JsonResponse
     {
+
         $response = $this->authService->resetPassword($request->validated());
         return $this->handleServiceResponse($response);
     }

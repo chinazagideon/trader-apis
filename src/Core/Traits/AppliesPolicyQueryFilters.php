@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use App\Modules\User\Database\Models\User;
+
 
 /**
  * Trait for applying policy-based query filtering
@@ -33,7 +35,7 @@ trait AppliesPolicyQueryFilters
      */
     protected function applyPolicyQueryFilters(Builder $query, bool $loadRelationships = true, array $filters = []): Builder
     {
-        $user = Auth::user();
+        $user = $this->getUserFromFilters($filters);
         $client = $this->getClient();
         $clientId = $client?->id;
 
@@ -208,5 +210,16 @@ trait AppliesPolicyQueryFilters
     {
         $query = $this->query();
         return $this->applyPolicyQueryFilters($query, $loadRelationships, $filters);
+    }
+
+    /**
+     * Get the user from the filters
+     * @param array $filters
+     * @return ?User
+     */
+    protected function getUserFromFilters(array $filters): ?User
+    {
+        $user = $filters['user'] ?? Auth::user();
+        return $user;
     }
 }

@@ -19,36 +19,36 @@ class TransactionCategoryService extends BaseService
     /**
      * Override index method to load relationships
      */
-    public function index(array $filters = [], int $perPage = 15): ServiceResponse
-    {
-        return $this->executeServiceOperation(function () use ($filters, $perPage) {
-            $results = $this->repository->all();
+    // public function index(array $filters = [], int $perPage = 15): ServiceResponse
+    // {
+    //     return $this->executeServiceOperation(function () use ($filters, $perPage) {
+    //         $results = $this->repository->all();
 
-            // Load relationships for each result
-            $results->load(['category', 'transaction']);
+    //         // Load relationships for each result
+    //         $results->load(['category', 'transaction']);
 
-            return ServiceResponse::success($results, 'Transaction categories retrieved successfully.');
-        }, 'index');
-    }
+    //         return ServiceResponse::success($results, 'Transaction categories retrieved successfully.');
+    //     }, 'index');
+    // }
 
     /**
      * Override show method to load relationships
      */
-    public function show(int $id): ServiceResponse
-    {
-        return $this->executeServiceOperation(function () use ($id) {
-            $result = $this->repository->find($id);
+    // public function show(int $id): ServiceResponse
+    // {
+    //     return $this->executeServiceOperation(function () use ($id) {
+    //         $result = $this->repository->find($id);
 
-            if (!$result) {
-                throw new \App\Core\Exceptions\NotFoundException('Transaction category not found');
-            }
+    //         if (!$result) {
+    //             throw new \App\Core\Exceptions\NotFoundException('Transaction category not found');
+    //         }
 
-            // Load relationships
-            $result->load(['category', 'transaction']);
+    //         // Load relationships
+    //         $result->load(['category', 'transaction']);
 
-            return ServiceResponse::success($result, 'Transaction category retrieved successfully.');
-        }, 'show');
-    }
+    //         return ServiceResponse::success($result, 'Transaction category retrieved successfully.');
+    //     }, 'show');
+    // }
 
     /**
      * Apply filters to the query

@@ -48,7 +48,7 @@ class AuthenticateApi extends Middleware
             }
         }
 
-        // For API requests, throw our custom exception
+        // For API requests, throw custom exception
         if ($request->is('api/*') || $request->expectsJson()) {
             throw UnauthenticatedException::tokenMissing();
         }

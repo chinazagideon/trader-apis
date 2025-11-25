@@ -5,51 +5,52 @@ namespace App\Modules\Transaction\Repositories;
 use App\Core\Repositories\BaseRepository;
 use App\Modules\Transaction\Database\Models\Transaction;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Core\Traits\LoadsMorphRelations;
+use Illuminate\Database\Eloquent\Concerns\HasRelationships;
 
 class TransactionRepository extends BaseRepository
 {
+
+    use HasRelationships;
+    use LoadsMorphRelations;
+    /**
+     * Constructor
+     * @param Transaction $model
+     */
     public function __construct(Transaction $model)
     {
         parent::__construct($model);
     }
 
     /**
+     * Get default relationships for the transaction model
+     */
+    protected function getDefaultRelationships(): array
+    {
+        return ['transactable', 'payment'];
+    }
+
+    /**
      * Get transactions with pagination and filters
+     */
+    // public function getTransactions(array $filters = [], int $perPage = 15): LengthAwarePaginator
+    // {
+    //     $query = $this->model->newQuery();
+    //     $this->applyBusinessFilters($query, $filters);
+    //     return $this->withRelationships($query)->paginate($perPage);
+    // }
+
+     /**
+     * Get the payments
+     * @param array $filters
+     * @param int $perPage
+     * @return LengthAwarePaginator
      */
     public function getTransactions(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
-        $query = $this->model->newQuery();
-
-        // Apply filters
-        if (!empty($filters['search'])) {
-            $query->where(function ($q) use ($filters) {
-                $q->where('narration', 'like', "%{$filters['search']}%")
-                  ->orWhere('uuid', 'like', "%{$filters['search']}%");
-            });
-        }
-
-        if (!empty($filters['status'])) {
-            $query->where('status', $filters['status']);
-        }
-
-        if (!empty($filters['entry_type'])) {
-            $query->where('entry_type', $filters['entry_type']);
-        }
-
-        if (!empty($filters['date_from'])) {
-            $query->whereDate('created_at', '>=', $filters['date_from']);
-        }
-
-        if (!empty($filters['date_to'])) {
-            $query->whereDate('created_at', '<=', $filters['date_to']);
-        }
-
-        // Apply sorting
-        $sortBy = $filters['sort_by'] ?? 'created_at';
-        $sortDirection = $filters['sort_direction'] ?? 'desc';
-        $query->orderBy($sortBy, $sortDirection);
-
-        // Load relationships if available
-        return $this->withRelationships($query)->paginate($perPage);
+        $query = $this->queryWithPolicyFilter($filters);
+        $query = $this->withAllRelations($query, $this->getDefaultRelationships());
+        $query->latest();
+        return $query->paginate($perPage);
     }
 }

@@ -23,13 +23,10 @@ class TransactionIndexResource extends JsonResource
             'total_amount' => $this->total_amount,
             'status' => $this->status,
             'created_at' => $this->created_at,
-
-            // Index-specific fields (lighter payload)
-            // 'formatted_amount' => number_format($this->total_amount, 2),
-            // 'status_badge' => $this->getStatusBadge(),
-            // 'entry_type_icon' => $this->getEntryTypeIcon(),
             'category' => $this->category,
             'transactable' => $this->transactable,
+            'transactable_type' => $this->transactable_type,
+
         ];
     }
 

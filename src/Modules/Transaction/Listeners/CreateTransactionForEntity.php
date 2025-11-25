@@ -18,7 +18,7 @@ class CreateTransactionForEntity implements ConfigurableListenerInterface, Shoul
     /**
      * Configuration keys for this listener
      */
-    protected string $eventConfigKey = 'investment_created';
+    protected ?string $eventConfigKey = null;
     protected string $listenerConfigKey = 'create_transaction';
 
     /**
@@ -105,29 +105,7 @@ class CreateTransactionForEntity implements ConfigurableListenerInterface, Shoul
                 'metadata' => $event->getMetadata(),
             ]);
 
-            if ($response->isSuccess()) {
-                $this->logger->logOperation(
-                    'CreateTransactionForEntity',
-                    'handle',
-                    'success',
-                    "Transaction created successfully",
-                    [
-                        'transaction_id' => $response->getData()->id ?? null,
-                        'event' =>  json_encode($event),
-                    ]
-                );
-
-                $this->logger->logBusinessLogic(
-                    'TransactionService',
-                    'entity_transaction_created',
-                    "Transaction created successfully",
-                    [
-                        'event' =>  json_encode($event),
-                        'transaction_id' => $response->getData()->id ?? null,
-                        'transaction_data' => $strippedCategoryIdData,
-                    ]
-                );
-            } else {
+            if (! $response->isSuccess()) {
                 $this->logger->logOperation(
                     'CreateTransactionForEntity',
                     'handle',
@@ -155,15 +133,6 @@ class CreateTransactionForEntity implements ConfigurableListenerInterface, Shoul
                 ]
             );
 
-            $this->logger->logError(
-                'CreateTransactionForEntity',
-                'handle',
-                $e,
-                [
-                    'event' =>  json_encode($event),
-                    'transaction_data' => $transactionData ?? [],
-                ]
-            );
 
             // Re-throw to mark job as failed
             throw $e;

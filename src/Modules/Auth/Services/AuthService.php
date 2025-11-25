@@ -245,9 +245,8 @@ class AuthService extends BaseService implements AuthServiceInterface
     {
         return $this->executeServiceOperation(function () use ($data) {
             $response = $this->passwordResetService->resetPassword($data);
-
             if (!$response->isSuccess()) {
-                throw new \App\Core\Exceptions\ServiceException('Failed to reset password');
+                throw new \App\Core\Exceptions\ServiceException($response->getMessage());
             }
 
             return ServiceResponse::success(null, 'Password reset successfully');

@@ -3,8 +3,8 @@
 use App\Modules\Category\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('{{moduleName}}')->name('{{moduleName}}.')->group(function () {
-    Route::get('/hello', [CategoryController::class, 'hello'])->name('hello');
+Route::prefix('category')->name('category.')->group(function () {
+    Route::get('/health', [CategoryController::class, 'health'])->name('health');
 
     Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/', [CategoryController::class, 'index'])->name('index');

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Auth\Services;
 
+use App\Core\Exceptions\AppException;
 use App\Core\Exceptions\BusinessLogicException;
 use App\Core\Exceptions\NotFoundException;
 use App\Core\Http\ServiceResponse;
@@ -37,7 +38,7 @@ class PasswordResetService extends BaseService implements PasswordResetInterface
             PasswordReset::where('email', $email)->delete();
 
             // Create new reset token
-            $token = Str::random(64);
+            $token = strtoupper(Str::random(6));
             PasswordReset::create([
                 'email' => $email,
                 'token' => Hash::make($token),
@@ -62,15 +63,14 @@ class PasswordResetService extends BaseService implements PasswordResetInterface
     public function resetPassword(array $data): ServiceResponse
     {
         return $this->executeServiceOperation(function () use ($data) {
-            $this->validateResetPasswordData($data);
 
             $passwordReset = PasswordReset::where('email', $data['email'])
-                ->where('token', Hash::make($data['token']))
                 ->valid()
                 ->first();
 
-            if (!$passwordReset) {
-                throw new NotFoundException('Invalid or expired reset token');
+            $token = Hash::check($data['token'], $passwordReset->token);
+            if (!$token) {
+                throw new AppException('Invalid or expired reset token');
             }
 
             // Find user
@@ -81,7 +81,6 @@ class PasswordResetService extends BaseService implements PasswordResetInterface
 
             // Update password
             $user->password = Hash::make($data['password']);
-            $user->save();
 
             // Mark token as used
             $passwordReset->markAsUsed();
