@@ -11,7 +11,8 @@ use App\Modules\Investment\Events\InvestmentWasCreated;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use App\Core\Exceptions\ServiceException;
-
+use App\Modules\User\Contracts\UserBalanceServiceInterface;
+use App\Modules\User\Enums\UserBalanceEnum;
 
 class InvestmentService extends BaseService
 {
@@ -19,6 +20,7 @@ class InvestmentService extends BaseService
 
     public function __construct(
         private InvestmentRepository $investmentRepository,
+        private UserBalanceServiceInterface $userBalanceService,
         private EventDispatcher $eventDispatcher
     ) {
         parent::__construct($investmentRepository);
@@ -31,7 +33,7 @@ class InvestmentService extends BaseService
     {
         return $this->executeServiceOperation(function () use ($data) {
 
-
+            $this->validateUserBalance($data);
             $response = parent::store($this->prepareData($data));
 
             if (! $response->isSuccess()) {
@@ -97,5 +99,19 @@ class InvestmentService extends BaseService
     {
         unset($data['category_id']);
         return $data;
+    }
+
+    /**
+     * Validate user balance
+     * @param array $data
+     * @return void
+     */
+    private function validateUserBalance(array $data): void
+    {
+        $data['type'] = UserBalanceEnum::Investment->value;
+        $this->userBalanceService->checkBalance($data);
+        if (!$this->userBalanceService->checkBalance($data)) {
+            throw new ServiceException('Insufficient balance');
+        }
     }
 }

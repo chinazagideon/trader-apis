@@ -9,7 +9,7 @@ enum UserBalanceEnum: string
     case Deposit = 'deposit';
     case Transfer = 'transfer';
     case Payment = 'payment';
-
+    case Investment = 'investment';
 
     /**
      * Get the label for the user balance type
@@ -23,6 +23,7 @@ enum UserBalanceEnum: string
             self::Deposit => 'Deposit',
             self::Transfer => 'Transfer',
             self::Payment => 'Payment',
+            self::Investment => 'Investment',
             default => 'Unknown',
         };
     }

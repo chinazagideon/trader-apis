@@ -110,6 +110,7 @@ class UserBalanceService extends BaseService implements UserBalanceServiceInterf
             UserBalanceEnum::Deposit->value => $this->validateDepositBalanceData($user, $amount, $data),
             UserBalanceEnum::Transfer->value => $this->validateTransferBalanceData($user, $amount, $data),
             UserBalanceEnum::Payment->value => $this->validatePaymentBalanceData($user, $amount, $data),
+            UserBalanceEnum::Investment->value => $this->validateInvestmentBalanceData($user, $amount, $data),
             default => false,
         };
     }
@@ -257,6 +258,26 @@ class UserBalanceService extends BaseService implements UserBalanceServiceInterf
         if (!$user->is_active) {
             throw new AppException('user is inactive');
         }
+
+        return true;
+    }
+
+    /**
+     * Validate investment balance
+     * @param User $user
+     * @param float $amount
+     * @param array $data
+     * @return bool
+     */
+    private function validateInvestmentBalanceData(User $user, float $amount, array $data): bool
+    {
+        // Investments must check available_balance
+        $availableBalance = (float) ($user->available_balance ?? 0);
+
+        if ($availableBalance < $amount) {
+            throw new AppException('Sorry we unable to proccess your request at the moment due to insufficient balance');
+        }
+
 
         return true;
     }
