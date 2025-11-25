@@ -171,9 +171,9 @@ class PaymentWasCompleted extends BaseNotificationEvent implements ShouldDispatc
     /**
      * Get the notifiable
      *
-     * @return Model
+     * @return ?User
      */
-    public function getNotifiable(): Model
+    public function getNotifiable(): ?User
     {
         return UserRepositoryFacade::getModelById($this->getUserIdByPayableType());
     }

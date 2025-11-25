@@ -20,7 +20,7 @@ use App\Core\Traits\LoadsRelationships;
 use App\Modules\Currency\Database\Models\Currency;
 use App\Modules\Pricing\Database\Models\Pricing;
 use App\Modules\User\Database\Models\User;
-
+use App\Modules\Category\Enums\CategoryType;
 #[UsePolicy(InvestmentPolicy::class)]
 class Investment extends Model implements TransactionContextInterface, OwnershipBased
 {
@@ -55,7 +55,6 @@ class Investment extends Model implements TransactionContextInterface, Ownership
             'type' => 'string',
             'risk' => 'string',
             'name' => 'string',
-            'currency_id' => 'integer',
         ];
     }
 
@@ -70,10 +69,11 @@ class Investment extends Model implements TransactionContextInterface, Ownership
             'entity_id' => $this->id,
             'amount' => $this->amount,
             'investment_type' => $this->pricing->name ?? 'unknown',
-            'category_id' => $this->category_id,
+            'category_id' => $request['category_id'] ?? 1,
             'entry_type' => $config['entry_type'],
             'status' => $config['status'],
             'narration' => $this->notes ?? 'N/A',
+            'currency_id' => $this->currency_id,
         ];
     }
 
@@ -98,7 +98,7 @@ class Investment extends Model implements TransactionContextInterface, Ownership
             'start_date' => $this->start_date?->toISOString(),
             'end_date' => $this->end_date?->toISOString(),
             'notes' => $this->notes,
-            'category_id' => $this->category_id, // Include category_id in metadata
+            'currency_id' => $this->currency_id,
         ];
     }
 

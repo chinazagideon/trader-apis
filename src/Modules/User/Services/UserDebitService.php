@@ -87,6 +87,7 @@ class UserDebitService extends BaseService implements UserDebitServiceInterface
     {
         return [
             UserPaymentTypes::Withdrawal->value,
+            UserPaymentTypes::Investment->value,
         ];
     }
 }

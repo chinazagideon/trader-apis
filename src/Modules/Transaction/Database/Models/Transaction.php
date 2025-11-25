@@ -33,6 +33,7 @@ class Transaction extends CoreModel implements TransactionContextInterface
         'entry_type',
         'total_amount',
         'status',
+        'currency_id',
     ];
 
     /**
@@ -43,10 +44,12 @@ class Transaction extends CoreModel implements TransactionContextInterface
     protected function casts(): array
     {
         return [
+            'total_amount' => 'decimal:8',
             'entry_type' => 'string',
             'status' => 'string',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
+            'currency_id' => 'integer',
         ];
     }
 
@@ -106,6 +109,7 @@ class Transaction extends CoreModel implements TransactionContextInterface
             'transaction_category_id' => $this->transaction_category_id,
             'transactable_type' => $this->transactable_type,
             'transactable_id' => $this->transactable_id,
+            'currency_id' => $this->currency_id,
         ];
     }
 
@@ -120,6 +124,7 @@ class Transaction extends CoreModel implements TransactionContextInterface
             'updated_at' => $this->updated_at?->toISOString(),
             'transactable_type' => $this->transactable_type,
             'transactable_id' => $this->transactable_id,
+            'currency_id' => $this->currency_id,
         ];
     }
 }

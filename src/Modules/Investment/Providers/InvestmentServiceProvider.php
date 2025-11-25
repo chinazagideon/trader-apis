@@ -7,6 +7,7 @@ use App\Modules\Investment\Services\InvestmentService;
 use Illuminate\Support\Facades\Gate;
 use App\Modules\Investment\Database\Models\Investment;
 use App\Modules\Investment\Policies\InvestmentPolicy;
+use App\Modules\Investment\Observer\InvestmentObserver;
 
 class InvestmentServiceProvider extends BaseModuleServiceProvider
 {
@@ -45,4 +46,14 @@ class InvestmentServiceProvider extends BaseModuleServiceProvider
     protected array $policies = [
         Investment::class => InvestmentPolicy::class,
     ];
+
+    /**
+     * Bootstrap the service provider.
+     */
+    public function boot(): void
+    {
+        parent::boot();
+
+        Investment::observe(InvestmentObserver::class);
+    }
 }

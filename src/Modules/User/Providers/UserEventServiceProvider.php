@@ -3,8 +3,10 @@
 namespace App\Modules\User\Providers;
 
 use App\Core\Providers\ModuleEventServiceProviderBase;
+use App\Modules\Investment\Events\InvestmentCreated;
 use App\Modules\Payment\Events\PaymentWasCompleted;
 use App\Modules\User\Listeners\UserPaymentWasCompletedListener;
+use App\Modules\User\Listeners\UpdateUserBalanceListener;
 
 class UserEventServiceProvider extends ModuleEventServiceProviderBase
 {
@@ -15,6 +17,9 @@ class UserEventServiceProvider extends ModuleEventServiceProviderBase
         PaymentWasCompleted::class => [
             UserPaymentWasCompletedListener::class,
         ],
+        InvestmentCreated::class => [
+            UpdateUserBalanceListener::class,
+        ],
     ];
 
     /**
@@ -24,5 +29,4 @@ class UserEventServiceProvider extends ModuleEventServiceProviderBase
     {
         parent::boot();
     }
-
 }

@@ -34,7 +34,7 @@ class InvestmentService extends BaseService
         return $this->executeServiceOperation(function () use ($data) {
 
             $this->validateUserBalance($data);
-            $response = parent::store($this->prepareData($data));
+            $response = parent::store($data);
 
             if (! $response->isSuccess()) {
                 throw new ServiceException($response->getMessage());
@@ -69,18 +69,7 @@ class InvestmentService extends BaseService
      */
     private function dispatcher(Model $model): void
     {
-        // Create event instance
-        $event = new InvestmentCreated($model, [
-            'created_by' => Auth::id(),
-            'source' => 'api',
-            'timestamp' => now()->toISOString(),
-            'request' => $model->toArray(),
-            'category_id' => $model->category_id ?? null,
-        ]);
 
-
-        // Dispatch using configurable EventDispatcher to honor env/queue/scheduled modes
-        $this->eventDispatcher->dispatch($event, 'investment_created');
         $this->eventDispatcher->dispatch(
             new InvestmentWasCreated(
                 $model,
@@ -90,16 +79,6 @@ class InvestmentService extends BaseService
         );
     }
 
-    /**
-     * Prepare data for investment creation
-     * @param array $data
-     * @return array
-     */
-    private function prepareData(array $data): array
-    {
-        unset($data['category_id']);
-        return $data;
-    }
 
     /**
      * Validate user balance

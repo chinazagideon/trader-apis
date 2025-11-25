@@ -10,16 +10,11 @@ use App\Core\Contracts\ConfigurableListenerInterface;
 use App\Core\Traits\ConfigurableListener;
 use App\Modules\Transaction\Events\TransactionWasCreated;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use App\Core\Exceptions\AppException;
 
-class CreateTransactionForEntity implements ConfigurableListenerInterface, ShouldQueue
+class CreateTransactionForEntity implements ShouldQueue
 {
-    use ConfigurableListener;
 
-    /**
-     * Configuration keys for this listener
-     */
-    protected ?string $eventConfigKey = null;
-    protected string $listenerConfigKey = 'create_transaction';
 
     /**
      * The number of times the job may be attempted.
@@ -52,11 +47,11 @@ class CreateTransactionForEntity implements ConfigurableListenerInterface, Shoul
         private TransactionContextFactory $contextFactory
     ) {
         // Initialize queue properties from configuration
-        $this->tries = $this->getTries();
-        $this->backoff = $this->getBackoff();
-        $this->timeout = $this->getTimeout();
-        $this->connection = $this->getQueueConnection();
-        $this->queue = $this->getQueue();
+        // $this->tries = $this->getTries();
+        // $this->backoff = $this->getBackoff();
+        // $this->timeout = $this->getTimeout();
+        // $this->connection = $this->getQueueConnection();
+        // $this->queue = $this->getQueue();
     }
 
     /**
@@ -64,20 +59,13 @@ class CreateTransactionForEntity implements ConfigurableListenerInterface, Shoul
      */
     public function handle(EntityTransactionEvent $event): void
     {
+        \Illuminate\Support\Facades\Log::info('CreateTransactionForEntity event received', [
+            'event' => $event,
+            'metadata' => $event->getMetadata(),
+        ]);
         $tracking = $this->logger->startPerformanceTracking();
 
         try {
-            $this->logger->logOperation(
-                'CreateTransactionForEntity',
-                'handle',
-                'start',
-                "Starting transaction creation",
-                [
-                    'event' =>  json_encode($event),
-                    'operation' => $event->operation,
-                ]
-            );
-
             // Create transaction data using context factory
             $transactionData = $this->contextFactory->createTransactionData(
                 $event->entity,
@@ -90,8 +78,6 @@ class CreateTransactionForEntity implements ConfigurableListenerInterface, Shoul
             // Create transaction
             $response = $this->transactionService->store($strippedCategoryIdData);
 
-            // Dispatch TransactionWasCreated event
-            event(new TransactionWasCreated($response->getData(), $event->getMetadata()));
 
             // Log event dispatch for debugging
             $this->logger->logOperation(
@@ -101,9 +87,10 @@ class CreateTransactionForEntity implements ConfigurableListenerInterface, Shoul
                 "TransactionWasCreated event dispatched",
                 [
                     'event' =>  json_encode($event),
-                'transaction_id' => $response->getData()->id ?? null,
-                'metadata' => $event->getMetadata(),
-            ]);
+                    'transaction_id' => $response->getData()->id ?? null,
+                    'metadata' => $event->getMetadata(),
+                ]
+            );
 
             if (! $response->isSuccess()) {
                 $this->logger->logOperation(
@@ -118,8 +105,11 @@ class CreateTransactionForEntity implements ConfigurableListenerInterface, Shoul
                     ]
                 );
 
-                throw new \Exception($response->getMessage());
+                throw new AppException($response->getMessage());
             }
+
+            // Dispatch TransactionWasCreated event
+            // event(new TransactionWasCreated($response->getData(), $event->getMetadata()));
         } catch (\Exception $e) {
             $this->logger->logOperation(
                 'CreateTransactionForEntity',

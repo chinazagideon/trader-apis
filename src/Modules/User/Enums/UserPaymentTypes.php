@@ -6,7 +6,7 @@ enum UserPaymentTypes: string
 {
     case Funding = 'funding';
     case Withdrawal = 'withdrawal';
-
+    case Investment = 'investment';
     /**
      * Get the label for the user payment type
      * @return string
@@ -16,6 +16,7 @@ enum UserPaymentTypes: string
         return match($this) {
             self::Funding => 'Funding',
             self::Withdrawal => 'Withdrawal',
+            self::Investment => 'Investment',
             default => 'Unknown',
         };
     }

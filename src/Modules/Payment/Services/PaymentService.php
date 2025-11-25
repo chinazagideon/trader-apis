@@ -12,6 +12,8 @@ use App\Core\Services\EventDispatcher;
 use App\Modules\Payment\Database\Models\Payment;
 use Illuminate\Support\Facades\Log;
 use App\Core\Exceptions\NotFoundException;
+use App\Modules\Payment\Events\CreatePaymentTransactionEvent;
+use Illuminate\Database\Eloquent\Model;
 
 class PaymentService extends BaseService
 {
@@ -29,9 +31,21 @@ class PaymentService extends BaseService
         $data = $this->preparePaymentData($data);
 
         $response = parent::store($data);
+        Log::info('PaymentService: Payment response', [
+            'response' => $response,
+            'data' => $data,
+        ]);
 
         // Return response with custom message if successful
         if ($response->isSuccess()) {
+            $payment = $response->getData();
+            Log::info('PaymentService: Dispatching create payment transaction event', [
+                'payment' => $payment,
+            ]);
+            // $this->eventDispatcher->dispatch(
+            //     new CreatePaymentTransactionEvent($payment),
+            //     'create_payment_transaction'
+            // );
             return ServiceResponse::success($response->getData(), 'Payment created successfully');
         }
 
@@ -63,8 +77,14 @@ class PaymentService extends BaseService
      */
     public function makePayment(array $data): ServiceResponse
     {
+        Log::info('PaymentService: Making payment', [
+            'data' => $data,
+        ]);
         return $this->executeServiceOperation(function () use ($data) {
             $result = $this->store($data);
+            Log::info('PaymentService: Payment result', [
+                'result' => $result,
+            ]);
             return $result;
         }, 'make payment');
     }
@@ -93,7 +113,7 @@ class PaymentService extends BaseService
     public function updatePaymentStatus(int $id, PaymentStatusEnum $status): object
     {
         $payment = $this->PaymentRepository->findOrFail($id);
-        if($payment->status === PaymentStatusEnum::COMPLETED->value) {
+        if ($payment->status === PaymentStatusEnum::COMPLETED->value) {
             throw new \Exception('Payment already completed');
         }
 
@@ -149,6 +169,11 @@ class PaymentService extends BaseService
             new PaymentWasCompleted($payment),
             'payment_was_completed'
         );
+
+        // $this->eventDispatcher->dispatch(
+        //     new CreatePaymentTransactionEvent($payment),
+        //     'create_payment_transaction'
+        // );
     }
 
     /**
@@ -199,5 +224,14 @@ class PaymentService extends BaseService
     private function generatePaymentUuid(): string
     {
         return (string) Str::uuid();
+    }
+
+    protected function completed(array $data, Model $model, string $operation = 'store|update|destroy'): void
+    {
+        Log::info('PaymentService: Completed payment method', [
+            'data' => $data,
+            'model' => $model,
+            'operation' => $operation,
+        ]);
     }
 }

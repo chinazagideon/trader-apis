@@ -31,12 +31,12 @@ class PaymentRepository extends BaseRepository implements MorphRepositoryInterfa
         return ['currency', 'payable'];
     }
 
-    // /**
-    //  * Get the payments
-    //  * @param array $filters
-    //  * @param int $perPage
-    //  * @return LengthAwarePaginator
-    //  */
+    /**
+     * Get the payments
+     * @param array $filters
+     * @param int $perPage
+     * @return LengthAwarePaginator
+     */
     public function getPayments(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         $query = $this->queryWithPolicyFilter($filters);
