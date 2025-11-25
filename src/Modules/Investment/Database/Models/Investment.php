@@ -42,7 +42,6 @@ class Investment extends Model implements TransactionContextInterface, Ownership
         'start_date',
         'end_date',
         'notes',
-        'category_id',
     ];
 
     protected function casts(): array
@@ -57,7 +56,6 @@ class Investment extends Model implements TransactionContextInterface, Ownership
             'risk' => 'string',
             'name' => 'string',
             'currency_id' => 'integer',
-            'category_id' => 'integer',
         ];
     }
 

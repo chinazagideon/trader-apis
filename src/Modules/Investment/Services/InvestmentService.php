@@ -31,7 +31,8 @@ class InvestmentService extends BaseService
     {
         return $this->executeServiceOperation(function () use ($data) {
 
-            $response = parent::store($data);
+
+            $response = parent::store($this->prepareData($data));
 
             if (! $response->isSuccess()) {
                 throw new ServiceException($response->getMessage());
@@ -85,5 +86,16 @@ class InvestmentService extends BaseService
             ),
             'investment_was_created'
         );
+    }
+
+    /**
+     * Prepare data for investment creation
+     * @param array $data
+     * @return array
+     */
+    private function prepareData(array $data): array
+    {
+        unset($data['category_id']);
+        return $data;
     }
 }
