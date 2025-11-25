@@ -30,6 +30,7 @@ class CreateRequest extends FormRequest
             'type' => 'string|nullable',
             'risk' => 'string|nullable',
             'name' => 'string|nullable',
+            'currency_id' => 'required|integer|min:1|exists:currencies,id',
         ];
     }
 
