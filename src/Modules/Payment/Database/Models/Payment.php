@@ -10,6 +10,7 @@ use App\Modules\Currency\Database\Models\Currency;
 use App\Modules\Notification\Traits\Notifiable;
 use App\Modules\Payment\Traits\BelongsToPayable;
 use App\Core\Traits\HasClientScope;
+use App\Core\Traits\HasClientApp;
 use App\Core\Contracts\TransactionContextInterface;
 use App\Modules\Category\Enums\CategoryType;
 
@@ -19,7 +20,9 @@ class Payment extends CoreModel implements TransactionContextInterface
     use HasUuid;
     use Notifiable;
     use BelongsToPayable;
-    // use HasClientScope;
+    use HasClientScope;
+    use HasClientApp;
+
 
     /**
      * The attributes that are mass assignable.

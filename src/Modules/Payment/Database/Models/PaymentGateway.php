@@ -5,12 +5,16 @@ namespace App\Modules\Payment\Database\Models;
 use App\Core\Models\CoreModel;
 use App\Core\Traits\HasTimestamps;
 use App\Core\Traits\HasUuid;
+use App\Core\Traits\HasClientApp;
+use App\Core\Traits\HasClientScope;
 
 class PaymentGateway extends CoreModel
 {
-    use HasTimestamps, HasUuid;
+    use HasTimestamps;
+    use HasUuid;
+    use HasClientApp;
+    use HasClientScope;
 
-   
 
     protected $fillable = [
         'uuid',
@@ -24,6 +28,7 @@ class PaymentGateway extends CoreModel
         'supported_currencies',
         'credentials',
         'is_active',
+        'client_id',
     ];
 
     protected function casts(): array

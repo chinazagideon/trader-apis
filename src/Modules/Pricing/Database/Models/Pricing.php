@@ -4,6 +4,7 @@ namespace App\Modules\Pricing\Database\Models;
 
 use App\Core\Models\CoreModel;
 use App\Core\Traits\HasClientScope;
+use App\Core\Traits\HasClientApp;
 use App\Core\Traits\HasTimestamps;
 use App\Core\Traits\HasUuid;
 
@@ -13,6 +14,7 @@ class Pricing extends CoreModel
     use HasTimestamps;
     use HasUuid;
     use HasClientScope;
+    use HasClientApp;
 
     protected $table = 'pricings';
 

@@ -6,10 +6,15 @@ use App\Core\Models\CoreModel;
 use App\Core\Traits\HasTimestamps;
 use App\Core\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Core\Traits\HasClientApp;
+use App\Core\Traits\HasClientScope;
 
 class PaymentProcessor extends CoreModel
 {
-    use HasTimestamps, HasUuid;
+    use HasTimestamps;
+    use HasUuid;
+    use HasClientApp;
+    use HasClientScope;
 
     protected $fillable = [
         'uuid',
@@ -25,6 +30,7 @@ class PaymentProcessor extends CoreModel
         'status',
         'processor_data',
         'payment_hash',
+        'client_id',
     ];
 
     protected function casts(): array

@@ -12,11 +12,15 @@ use App\Modules\User\Database\Models\User;
 use App\Modules\Currency\Database\Models\Currency;
 use App\Modules\Funding\Enums\FundingType;
 use App\Modules\Payment\Traits\HasPayments;
-
+use App\Core\Traits\HasClientScope;
+use App\Core\Traits\HasClientApp;
 class Funding extends Model implements OwnershipBased
 {
-    use HasTimestamps, HasUuid;
+    use HasTimestamps;
+    use HasUuid;
     use HasPayments;
+    use HasClientScope;
+    use HasClientApp;
 
     /**
      * The attributes that are mass assignable.
@@ -33,6 +37,7 @@ class Funding extends Model implements OwnershipBased
         'status',
         'notes',
         'type',
+        'client_id',
     ];
 
     /**

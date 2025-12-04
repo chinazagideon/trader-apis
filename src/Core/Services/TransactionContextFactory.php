@@ -19,6 +19,7 @@ class TransactionContextFactory
      */
     public function createTransactionData(TransactionContextInterface $entity, string $operation = 'create', array $additionalContext = []): array
     {
+
         $entityType = $entity->getTransactionEntityType();
         $context = $entity->getTransactionContext($operation);
         $metadata = $entity->getTransactionMetadata();
@@ -79,6 +80,7 @@ class TransactionContextFactory
 
         return match ($entityType) {
             'investment' => $this->buildInvestmentTransactionData($context, $baseData),
+            'payment' => $this->buildPaymentTransactionData($context, $baseData),
             'user' => $this->buildUserTransactionData($context, $baseData),
             default => $this->buildDefaultTransactionData($context, $baseData),
         };
@@ -100,6 +102,7 @@ class TransactionContextFactory
             'narration' => $context['narration'] ?? 'N/A',
             'entry_type' => $context['entry_type'],
             'total_amount' => $context['amount'] ?? 0,
+            'currency_id' => $context['currency_id'],
             'status' => $context['status'],
             'metadata' => array_merge($baseData['metadata'], [
                 'source' => 'investment_created_event',
@@ -144,6 +147,8 @@ class TransactionContextFactory
             'entry_type' => $context['entry_type'] ?? 'unknown',
             'total_amount' => $context['amount'] ?? 0,
             'status' => $context['status'] ?? 'unknown',
+            'currency_id' => $context['currency_id'],
+
             'metadata' => array_merge($baseData['metadata'], [
                 'source' => 'generic_event',
             ]),
@@ -168,5 +173,23 @@ class TransactionContextFactory
         $action = $context['action'] ?? 'registration';
         $amount = $context['amount'] ?? 0;
         return "User {$action}: $" . number_format($amount, 2);
+    }
+
+    /**
+     * Build transaction data for payment entities
+     */
+    private function buildPaymentTransactionData(array $context, array $baseData): array
+    {
+        return array_merge($baseData, [
+            'transaction_category_id' => $context['category_id'] ?? 1,
+            'narration' => $context['narration'] ?? 'N/A',
+            'entry_type' => $context['entry_type'] ?? 'unknown',
+            'total_amount' => $context['amount'] ?? 0,
+            'status' => $context['status'] ?? 'pending',
+            'currency_id' => $context['currency_id'],
+            'metadata' => array_merge($baseData['metadata'], [
+                'source' => 'payment_created_event',
+            ]),
+        ]);
     }
 }

@@ -39,6 +39,7 @@ class UserResource extends JsonResource
             'available_balance' => $this->available_balance,
             'total_commission' => $this->total_commission,
             'avatar' => $this->avatar,
+            'client_id' => $this->whenLoaded('client')
         ];
     }
 }

@@ -21,6 +21,8 @@ use App\Modules\Currency\Database\Models\Currency;
 use App\Modules\Pricing\Database\Models\Pricing;
 use App\Modules\User\Database\Models\User;
 use App\Modules\Category\Enums\CategoryType;
+use App\Core\Traits\HasClientScope;
+use App\Core\Traits\HasClientApp;
 #[UsePolicy(InvestmentPolicy::class)]
 class Investment extends Model implements TransactionContextInterface, OwnershipBased
 {
@@ -28,6 +30,9 @@ class Investment extends Model implements TransactionContextInterface, Ownership
     use BelongsToUser;
     use HasUuid;
     use Notifiable;
+    use HasClientScope;
+    use HasClientApp;
+
 
     protected $fillable = [
         'uuid',
@@ -42,6 +47,7 @@ class Investment extends Model implements TransactionContextInterface, Ownership
         'start_date',
         'end_date',
         'notes',
+        'client_id',
     ];
 
     protected function casts(): array

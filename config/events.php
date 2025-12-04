@@ -222,6 +222,7 @@ return [
                     'tries' => env('EVENT_WITHDRAWAL_PAYMENT_TRIES', 3),
                     'backoff' => [30, 60, 120],
                 ],
+
             ]
         ],
         'user_was_created' => [
@@ -234,6 +235,21 @@ return [
                     'mode' => env('EVENT_NOTIFICATION_MODE', 'queue'),
                     'queue' => env('EVENT_NOTIFICATION_QUEUE', 'notifications'),
                     'tries' => env('EVENT_NOTIFICATION_TRIES', 3),
+                    'backoff' => [30, 60, 120],
+                ],
+            ],
+        ],
+        'payment_created' => [
+            'class' => \App\Modules\Payment\Events\CreatePaymentTransactionEvent::class,
+            'mode' => env('EVENT_TRANSACTION_MODE', 'queue'),
+            'queue' => env('EVENT_TRANSACTION_QUEUE', 'default'),
+            'priority' => 'high',
+            'listeners' => [
+                'create_transaction' => [
+                    'class' => \App\Modules\Transaction\Listeners\CreateTransactionForEntity::class,
+                    'mode' => env('EVENT_TRANSACTION_MODE', 'queue'),
+                    'queue' => env('EVENT_TRANSACTION_QUEUE', 'default'),
+                    'tries' => env('EVENT_TRANSACTION_TRIES', 3),
                     'backoff' => [30, 60, 120],
                 ],
             ],

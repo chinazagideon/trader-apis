@@ -124,6 +124,10 @@ class User extends Authenticatable implements JWTSubject
      */
     public function hasPermission(string $permission, array $actions = []): bool
     {
+        if ($this->role_id === RolesEnum::SUPER_ADMIN->value) { // Super Admin
+            return true;
+        }
+
         if ($this->role_id === RolesEnum::ADMIN->value) { // Admin
             return true;
         }

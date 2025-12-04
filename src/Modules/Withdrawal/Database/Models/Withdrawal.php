@@ -15,9 +15,15 @@ use App\Core\Contracts\OwnershipBased;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use App\Modules\Withdrawal\Enums\WithdrawalTypes;
 use App\Modules\Payment\Traits\HasPayments;
+use App\Core\Traits\HasClientScope;
+use App\Core\Traits\HasClientApp;
 class Withdrawal extends Model implements HasStatus, OwnershipBased
 {
-    use HasTimestamps, HasUuid, HasPayments;
+    use HasTimestamps;
+    use HasUuid;
+    use HasPayments;
+    use HasClientScope;
+    use HasClientApp;
 
 
     protected $fillable = [
@@ -32,6 +38,7 @@ class Withdrawal extends Model implements HasStatus, OwnershipBased
         'type',
         'status',
         'notes',
+        'client_id',
     ];
 
     protected function casts(): array
