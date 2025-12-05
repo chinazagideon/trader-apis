@@ -141,6 +141,7 @@ class WithdrawalWasCompleted extends BaseNotificationEvent implements ShouldDisp
             'fiat_amount' => $this->withdrawal->fiat_amount,
             'status' => $this->withdrawal->status,
             'notes' => $this->withdrawal->notes,
+            'client_id' => $this->withdrawal->client_id ?? null,
         ];
     }
 

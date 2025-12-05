@@ -147,11 +147,12 @@ class FundingWasCompleted extends BaseNotificationEvent implements ShouldDispatc
             'uuid' => $this->funding->uuid,
             'fundable_id' => $this->funding->fundable_id,
             'fundable_type' => $this->funding->fundable_type,
-            'amount' => $this->funding->amount, 
+            'amount' => $this->funding->amount,
             'fiat_amount' => $this->funding->fiat_amount,
             'status' => $this->funding->status,
             'currency' => $this->funding->currency ?? null,
             'fiat_currency' => $this->funding->fiatCurrency ?? null,
+            'client_id' => $this->funding->client_id ?? null,
         ];
     }
 }

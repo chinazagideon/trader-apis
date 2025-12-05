@@ -53,6 +53,7 @@ class WithdrawalWasCompletedListener implements ConfigurableListenerInterface, S
                 'amount' => $event->withdrawal->amount,
                 'currency_id' => $event->withdrawal->currency_id,
                 'status' => PaymentStatusEnum::defaultStatus(),
+                'client_id' => $event->withdrawal->client_id ?? null,
             ];
 
             $this->paymentService->makePayment($data);

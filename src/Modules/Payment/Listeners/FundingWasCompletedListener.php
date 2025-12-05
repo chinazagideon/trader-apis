@@ -42,6 +42,7 @@ class FundingWasCompletedListener implements ConfigurableListenerInterface, Shou
                 'amount' => $event->funding->amount,
                 'currency_id' => $event->funding->currency_id,
                 'status' => PaymentStatusEnum::defaultStatus(),
+                'client_id' => $event->funding->client_id ?? null,
             ];
 
             $this->paymentService->makePayment($data);
