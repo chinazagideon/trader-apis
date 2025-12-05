@@ -16,6 +16,10 @@ class PaymentGateway extends CoreModel
     use HasClientScope;
 
 
+    /**
+     * The fillable attributes.
+     * @return array
+     */
     protected $fillable = [
         'uuid',
         'name',
@@ -31,6 +35,10 @@ class PaymentGateway extends CoreModel
         'client_id',
     ];
 
+    /**
+     * The attributes that should be cast.
+     * @return array
+     */
     protected function casts(): array
     {
         return [
@@ -39,7 +47,7 @@ class PaymentGateway extends CoreModel
             'is_active' => 'boolean',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
-            'instructions' => 'array',
+            'instructions' => 'array',  
         ];
     }
 }

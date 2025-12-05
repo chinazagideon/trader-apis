@@ -51,7 +51,7 @@ class PaymentGatewayController extends CrudController
     protected function beforeUpdate(array $data, Request $request, $id): array
     {
 
-        $this->paymentGatewayService->validateUpdateRequest($data, $id);
+        // $this->paymentGatewayService->validateUpdateRequest($data, $id);
         // Only disable if the current gateway is being activated
         if (($data['is_active'] ?? false) === true) {
 

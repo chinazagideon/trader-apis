@@ -17,9 +17,9 @@ class PaymentGatewayCreateResource extends JsonResource
             'mode' => $this->mode,
             'type' => $this->type,
             'is_traditional' => $this->is_traditional,
-            'instructions' => $this->instructions,
-            'supported_currencies' => $this->supported_currencies,
-            'credentials' => $this->credentials,
+            'instructions' => $this->instructions ?? [],  // Always return as array
+            'supported_currencies' => $this->supported_currencies ?? [],  // Always return as array
+            // 'credentials' => $this->credentials ?? [],  // Always return as array
             'is_active' => $this->is_active,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

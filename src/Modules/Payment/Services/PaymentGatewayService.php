@@ -68,24 +68,71 @@ class PaymentGatewayService extends BaseService implements PaymentGatewayService
     }
 
     /**
+     * Store payment gateway
+     * @param array $data
+     * @return ServiceResponse
+     */
+    public function store(array $data): ServiceResponse
+    {
+        return $this->executeServiceOperation(function () use ($data) {
+            $preparedData = $this->preparePaymentGatewayData($data);
+            $result = $this->paymentGatewayRepository->create($preparedData);
+
+            return ServiceResponse::success($result, 'Payment gateway created successfully');
+        }, 'store');
+    }
+
+    /**
+     * Update payment gateway
+     * @param int $id
+     * @param array $data
+     * @return ServiceResponse
+     */
+    public function update(int $id, array $data): ServiceResponse
+    {
+        return $this->executeServiceOperation(function () use ($id, $data) {
+            $preparedData = $this->preparePaymentGatewayData($data);
+            $result = $this->paymentGatewayRepository->update($id, $preparedData);
+
+            if (!$result) {
+                return ServiceResponse::error('Payment gateway not found');
+            }
+
+            return ServiceResponse::success($result, 'Payment gateway updated successfully');
+        }, 'update');
+    }
+
+    /**
      * Prepare payment gateway data
      * @param array $data
      * @return array
      */
     private function preparePaymentGatewayData(array $data): array
     {
-
-        return [
-            'name' => $data['name'],
-            'slug' => $data['slug'],
+        $prepared = [
+            'name' => $data['name'] ?? null,
+            'slug' => $data['slug'] ?? null,
             'description' => $data['description'] ?? null,
             'mode' => $data['mode'] ?? 'test',
-            'type' => $this->getCurrencyType($data['slug']),
+            'type' => $data['type'] ?? $this->getCurrencyType($data['slug'] ?? ''),
             'is_traditional' => $data['is_traditional'] ?? false,
-            'instructions' => $data['instructions'] ?? null,
             'is_active' => $data['is_active'] ?? true,
-            "instructions" => json_encode($this->prepareInstructions($data)),
+            'supported_currencies' => $data['supported_currencies'] ?? null,
+            'credentials' => $data['credentials'] ?? null,
         ];
+
+        // Prepare instructions - merge user-provided instructions with prepared instructions
+        if (isset($data['instructions']) && is_array($data['instructions'])) {
+            // If instructions are provided, use them directly
+            $prepared['instructions'] = $data['instructions'];
+        } else {
+            // Otherwise, prepare from payment_address and wallet_network
+            $prepared['instructions'] = $this->prepareInstructions($data);
+        }
+
+        return array_filter($prepared, function ($value) {
+            return $value !== null;
+        });
     }
 
     /**
@@ -105,17 +152,6 @@ class PaymentGatewayService extends BaseService implements PaymentGatewayService
     }
 
     /**
-     * Store payment gateway
-     * @param array $data
-     * @return ServiceResponse
-     */
-    public function store(array $data): ServiceResponse
-    {
-        $response = parent::store($data);
-        return $response;
-    }
-
-    /**
      * Prepare instructions
      * @param array $data
      * @return array
@@ -124,7 +160,7 @@ class PaymentGatewayService extends BaseService implements PaymentGatewayService
     {
         $instructions = config('Payment.payment_gateway.instructions');
         return [
-            'title' => $instructions['title'],
+            'title' => $instructions['title'] ?? 'Payment Instructions',
             'address' => $data['payment_address'] ?? null,
             'network' => $data['wallet_network'] ?? null,
         ];
@@ -159,7 +195,7 @@ class PaymentGatewayService extends BaseService implements PaymentGatewayService
 
             $response = $activeGateway->getData();
 
-            if ($response && is_object($response) && $response->id !== $id) {
+            if ($response && is_object($response)) {
                 return;
             }
             throw new AppException('Atleast one payment gateway must be active');

@@ -8,7 +8,6 @@ class PaymentGatewayShowResource extends JsonResource
 {
     public function toArray($request): array
     {
-
         return [
             'id' => $this->id,
             'uuid' => $this->uuid,
@@ -18,9 +17,9 @@ class PaymentGatewayShowResource extends JsonResource
             'mode' => $this->mode,
             'type' => $this->type,
             'is_traditional' => $this->is_traditional,
-            'instructions' => json_decode($this->instructions),
-            'supported_currencies' => json_decode($this->supported_currencies),
-            'credentials' => json_decode($this->credentials),
+            'instructions' => $this->instructions ?? [],
+            'supported_currencies' => $this->supported_currencies ?? [],
+            // 'credentials' => $this->credentials ?? [],
             'is_active' => $this->is_active,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
