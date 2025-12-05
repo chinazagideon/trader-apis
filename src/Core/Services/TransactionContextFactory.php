@@ -92,6 +92,11 @@ class TransactionContextFactory
     private function buildInvestmentTransactionData(array $context, array $baseData): array
     {
 
+        \Illuminate\Support\Facades\Log::info('buildInvestmentTransactionData', [
+            'context' => $context,
+            'baseData' => $baseData,
+            'metadata' => $baseData['metadata'],
+        ]);
         // Extract category_id from metadata request or direct metadata
         $categoryId = $baseData['metadata']['request']['category_id'] ??
             $baseData['metadata']['category_id'] ??
@@ -104,6 +109,7 @@ class TransactionContextFactory
             'total_amount' => $context['amount'] ?? 0,
             'currency_id' => $context['currency_id'],
             'status' => $context['status'],
+            'client_id' => $context['client_id'] ?? null, // Ensure it's explicitly set
             'metadata' => array_merge($baseData['metadata'], [
                 'source' => 'investment_created_event',
                 'investment_type' => $context['investment_type'] ?? 'unknown',
@@ -117,13 +123,18 @@ class TransactionContextFactory
      */
     private function buildUserTransactionData(array $context, array $baseData): array
     {
-
+        \Illuminate\Support\Facades\Log::info('buildUserTransactionData', [
+            'context' => $context,
+            'baseData' => $baseData,
+            'metadata' => $baseData['metadata'],
+        ]);
         return array_merge($baseData, [
             'transaction_category_id' => $context['category_id'],
             'narration' => $context['narration'] ?? 'N/A',
             'entry_type' => $context['entry_type'],
             'total_amount' => $context['amount'] ?? 0,
             'status' => $context['status'],
+            'client_id' => $context['client_id'],
             'metadata' => array_merge($baseData['metadata'], [
                 'source' => 'user_was_created_event',
                 'user_action' => $context['action'] ?? 'unknown',
@@ -187,6 +198,7 @@ class TransactionContextFactory
             'total_amount' => $context['amount'] ?? 0,
             'status' => $context['status'] ?? 'pending',
             'currency_id' => $context['currency_id'],
+            'client_id' => $context['client_id'],
             'metadata' => array_merge($baseData['metadata'], [
                 'source' => 'payment_created_event',
             ]),

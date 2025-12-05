@@ -15,10 +15,17 @@ use Illuminate\Database\Eloquent\Model;
 use App\Modules\Payment\Database\Models\Payment;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use App\Modules\Notification\Traits\Notifiable;
+use App\Core\Traits\HasClientScope;
+use App\Core\Traits\HasClientApp;
 class Transaction extends CoreModel implements TransactionContextInterface
 {
-    use HasTimestamps, HasUuid, HasTransactableTrait;
+    use HasTimestamps;
+    use HasUuid;
     use Notifiable;
+    use HasTransactableTrait;
+    use HasClientApp;
+    use HasClientScope;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -34,6 +41,7 @@ class Transaction extends CoreModel implements TransactionContextInterface
         'total_amount',
         'status',
         'currency_id',
+        'client_id',
     ];
 
     /**
@@ -50,6 +58,7 @@ class Transaction extends CoreModel implements TransactionContextInterface
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
             'currency_id' => 'integer',
+            'client_id' => 'integer',
         ];
     }
 
@@ -110,6 +119,7 @@ class Transaction extends CoreModel implements TransactionContextInterface
             'transactable_type' => $this->transactable_type,
             'transactable_id' => $this->transactable_id,
             'currency_id' => $this->currency_id,
+            'client_id' => $this->client_id,
         ];
     }
 
@@ -125,6 +135,7 @@ class Transaction extends CoreModel implements TransactionContextInterface
             'transactable_type' => $this->transactable_type,
             'transactable_id' => $this->transactable_id,
             'currency_id' => $this->currency_id,
+            'client_id' => $this->client_id,
         ];
     }
 }

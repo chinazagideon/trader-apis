@@ -80,6 +80,7 @@ class Investment extends Model implements TransactionContextInterface, Ownership
             'status' => $config['status'],
             'narration' => $this->notes ?? 'N/A',
             'currency_id' => $this->currency_id,
+            'client_id' => $this->client_id,
         ];
     }
 
@@ -105,6 +106,7 @@ class Investment extends Model implements TransactionContextInterface, Ownership
             'end_date' => $this->end_date?->toISOString(),
             'notes' => $this->notes,
             'currency_id' => $this->currency_id,
+            'client_id' => $this->client_id,
         ];
     }
 
