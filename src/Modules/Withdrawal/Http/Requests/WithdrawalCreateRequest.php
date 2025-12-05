@@ -35,6 +35,8 @@ class WithdrawalCreateRequest extends FormRequest
             'fiat_currency_id' => ['required', 'integer', 'min:1', 'exists:currencies,id'],
             'notes' => ['nullable', 'string', 'max:500'],
             'type' => ['required', 'string', new IsValidWithdrawalType()],
+            'method' => ['required', 'array'],
+            'method.*' => ['required', 'string']
         ];
     }
 
@@ -49,6 +51,7 @@ class WithdrawalCreateRequest extends FormRequest
                 'user_id' => $this->user()->id,
                 'withdrawable_type' => 'user',
                 'withdrawable_id' => $this->user()->id,
+
             ]);
         }
     }
@@ -68,6 +71,13 @@ class WithdrawalCreateRequest extends FormRequest
             'type.string' => 'The type must be a string.',
             'fiat_currency_id.required' => 'The fiat currency id is required.',
             'fiat_currency_id.exists' => 'The selected fiat currency does not exist.',
+            'method.required' => 'The method is required.',
+            'method.array' => 'The methods must be an array.',
+            'method.*.required' => 'The method is required.',
+            'method.*.string' => 'The method must be a string.',
+            'method.type.required' => 'The method type is required.',
+            'method.type.string' => 'The method type must be a string.',
+            'method.type.in' => 'The method type must be one of: bank, crypto.',
         ];
     }
 }

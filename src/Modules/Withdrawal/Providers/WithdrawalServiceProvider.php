@@ -34,7 +34,7 @@ class WithdrawalServiceProvider extends BaseModuleServiceProvider
     protected array $policies = [
         Withdrawal::class => WithdrawalPolicy::class,
     ];
-    
+
     /**
      * Bootstrap the application services.
      */

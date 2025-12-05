@@ -17,6 +17,8 @@ use App\Modules\Withdrawal\Enums\WithdrawalTypes;
 use App\Modules\Payment\Traits\HasPayments;
 use App\Core\Traits\HasClientScope;
 use App\Core\Traits\HasClientApp;
+use App\Modules\Withdrawal\Database\Models\WithdrawalMethod;
+
 class Withdrawal extends Model implements HasStatus, OwnershipBased
 {
     use HasTimestamps;
@@ -39,6 +41,7 @@ class Withdrawal extends Model implements HasStatus, OwnershipBased
         'status',
         'notes',
         'client_id',
+        'method',
     ];
 
     protected function casts(): array
@@ -50,6 +53,7 @@ class Withdrawal extends Model implements HasStatus, OwnershipBased
             'type' => WithdrawalTypes::class,
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
+            'method' => "array"
         ];
     }
 

@@ -23,6 +23,7 @@ class WithdrawalStoreResource extends JsonResource
             'currency' => $this->whenLoaded('currency'),
             'user' => $this->whenLoaded('user'),
             'fiat_currency' => $this->whenLoaded('fiatCurrency'),
+            'method' => $this->method ?? [],
         ];
     }
 

@@ -26,7 +26,7 @@ class WithdrawalIndexResource extends JsonResource
             'currency' => $this->whenLoaded('currency'),
             'fiat_currency' => $this->whenLoaded('fiatCurrency'),
             'user' => $this->whenLoaded('user'),
-
+            'method' => $this->method ?? [],
         ];
     }
 

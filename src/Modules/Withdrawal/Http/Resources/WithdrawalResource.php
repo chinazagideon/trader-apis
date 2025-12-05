@@ -27,7 +27,7 @@ class WithdrawalResource extends JsonResource
             'user' => $this->whenLoaded('user'),
             'currency' => $this->whenLoaded('currency'),
             'fiat_currency' => $this->whenLoaded('fiatCurrency'),
-
+            'method' => $this->method ?? [],
         ];
     }
 
