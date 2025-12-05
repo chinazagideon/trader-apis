@@ -32,7 +32,7 @@ class PaymentGatewayCreateRequest extends FormRequest
             'is_traditional' => 'sometimes|boolean',
             'payment_address' => 'sometimes|string',
             'wallet_network' => 'sometimes|string',
-            // 'instructions' => 'sometimes|array|nullable',
+            'instructions' => 'required|array|nullable',
             'supported_currencies' => 'sometimes|array|nullable',
             'credentials' => 'sometimes|array|nullable',
             'is_active' => 'sometimes|boolean',
