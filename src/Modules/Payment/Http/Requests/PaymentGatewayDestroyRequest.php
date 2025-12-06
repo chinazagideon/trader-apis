@@ -8,7 +8,7 @@ class PaymentGatewayDestroyRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->hasPermission('admin.all');
     }
 
     public function rules(): array
@@ -21,4 +21,3 @@ class PaymentGatewayDestroyRequest extends FormRequest
         return [];
     }
 }
-

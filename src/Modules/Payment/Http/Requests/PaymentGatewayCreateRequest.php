@@ -15,7 +15,7 @@ class PaymentGatewayCreateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('create', $this->user());
+        return $this->user()->hasPermission('admin.all');
     }
 
     /**

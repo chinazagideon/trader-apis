@@ -13,8 +13,7 @@ class PaymentGatewayUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
-        // return $this->user()->can('isAdmin', $this->user());
+        return $this->user()->hasPermission('admin.all');
     }
 
     /**
