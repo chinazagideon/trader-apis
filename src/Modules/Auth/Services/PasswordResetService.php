@@ -13,6 +13,7 @@ use App\Modules\User\Database\Models\User;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\RateLimiter;
 
 class PasswordResetService extends BaseService implements PasswordResetInterface
 {
@@ -26,29 +27,38 @@ class PasswordResetService extends BaseService implements PasswordResetInterface
      */
     public function sendResetLink(string $email): ServiceResponse
     {
+
         return $this->executeServiceOperation(function () use ($email) {
+            $key = 'password_reset:' . $email;
+
+            if (RateLimiter::tooManyAttempts($key, config('auth.password_reset.throttle', 3))) {
+                $seconds = RateLimiter::availableIn($key);
+                throw new BusinessLogicException("Too many reset attempts. Try again in {$seconds} seconds.");
+            }
+
+            RateLimiter::hit($key, config('auth.password_reset.throttle', 3600));
+
             $user = User::where('email', $email)->first();
 
             if (!$user) {
-                // Don't reveal if email exists or not for security
                 return ServiceResponse::success(null, 'If the email exists, a reset link has been sent');
             }
 
             // Clear existing reset tokens for this email
             PasswordReset::where('email', $email)->delete();
 
-            // Create new reset token
-            $token = strtoupper(Str::random(6));
-            PasswordReset::create([
+            $plainToken = strtoupper(Str::random(6));
+            $passwordReset = PasswordReset::create([
                 'email' => $email,
-                'token' => Hash::make($token),
-                'expires_at' => now()->addHours(1), // 1 hour expiry
+                'token' => Hash::make($plainToken),
+                'expires_at' => now()->addHours(1),
             ]);
-
-            // Send reset email (placeholder)
-            $this->sendResetEmail($user, $token);
-
-            $this->log('Password reset link sent', ['email' => $email]);
+            // emit reset password
+            event(new \App\Modules\Auth\Events\PasswordResetRequestedEvent(
+                $user,
+                $passwordReset,
+                $plainToken
+            ));
 
             return ServiceResponse::success(null, 'Password reset link sent successfully');
         }, 'send password reset link');
@@ -81,14 +91,13 @@ class PasswordResetService extends BaseService implements PasswordResetInterface
 
             // Update password
             $user->password = Hash::make($data['password']);
+            $user->save();
 
             // Mark token as used
             $passwordReset->markAsUsed();
 
             // Revoke all user tokens for security
             $user->tokens()->delete();
-
-            $this->log('Password reset successfully', ['user_id' => $user->id]);
 
             return ServiceResponse::success(null, 'Password reset successfully');
         }, 'reset password');
@@ -127,8 +136,6 @@ class PasswordResetService extends BaseService implements PasswordResetInterface
     {
         return $this->executeServiceOperation(function () {
             $deletedCount = PasswordReset::expired()->delete();
-
-            $this->log('Expired reset tokens cleared', ['count' => $deletedCount]);
 
             return ServiceResponse::success(['deleted_count' => $deletedCount], 'Expired tokens cleared successfully');
         }, 'clear expired tokens');

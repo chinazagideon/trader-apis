@@ -11,7 +11,7 @@ use App\Modules\User\Events\UserWasCreatedEvent;
 use App\Modules\Funding\Events\FundingWasCompleted;
 use App\Modules\Payment\Events\PaymentWasCompleted;
 use App\Modules\Withdrawal\Events\WithdrawalWasCompleted;
-
+use App\Modules\Auth\Events\PasswordResetRequestedEvent;
 
 class NotificationEventServiceProvider extends ModuleEventServiceProviderBase
 {
@@ -40,7 +40,9 @@ class NotificationEventServiceProvider extends ModuleEventServiceProviderBase
         WithdrawalWasCompleted::class => [
             SendEntityNotification::class,
         ],
-
+        PasswordResetRequestedEvent::class => [
+            SendEntityNotification::class,
+        ],
     ];
 
     /**

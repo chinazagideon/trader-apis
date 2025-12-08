@@ -257,6 +257,12 @@ return [
             'body' => 'Your withdrawal request has been completed.',
             'view' => 'notification::emails.withdrawal_completed',
         ],
+        'password_reset_requested' => [
+            'subject' => 'Password Reset Requested',
+            'title' => 'Password Reset Requested',
+            'body' => 'You have requested to reset your password. Use the code below to reset your password.',
+            'view' => 'notification::emails.password_reset_requested',
+        ],
     ],
 
     /*

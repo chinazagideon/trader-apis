@@ -156,6 +156,19 @@ class NotificationConfigSeeder extends Seeder
                 'is_active' => true,
                 'description' => 'Payment received notification template',
             ],
+            [
+                'type' => 'template',
+                'name' => 'password_reset_requested',
+                'channel' => 'mail',
+                'config' => [
+                    'subject' => 'Password Reset Requested',
+                    'body' => 'You have requested to reset your password. Use the code below to reset your password.',
+                    'sms_body' => 'You have requested to reset your password. Use the code below to reset your password. :code',
+                ],
+                'priority' => 0,
+                'is_active' => true,
+                'description' => 'Password reset requested notification template',
+            ],
         ];
 
         foreach ($configs as $config) {
