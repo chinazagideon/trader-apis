@@ -442,11 +442,11 @@ class ProviderManager
         $identity = $this->getNotificationIdentity($notifiable, 'mail');
 
         // 3. Resolve with priority: NotificationConfig → ClientSecret → Laravel config
-        $fromName = $configFromName
-            ?? $identity?->fromName
+        $fromName = $identity?->fromName
+            ?? $configFromName
             ?? config('mail.from.name');
-        $fromEmail = $configFromEmail
-            ?? $identity?->fromEmail
+        $fromEmail =  $identity?->fromEmail
+            ?? $configFromEmail
             ?? config('mail.from.address');
         $replyToEmail = $identity?->replyToEmail ?? $fromEmail;
         $replyToName = $identity?->replyToName ?? $fromName;
