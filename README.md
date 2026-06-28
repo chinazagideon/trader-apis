@@ -1,8 +1,6 @@
-# Payment Service APIs - Laravel Microservice Application
+# Multi Tenant Laravel Modular Monolith Fintech Backend Application
 
-A Secured robust, event-driven payment microservices system API key middleware for resource authorization and tenant isolation. Built with a modular, event-driven architecture for scalability and maintainability.
-
-## Core Architecture Principles
+## Core Architecture 
 
 This application follows three fundamental architectural patterns:
 
