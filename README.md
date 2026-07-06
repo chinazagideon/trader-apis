@@ -481,35 +481,6 @@ class ProductWasCreated extends BaseNotificationEvent {}
 php artisan module:make:migration Product create_products_table
 ```
 
----
-
-## Best Practices
-
-### Module Design
-- Keep modules focused on a single domain
-- Use contracts for all service interfaces
-- Minimize cross-module dependencies
-- Each module should be independently testable
-
-### Event Design
-- Events should represent domain events (things that happened)
-- Use descriptive event names (e.g., `UserWasCreated`, `InvestmentWasCreated`)
-- Events should contain all data needed by listeners
-- Store IDs, not full models, for serialization safety
-
-### Service Design
-- Services should implement interfaces
-- Use dependency injection, not facades
-- Keep services focused on business logic
-- Repositories handle data access
-
-### Testing
-- Mock interfaces, not concrete classes
-- Test modules in isolation
-- Use contracts for test doubles
-- Test event listeners separately
-
----
 
 ## Configuration
 
